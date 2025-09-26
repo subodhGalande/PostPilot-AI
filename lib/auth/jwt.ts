@@ -6,6 +6,20 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is not defined");
 }
 
-export const signToken = (payload: object): string => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
+export interface JwtPayload {
+  email: string;
+  name: string;
+  passwordHash: string;
+}
+
+export const signToken = (payload: JwtPayload): string => {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
+};
+
+export const verifyToken = (token: string): JwtPayload | null => {
+  try {
+    return jwt.verify(token, JWT_SECRET) as JwtPayload;
+  } catch (_err) {
+    return null;
+  }
 };

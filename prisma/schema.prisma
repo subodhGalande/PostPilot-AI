@@ -21,6 +21,7 @@ model User {
   passwordHash String?
   provider     Provider @default(CREDENTIALS)
   onboarding   Json?
+  verified     Boolean  @default(false)
   posts        Post[]
   createdAt    DateTime @default(now())
 }
