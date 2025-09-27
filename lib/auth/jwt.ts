@@ -7,9 +7,10 @@ if (!JWT_SECRET) {
 }
 
 export interface JwtPayload {
+  id?: string;
   email: string;
   name: string;
-  passwordHash: string;
+  passwordHash?: string;
 }
 
 export const signToken = (payload: JwtPayload): string => {

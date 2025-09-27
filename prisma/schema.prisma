@@ -16,7 +16,7 @@ datasource db {
 
 model User {
   id           String   @id @default(cuid())
-  name         String?
+  name         String
   email        String   @unique
   passwordHash String?
   provider     Provider @default(CREDENTIALS)
@@ -35,6 +35,16 @@ model Post {
   userId      String
   user        User       @relation(fields: [userId], references: [id])
   createdAt   DateTime   @default(now())
+}
+
+model VerificationToken {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  token        String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
 }
 
 enum Provider {
