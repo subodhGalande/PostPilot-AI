@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyPassword } from "@/lib/auth/auth";
 import { signToken } from "@/lib/auth/jwt";
+import { signTokenJose } from "@/lib/auth/jwtjose";
 import prisma from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const token = signToken({
+    const token = await signTokenJose({
       id: user.id,
       name: user.name,
       email: user.email,
@@ -48,6 +49,7 @@ export async function POST(req: Request) {
     //return token
     const response = NextResponse.json({ message: "login successful" });
     response.headers.set("Authorization", `Bearer ${token}`);
+    console.log(token);
 
     return response;
   } catch (_err) {

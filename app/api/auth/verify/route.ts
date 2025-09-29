@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth/jwt";
+import { verifyTokenJose } from "@/lib/auth/jwtjose";
 import prisma from "@/lib/prisma";
 
 export async function GET(req: Request) {
@@ -13,7 +14,7 @@ export async function GET(req: Request) {
     }
 
     //check if token is valid
-    const payload = verifyToken(token);
+    const payload = await verifyTokenJose(token);
     if (!payload) {
       return NextResponse.json({ error: "invalid token" }, { status: 401 });
     }
