@@ -47,6 +47,12 @@ model VerificationToken {
   createdAt    DateTime @default(now())
 }
 
+model RevokedToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  revokedAt DateTime @default(now())
+}
+
 enum Provider {
   CREDENTIALS
   GOOGLE

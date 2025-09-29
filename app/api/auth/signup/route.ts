@@ -1,8 +1,8 @@
+import { hashPassword } from "@/lib/auth/auth";
+import { signToken } from "@/lib/auth/jwt";
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import { signToken } from "@/lib/auth/jwt";
 import prisma from "@/lib/prisma";
-import { hashPassword } from "@/lib/auth/auth";
 
 const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     const token = signToken({ email, name });
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes from now
 
-    const createUnverifiedUser = await prisma.verificationToken.create({
+    await prisma.verificationToken.create({
       data: {
         email,
         name,

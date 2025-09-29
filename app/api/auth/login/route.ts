@@ -45,8 +45,13 @@ export async function POST(req: Request) {
       email: user.email,
     });
 
-    return NextResponse.json({ user, token });
+    //return token
+    const response = NextResponse.json({ message: "login successful" });
+    response.headers.set("Authorization", `Bearer ${token}`);
+
+    return response;
   } catch (_err) {
-    return NextResponse.json({ error: "login failed" }, { status: 500 });
+    console.log(_err);
+    return NextResponse.json({ error: "login failed", _err }, { status: 500 });
   }
 }
