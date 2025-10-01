@@ -2,6 +2,11 @@
 
 import prisma from "@/lib/prisma";
 
+interface User {
+  id: string;
+  email: string;
+}
+
 export default async function Home() {
   const users = await prisma.user.findMany();
   return (
@@ -10,7 +15,7 @@ export default async function Home() {
         Superblog
       </h1>
       <ol className="list-decimal list-inside font-[family-name:var(--font-geist-sans)]">
-        {users.map((user: any) => (
+        {users.map((user: User) => (
           <li key={user.id} className="mb-2 text-black">
             {user.email}
           </li>

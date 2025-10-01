@@ -1,5 +1,4 @@
 import { hashPassword } from "@/lib/auth/auth";
-import { signToken } from "@/lib/auth/jwt";
 import { signTokenJose } from "@/lib/auth/jwtjose";
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";

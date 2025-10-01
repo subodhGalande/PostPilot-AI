@@ -24,6 +24,8 @@ model User {
   verified     Boolean  @default(false)
   posts        Post[]
   createdAt    DateTime @default(now())
+
+  @@index([email])
 }
 
 model Post {
@@ -45,12 +47,6 @@ model VerificationToken {
   token        String   @unique
   expiresAt    DateTime
   createdAt    DateTime @default(now())
-}
-
-model RevokedToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  revokedAt DateTime @default(now())
 }
 
 enum Provider {

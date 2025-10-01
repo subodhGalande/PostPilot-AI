@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { verifyPassword } from "@/lib/auth/auth";
-import { signToken } from "@/lib/auth/jwt";
 import { signTokenJose } from "@/lib/auth/jwtjose";
 import prisma from "@/lib/prisma";
 
@@ -9,15 +8,7 @@ export async function POST(req: Request) {
     const { email, password } = await req.json();
 
     const user = await prisma.user.findUnique({ where: { email } });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "invalid credentials" },
-        { status: 401 },
-      );
-    }
-    // Check if user has a password hash
-    if (!user.passwordHash) {
+    if (!user || !user.passwordHash) {
       return NextResponse.json(
         { error: "invalid credentials" },
         { status: 401 },
@@ -32,7 +23,6 @@ export async function POST(req: Request) {
     }
 
     const isValid = await verifyPassword(user.passwordHash, password);
-
     if (!isValid) {
       return NextResponse.json(
         { error: "invalid credentials" },
@@ -46,14 +36,20 @@ export async function POST(req: Request) {
       email: user.email,
     });
 
-    //return token
     const response = NextResponse.json({ message: "login successful" });
-    response.headers.set("Authorization", `Bearer ${token}`);
-    console.log(token);
+    response.cookies.set({
+      name: "jwt",
+      value: token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60, // 1 hour
+      sameSite: "lax",
+    });
 
     return response;
-  } catch (_err) {
-    console.log(_err);
-    return NextResponse.json({ error: "login failed", _err }, { status: 500 });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "login failed" }, { status: 500 });
   }
 }

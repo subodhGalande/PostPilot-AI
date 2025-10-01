@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { verifyToken } from "@/lib/auth/jwt";
 import { verifyTokenJose } from "@/lib/auth/jwtjose";
 import prisma from "@/lib/prisma";
 
