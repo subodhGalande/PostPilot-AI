@@ -53,7 +53,10 @@ export async function POST(req: Request) {
       `,
     });
 
-    return NextResponse.json({ message: "verification email sent", mail });
+    return NextResponse.json(
+      { message: "verification email sent" },
+      { status: 200 }
+    );
   } catch (_err) {
     console.error("signup error: ", _err);
     return NextResponse.json({ error: "signup failed", _err }, { status: 500 });
