@@ -25,7 +25,7 @@ export async function GET(req: Request) {
     if (!tokenRecord) {
       return NextResponse.json(
         { error: "invalid or expired token" },
-        { status: 401 },
+        { status: 401 }
       );
     }
     // Check expiration
@@ -46,12 +46,8 @@ export async function GET(req: Request) {
 
     await prisma.verificationToken.delete({ where: { token } });
 
-    return NextResponse.json(
-      { message: "email verified successfully", user },
-      { status: 200 },
-    );
+    return NextResponse.redirect(new URL("/verified", req.url));
   } catch (_err) {
-    console.error("verify error", _err);
     return NextResponse.json({ error: "server error" }, { status: 500 });
   }
 }

@@ -37,7 +37,7 @@ const signupFormSchema = z.object({
     ),
 });
 
-export function SignupForm({
+export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
@@ -105,7 +105,7 @@ export function SignupForm({
             </a>
             <h1 className="text-xl font-bold">Welcome to Postpilot AI</h1>
             <FieldDescription>
-              Already have an account? <Link href="/login">Sign in</Link>
+              Don't have an account? <Link href="/login">Sign up</Link>
             </FieldDescription>
           </div>
           <Field className="gap-4">
