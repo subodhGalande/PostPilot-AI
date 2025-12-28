@@ -8,7 +8,7 @@ import argon2 from "argon2";
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  `${process.env.NEXTAUTH_URL}/api/auth/google/callback`,
+  `${process.env.NEXTAUTH_URL}/api/auth/google/callback`
 );
 
 export async function GET(req: Request) {
@@ -46,7 +46,7 @@ export async function GET(req: Request) {
 
   // Set HttpOnly cookie
   const response = NextResponse.redirect(
-    `${process.env.NEXTAUTH_URL}/dashboard`,
+    `${process.env.NEXTAUTH_URL}/dashboard`
   );
   response.cookies.set({
     name: "jwt",
