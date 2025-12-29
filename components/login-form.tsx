@@ -19,11 +19,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "sonner";
-
+import { useRouter } from "next/navigation";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 
-const signupFormSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters long"),
+const loginFormSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z
     .string()
@@ -41,23 +40,21 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const form = useForm<z.infer<typeof signupFormSchema>>({
-    resolver: zodResolver(signupFormSchema),
+  const form = useForm<z.infer<typeof loginFormSchema>>({
+    resolver: zodResolver(loginFormSchema),
     defaultValues: {
-      name: "",
       email: "",
       password: "",
     },
   });
+  const router = useRouter();
 
   const queryClient = useQueryClient();
 
-  const signupMutation = useMutation({
-    mutationKey: ["signup"],
-    mutationFn: async (
-      data: z.infer<typeof signupFormSchema>
-    ): Promise<any> => {
-      const res = await fetch("/api/auth/signup", {
+  const loginMutation = useMutation({
+    mutationKey: ["login"],
+    mutationFn: async (data: z.infer<typeof loginFormSchema>): Promise<any> => {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -69,25 +66,31 @@ export function LoginForm({
     },
     onSuccess: (data) => {
       switch (data.message) {
-        case "user already exists":
-          toast.error("User already exists. Please sign in.");
+        case "invalid credentials":
+          toast.error(
+            "credentials not valid. Check email/password and try again."
+          );
           break;
-        case "verification email sent":
-          toast.success("Verification email sent! Please check your inbox.");
-          form.reset();
+        case "user not verified":
+          toast.error("Verify email first");
+          break;
+        case "login successful":
+          toast.success("successfully verified");
+          router.push("/dashboard");
+
           break;
         default:
           toast.error("Unexpected response from server.");
       }
-      queryClient.invalidateQueries({ queryKey: ["signup"] });
+      queryClient.invalidateQueries({ queryKey: ["login"] });
     },
     onError: (error: any) => {
       toast.error(error?.message || "Unexpected response from server.");
     },
   });
 
-  const onSubmit = (data: z.infer<typeof signupFormSchema>) => {
-    signupMutation.mutate(data);
+  const onSubmit = (data: z.infer<typeof loginFormSchema>) => {
+    loginMutation.mutate(data);
   };
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -105,7 +108,7 @@ export function LoginForm({
             </a>
             <h1 className="text-xl font-bold">Welcome to Postpilot AI</h1>
             <FieldDescription>
-              Don't have an account? <Link href="/login">Sign up</Link>
+              Don't have an account? <Link href="/signup">Sign up</Link>
             </FieldDescription>
           </div>
           <Field className="gap-4">
@@ -128,26 +131,7 @@ export function LoginForm({
           </Field>
 
           <FieldSeparator>Or</FieldSeparator>
-          <Controller
-            name="name"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="name">Full Name</FieldLabel>
-                <Input
-                  {...field}
-                  id="name"
-                  type="text"
-                  aria-invalid={fieldState.invalid}
-                  placeholder="Enter your name"
-                  required
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
+
           <Controller
             name="email"
             control={form.control}
@@ -189,8 +173,8 @@ export function LoginForm({
             )}
           />
           <Field>
-            <Button type="submit" disabled={signupMutation.isPending}>
-              {signupMutation.isPending ? (
+            <Button type="submit" disabled={loginMutation.isPending}>
+              {loginMutation.isPending ? (
                 <svg
                   className="animate-spin -ml-1 mr-2 h-4 w-4"
                   xmlns="http://www.w3.org/2000/svg"
@@ -212,9 +196,7 @@ export function LoginForm({
                   ></path>
                 </svg>
               ) : null}
-              {signupMutation.isPending
-                ? "Sending Verification Mail..."
-                : "Create Account"}
+              {loginMutation.isPending ? "logging in..." : "Login"}
             </Button>
           </Field>
         </FieldGroup>

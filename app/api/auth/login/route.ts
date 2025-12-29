@@ -10,23 +10,23 @@ export async function POST(req: Request) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !user.passwordHash) {
       return NextResponse.json(
-        { error: "invalid credentials" },
-        { status: 401 },
+        { message: "invalid credentials" },
+        { status: 201 }
       );
     }
 
     if (!user.verified) {
       return NextResponse.json(
         { message: "user not verified" },
-        { status: 401 },
+        { status: 201 }
       );
     }
 
     const isValid = await verifyPassword(user.passwordHash, password);
     if (!isValid) {
       return NextResponse.json(
-        { error: "invalid credentials" },
-        { status: 401 },
+        { message: "invalid credentials" },
+        { status: 201 }
       );
     }
 
