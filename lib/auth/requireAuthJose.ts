@@ -1,4 +1,3 @@
-// lib/auth/requireAuthJose.ts
 import { cookies } from "next/headers";
 import { verifyTokenJose } from "./jwtjose";
 
