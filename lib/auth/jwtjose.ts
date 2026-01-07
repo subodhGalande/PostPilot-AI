@@ -21,7 +21,6 @@ export interface JoseJwtPayload {
   id?: string;
   email: string;
   name: string;
-  passwordHash?: string;
   [key: string]: unknown;
 }
 

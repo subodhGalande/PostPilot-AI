@@ -9,6 +9,8 @@ export default async function DashboardLayout({
 }) {
   const user = await requireAuthJose();
 
+  console.log(user)
+
   if (!user) {
     redirect("/login");
   }
