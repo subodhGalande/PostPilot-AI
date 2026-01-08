@@ -1,18 +1,15 @@
-import { redirect } from "next/navigation";
-import { requireAuthJose } from "@/lib/auth/requireAuthJose";
+"use client";
+
 import { LogoutButton } from "@/components/logout-button";
+import { useUser } from "@/app/context/userDetailsContext";
 
-export default async function DashboardPage() {
-  const user = await requireAuthJose();
-
-  if (!user) {
-    redirect("/login");
-  }
-
+export default function DashboardPage() {
+  const { user } = useUser();
+  console.log(user);
   return (
     <>
       <LogoutButton />
-      <div>Dashboard</div>
+      <div className="text-black"> {user?.id} </div>
     </>
   );
 }
