@@ -46,6 +46,7 @@ export async function POST(req: Request) {
       maxAge: 60 * 60, // 1 hour
       sameSite: "lax",
     });
+    
 
     return response;
   } catch (err) {
