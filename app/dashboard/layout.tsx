@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { requireAuthJose } from "@/lib/auth/requireAuthJose";
 import DashboardShell from "./dashboard-shell";
+import prisma from "@/lib/prisma";
+import { UserContextProvider } from "@/app/context/userDetailsContext";
 
 export default async function DashboardLayout({
   children,
@@ -9,11 +11,33 @@ export default async function DashboardLayout({
 }) {
   const user = await requireAuthJose();
 
-  console.log(user)
-
   if (!user) {
     redirect("/login");
   }
 
-  return <DashboardShell>{children}</DashboardShell>;
+  const userData = await prisma.user.findUnique({
+    where: {
+      id: user.id,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      provider: true,
+      onboarded: true,
+      industry: true,
+      accountType: true,
+      createdAt: true,
+    },
+  });
+
+  if (!userData) {
+    redirect("/login");
+  }
+
+  return (
+    <UserContextProvider user={userData}>
+      <DashboardShell>{children}</DashboardShell>
+    </UserContextProvider>
+  );
 }
