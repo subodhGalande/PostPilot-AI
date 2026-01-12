@@ -1,3 +1,5 @@
+"use client";
+
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   Breadcrumb,
@@ -14,11 +16,20 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
+import { useUser } from "../context/userDetailsContext";
+import { OnboardingDialog } from "@/components/onboarding-dialog";
+
 export default function DashboardShell({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { user } = useUser();
+
+  if (!user.onboarded) {
+    return <OnboardingDialog isOpen={true} />;
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />
