@@ -32,7 +32,7 @@ const loginFormSchema = z.object({
     .regex(/[0-9]/, "Password must contain at least one number")
     .regex(
       /[!@#$%^&*(),.?":{}|<>]/,
-      "Password must contain at least one special character"
+      "Password must contain at least one special character",
     ),
 });
 
@@ -68,7 +68,7 @@ export function LoginForm({
       switch (data.message) {
         case "invalid credentials":
           toast.error(
-            "credentials not valid. Check email/password and try again."
+            "credentials not valid. Check email/password and try again.",
           );
           break;
         case "user not verified":

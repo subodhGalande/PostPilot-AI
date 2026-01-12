@@ -33,7 +33,7 @@ const signupFormSchema = z.object({
     .regex(/[0-9]/, "Password must contain at least one number")
     .regex(
       /[!@#$%^&*(),.?":{}|<>]/,
-      "Password must contain at least one special character"
+      "Password must contain at least one special character",
     ),
 });
 
@@ -55,7 +55,7 @@ export function SignupForm({
   const signupMutation = useMutation({
     mutationKey: ["signup"],
     mutationFn: async (
-      data: z.infer<typeof signupFormSchema>
+      data: z.infer<typeof signupFormSchema>,
     ): Promise<any> => {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
