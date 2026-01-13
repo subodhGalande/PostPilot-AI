@@ -33,7 +33,9 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 const onBoardingFormSchema = z.object({
-  AccountType: z.enum(["Influencer", "Brand"]),
+  AccountType: z.enum(["Influencer", "Brand"], {
+    error: () => " Please select an account type  ",
+  }),
   industry: z.string().min(3, "Industry must be at least 3 characters long"),
 });
 
@@ -45,7 +47,7 @@ export function OnboardingDialog({ isOpen }: OnboardingDialogProps) {
   const form = useForm<z.infer<typeof onBoardingFormSchema>>({
     resolver: zodResolver(onBoardingFormSchema),
     defaultValues: {
-      AccountType: "Influencer",
+      AccountType: undefined,
       industry: "",
     },
   });
@@ -68,14 +70,14 @@ export function OnboardingDialog({ isOpen }: OnboardingDialogProps) {
             <Controller
               name="AccountType"
               control={form.control}
-              render={({ field }) => (
-                <div className="flex flex-col gap-3">
-                  <label
-                    className=" text-xs text-muted-foreground font-medium "
+              render={({ field, fieldState }) => (
+                <Field>
+                  <FieldLabel
+                    className="text-xs text-muted-foreground font-medium"
                     htmlFor="accountType"
                   >
                     Using PostPilot AI as
-                  </label>
+                  </FieldLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger id="accountType" className="w-full">
                       <SelectValue placeholder="Select Account Type" />
@@ -85,7 +87,10 @@ export function OnboardingDialog({ isOpen }: OnboardingDialogProps) {
                       <SelectItem value="Brand">Brand</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                  {fieldState.error && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
             />
             <Controller
@@ -105,7 +110,6 @@ export function OnboardingDialog({ isOpen }: OnboardingDialogProps) {
                     type="text"
                     aria-invalid={fieldState.invalid}
                     placeholder="Enter industry"
-                    required
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
