@@ -18,6 +18,7 @@ export type OnboardingFormValues = z.infer<typeof onBoardingFormSchema>;
 
 export function useOnboardingForm() {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const onboardingMutation = useMutation({
     mutationKey: ["onboarding"],
@@ -36,6 +37,8 @@ export function useOnboardingForm() {
       queryClient.invalidateQueries({
         queryKey: ["onboarding"],
       });
+      toast.success("Onboarding data saved!");
+      router.refresh();
     },
     onError: () => {
       toast.error("Failed to save onboarding data. Please try again later.");
@@ -52,7 +55,6 @@ export function useOnboardingForm() {
 
   const onSubmit = (data: OnboardingFormValues) => {
     onboardingMutation.mutate(data);
-    toast.success("Onboarding data saved! (Mock)");
   };
 
   return {
