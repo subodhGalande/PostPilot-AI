@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import { useUser } from "../context/userDetailsContext";
-import { OnboardingDialog } from "@/components/onboarding-dialog";
+import { OnboardingDialog } from "@/components/onboarding-dialog/onboarding-dialog";
 
 export default function DashboardShell({
   children,

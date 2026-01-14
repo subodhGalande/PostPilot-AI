@@ -13,10 +13,8 @@ import { Button } from "@/components/ui/button";
 
 import {
   Field,
-  FieldDescription,
   FieldGroup,
   FieldLabel,
-  FieldSeparator,
   FieldError,
 } from "@/components/ui/field";
 import {
@@ -28,47 +26,32 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
-import { z } from "zod";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-
-const onBoardingFormSchema = z.object({
-  AccountType: z.enum(["Influencer", "Brand"], {
-    error: () => " Please select an account type  ",
-  }),
-  industry: z.string().min(3, "Industry must be at least 3 characters long"),
-});
+import { Controller } from "react-hook-form";
+import { useOnboardingForm } from "./use-onboarding-form";
 
 type OnboardingDialogProps = {
   isOpen: boolean;
 };
 
 export function OnboardingDialog({ isOpen }: OnboardingDialogProps) {
-  const form = useForm<z.infer<typeof onBoardingFormSchema>>({
-    resolver: zodResolver(onBoardingFormSchema),
-    defaultValues: {
-      AccountType: undefined,
-      industry: "",
-    },
-  });
-  const onSubmit = (data: z.infer<typeof onBoardingFormSchema>) => {
-    console.log(data);
-  };
+  const { form, onSubmit } = useOnboardingForm();
 
   return (
     <Dialog open={isOpen}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Welcome to the PostPilot AI</DialogTitle>
+          <DialogTitle className="text-center">
+            Can you confirm the following?
+          </DialogTitle>
           <DialogDescription>
-            We're excited to have you here. Let's take a quick moment to set up
-            your experience.
+            this will help us to personalize your experience and provide you
+            with the best possible results.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup className="mt-4">
             <Controller
-              name="AccountType"
+              name="accountType"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field>
@@ -78,7 +61,10 @@ export function OnboardingDialog({ isOpen }: OnboardingDialogProps) {
                   >
                     Using PostPilot AI as
                   </FieldLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value || ""}
+                    onValueChange={field.onChange}
+                  >
                     <SelectTrigger id="accountType" className="w-full">
                       <SelectValue placeholder="Select Account Type" />
                     </SelectTrigger>
