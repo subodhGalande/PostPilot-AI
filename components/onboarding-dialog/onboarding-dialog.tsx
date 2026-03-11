@@ -44,7 +44,7 @@ export function OnboardingDialog({ isOpen }: OnboardingDialogProps) {
             Can you confirm the following?
           </DialogTitle>
           <DialogDescription>
-            this will help us to personalize your experience and provide you
+            This will help us to personalize your experience and provide you
             with the best possible results.
           </DialogDescription>
         </DialogHeader>

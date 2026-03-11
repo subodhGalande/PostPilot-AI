@@ -8,8 +8,8 @@ export default function DashboardPage() {
   console.log(user);
   return (
     <>
-      <LogoutButton />
-      <div className="text-black"> {user?.id} </div>
+      {/* <LogoutButton />
+      <div className="text-black"> {user?.id} </div> */}
     </>
   );
 }
