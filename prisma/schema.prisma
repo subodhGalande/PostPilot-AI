@@ -21,8 +21,10 @@ model User {
   passwordHash String?
   provider     Provider     @default(CREDENTIALS)
   onboarded    Boolean      @default(false)
+  accountName  String?
   industry     String?
   accountType  AccountType?
+  description  String?
   verified     Boolean      @default(false)
   posts        Post[]
   createdAt    DateTime     @default(now())

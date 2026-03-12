@@ -11,7 +11,13 @@ export const onBoardingFormSchema = z.object({
   accountType: z.enum(["Influencer", "Brand"], {
     error: () => " Please select an account type  ",
   }),
+  accountName: z
+    .string()
+    .min(2, "Account Name must be at least 2 characters long"),
   industry: z.string().min(3, "Industry must be at least 3 characters long"),
+  description: z
+    .string()
+    .min(10, "Description must be at least 10 characters long"),
 });
 
 export type OnboardingFormValues = z.infer<typeof onBoardingFormSchema>;
@@ -49,7 +55,9 @@ export function useOnboardingForm() {
     resolver: zodResolver(onBoardingFormSchema),
     defaultValues: {
       accountType: "" as unknown as "Influencer" | "Brand",
+      accountName: "",
       industry: "",
+      description: "",
     },
   });
 
