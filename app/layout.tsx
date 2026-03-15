@@ -1,19 +1,22 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Open_Sans, Noto_Serif, Fira_Code } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/lib/providers/queryProvider";
 import { Toaster } from "@/components/ui/sonner";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const fontSans = Open_Sans({
   subsets: ["latin"],
-  display: "swap",
+  variable: "--font-sans",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const fontSerif = Noto_Serif({
   subsets: ["latin"],
-  display: "swap",
+  variable: "--font-serif",
+});
+
+const fontMono = Fira_Code({
+  subsets: ["latin"],
+  variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
@@ -30,7 +33,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         suppressHydrationWarning
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${fontSans.variable} ${fontSerif.variable}  ${fontMono.variable} antialiased`}
       >
         <QueryProvider>{children}</QueryProvider>
         <Toaster closeButton richColors={true} position="top-center" />
