@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Noto_Serif, Fira_Code } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/lib/providers/queryProvider";
+import ThemeProvider from "@/lib/providers/themeProvider";
 import { Toaster } from "@/components/ui/sonner";
 
 const fontSans = Inter({
@@ -30,13 +31,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        suppressHydrationWarning
         className={`${fontSans.variable} ${fontSerif.variable}  ${fontMono.variable} antialiased`}
       >
-        <QueryProvider>{children}</QueryProvider>
-        <Toaster closeButton richColors={true} position="top-center" />
+        <ThemeProvider>
+          <QueryProvider>{children}</QueryProvider>
+          <Toaster closeButton richColors={true} position="top-center" />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -97,25 +97,31 @@ export function XPostPreview({
 
       <div className="mt-2 flex flex-col gap-3">
         <div className="flex flex-wrap gap-3">
-          <Button variant="ghost" size="lg" className="font-semibold">
+          <Button
+            variant="ghost"
+            className="h-10 rounded-xl px-4 text-sm font-semibold"
+          >
             <Wand2 data-icon="inline-start" />
             Improve Post
           </Button>
-          <Button variant="ghost" size="lg" className="font-semibold">
+          <Button
+            variant="ghost"
+            className="h-10 rounded-xl px-4 text-sm font-semibold"
+          >
             <RefreshCw data-icon="inline-start" />
             Regenerate
           </Button>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Button
-            size="lg"
-            className="flex-1 font-bold shadow-md transition-all"
-          >
+          <Button className="h-10 flex-1 rounded-xl text-sm font-bold shadow-md transition-all">
             <Calendar data-icon="inline-start" />
             Schedule Post
           </Button>
-          <Button variant="secondary" size="lg" className="flex-1 font-bold">
+          <Button
+            variant="secondary"
+            className="h-10 flex-1 rounded-xl text-sm font-bold"
+          >
             Save Draft
           </Button>
         </div>
