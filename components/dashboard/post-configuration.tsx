@@ -1,7 +1,10 @@
-import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { Loader2, Sparkles, X } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -9,34 +12,116 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type Platform = "linkedin" | "x";
 
 interface PostConfigurationProps {
   className?: string;
+  platform: Platform;
+  topic: string;
+  tone: string;
+  postStyle: string;
+  targetAudience: string;
+  keywords: string[];
+  onPlatformChange: (platform: Platform) => void;
+  onTopicChange: (value: string) => void;
+  onToneChange: (value: string) => void;
+  onPostStyleChange: (value: string) => void;
+  onTargetAudienceChange: (value: string) => void;
+  onKeywordsChange: (keywords: string[]) => void;
   onGenerate?: () => void;
   isGenerating?: boolean;
 }
 
-export function PostConfiguration({ className, onGenerate, isGenerating }: PostConfigurationProps) {
+export function PostConfiguration({
+  className,
+  platform,
+  topic,
+  tone,
+  postStyle,
+  targetAudience,
+  keywords,
+  onPlatformChange,
+  onTopicChange,
+  onToneChange,
+  onPostStyleChange,
+  onTargetAudienceChange,
+  onKeywordsChange,
+  onGenerate,
+  isGenerating,
+}: PostConfigurationProps) {
+  const [keywordInput, setKeywordInput] = useState("");
+
+  const addKeywords = (rawValue: string) => {
+    const nextKeywords = rawValue
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    if (nextKeywords.length === 0) {
+      return;
+    }
+
+    onKeywordsChange(
+      Array.from(
+        new Set([
+          ...keywords,
+          ...nextKeywords.map((value) => value.toLowerCase()),
+        ]),
+      ),
+    );
+    setKeywordInput("");
+  };
+
+  const removeKeyword = (keywordToRemove: string) => {
+    onKeywordsChange(keywords.filter((keyword) => keyword !== keywordToRemove));
+  };
+
   return (
-    <div className={cn("flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm", className)}>
+    <div
+      className={cn(
+        "flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm",
+        className,
+      )}
+    >
       <div className="shrink-0 border-b p-6">
         <h3 className="text-lg font-bold">Configuration</h3>
         <p className="text-sm text-muted-foreground">
           Define the core parameters for your AI-generated content.
         </p>
       </div>
-      <div className="flex-1 space-y-5 overflow-y-auto p-6">
-        <div className="space-y-2">
+
+      <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-6">
+        <div className="flex flex-col gap-2">
+          <Label className="text-sm font-semibold">Platform</Label>
+          <Select
+            value={platform}
+            onValueChange={(value) => onPlatformChange(value as Platform)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select platform" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="linkedin">LinkedIn</SelectItem>
+              <SelectItem value="x">X</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex flex-col gap-2">
           <Label className="text-sm font-semibold">Topic</Label>
           <Input
+            value={topic}
+            onChange={(event) => onTopicChange(event.target.value)}
             placeholder="e.g. Benefits of Remote Work for Software Teams"
           />
         </div>
+
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <Label className="text-sm font-semibold">Tone</Label>
-            <Select>
+            <Select value={tone} onValueChange={onToneChange}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select tone" />
               </SelectTrigger>
@@ -48,9 +133,10 @@ export function PostConfiguration({ className, onGenerate, isGenerating }: PostC
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
+
+          <div className="flex flex-col gap-2">
             <Label className="text-sm font-semibold">Post Style</Label>
-            <Select>
+            <Select value={postStyle} onValueChange={onPostStyleChange}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select style" />
               </SelectTrigger>
@@ -63,33 +149,82 @@ export function PostConfiguration({ className, onGenerate, isGenerating }: PostC
             </Select>
           </div>
         </div>
-        <div className="space-y-2">
+
+        <div className="flex flex-col gap-2">
           <Label className="text-sm font-semibold">Target Audience</Label>
-          <Select>
+          <Select value={targetAudience} onValueChange={onTargetAudienceChange}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select audience" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="tech-founders">Tech Founders</SelectItem>
               <SelectItem value="hr-managers">HR Managers</SelectItem>
-              <SelectItem value="product-designers">Product Designers</SelectItem>
+              <SelectItem value="product-designers">
+                Product Designers
+              </SelectItem>
               <SelectItem value="general">General Public</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-2">
+
+        <div className="flex flex-col gap-2">
           <Label className="text-sm font-semibold">Keywords</Label>
           <Input
-            placeholder="remote, productivity, scaling, teams"
+            value={keywordInput}
+            onChange={(event) => setKeywordInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "," || event.key === "Enter") {
+                event.preventDefault();
+                addKeywords(keywordInput);
+              }
+
+              if (
+                event.key === "Backspace" &&
+                keywordInput.length === 0 &&
+                keywords.length > 0
+              ) {
+                removeKeyword(keywords[keywords.length - 1]);
+              }
+            }}
+            onBlur={() => addKeywords(keywordInput)}
+            placeholder="Type a keyword and press Enter"
           />
+
+          <div className="flex min-h-11 flex-wrap gap-2 rounded-lg border border-dashed bg-muted/30 p-3">
+            {keywords.length > 0 ? (
+              keywords.map((keyword) => (
+                <Badge
+                  key={keyword}
+                  variant="secondary"
+                  className="gap-1.5 px-3 py-1"
+                >
+                  {keyword}
+                  <button
+                    type="button"
+                    className="rounded-full text-muted-foreground transition-colors hover:text-foreground"
+                    onClick={() => removeKeyword(keyword)}
+                    aria-label={`Remove ${keyword}`}
+                  >
+                    <X className="size-3" />
+                  </button>
+                </Badge>
+              ))
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Add keywords to guide the post angle and phrasing.
+              </p>
+            )}
+          </div>
+
           <p className="text-xs text-muted-foreground">
-            Separate keywords with commas
+            Use commas or Enter to create tags.
           </p>
         </div>
       </div>
+
       <div className="shrink-0 border-t bg-card p-6">
-        <Button 
-          size="lg" 
+        <Button
+          size="lg"
           className="flex w-full items-center gap-2 rounded-xl text-base font-bold"
           onClick={onGenerate}
           disabled={isGenerating}
@@ -101,6 +236,13 @@ export function PostConfiguration({ className, onGenerate, isGenerating }: PostC
           )}
           {isGenerating ? "Generating..." : "Generate Post"}
         </Button>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Optimized for{" "}
+          {platform === "linkedin"
+            ? "LinkedIn engagement and depth"
+            : "X brevity and punch"}
+          .
+        </p>
       </div>
     </div>
   );

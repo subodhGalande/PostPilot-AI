@@ -1,20 +1,26 @@
-import { cn } from "@/lib/utils";
+import { ArrowLeft, FileText, Loader2 } from "lucide-react";
+
+import { LinkedInPostPreview } from "@/components/dashboard/linkedin-post-preview";
+import { XPostPreview } from "@/components/dashboard/x-post-preview";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Linkedin,
-  Twitter,
-  Wand2,
-  RefreshCw,
-  Calendar,
-  FileText,
-  Loader2,
-  ArrowLeft,
-} from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+
+type Platform = "linkedin" | "x";
+
+interface WritingProfile {
+  name: string;
+  description: string;
+  industry: string;
+}
 
 interface PostPreviewProps {
   className?: string;
+  platform: Platform;
+  postStyle: string;
+  targetAudience: string;
+  generatedPost: string;
+  profile: WritingProfile;
   isGenerated?: boolean;
   isGenerating?: boolean;
   onReset?: () => void;
@@ -22,42 +28,42 @@ interface PostPreviewProps {
 
 export function PostPreview({
   className,
+  platform,
+  postStyle,
+  targetAudience,
+  generatedPost,
+  profile,
   isGenerated = true,
   isGenerating = false,
   onReset,
 }: PostPreviewProps) {
   return (
-    <div className={cn("flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm", className)}>
-      <div className="flex shrink-0 flex-col gap-4 border-b p-4 md:flex-row md:items-center md:justify-between md:p-6">
-        <div className="flex items-center gap-2">
-          {/* Mobile Back Button */}
-          {isGenerated && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="lg:hidden shrink-0 -ml-2" 
-              onClick={onReset}
-            >
-              <ArrowLeft className="size-5" />
-            </Button>
-          )}
+    <div
+      className={cn(
+        "flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm",
+        className,
+      )}
+    >
+      <div className="flex shrink-0 items-center gap-2 border-b p-4 md:p-6">
+        {isGenerated ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="-ml-2 shrink-0 lg:hidden"
+            onClick={onReset}
+          >
+            <ArrowLeft className="size-5" />
+          </Button>
+        ) : null}
+        <div>
           <h3 className="text-lg font-bold">Generated Preview</h3>
+          <p className="text-sm text-muted-foreground">
+            Preview updates for {platform === "linkedin" ? "LinkedIn" : "X"}.
+          </p>
         </div>
-        <Tabs defaultValue="linkedin" className="w-full md:w-[220px]">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="linkedin" className="text-xs font-bold gap-1.5 leading-none">
-              <Linkedin className="size-3.5" />
-              LinkedIn
-            </TabsTrigger>
-            <TabsTrigger value="twitter" className="text-xs font-bold gap-1.5 leading-none">
-              <Twitter className="size-3.5" /> 
-              X
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
       </div>
-      {/* Conditionally Render Body based on State */}
-      {!isGenerated && !isGenerating && (
+
+      {!isGenerated && !isGenerating ? (
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center p-6 text-center">
           <div className="mb-4 flex size-20 items-center justify-center rounded-full bg-primary/10">
             <FileText className="size-10 text-primary" />
@@ -68,57 +74,52 @@ export function PostPreview({
             your first draft.
           </p>
         </div>
-      )}
+      ) : null}
 
-      {isGenerating && (
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center p-6 text-center fade-in">
-          <Loader2 className="mb-4 size-10 animate-spin text-primary" />
-          <h4 className="mb-2 text-lg font-bold">Crafting your post...</h4>
-          <p className="text-sm text-muted-foreground">
-            Our AI is formulating the perfect structure and tone.
-          </p>
-        </div>
-      )}
-
-      {isGenerated && !isGenerating && (
-        <div className="flex min-h-0 flex-1 flex-col p-6 fade-in">
-          <div className="relative flex-1 rounded-xl border bg-muted/40 p-4">
-            <Textarea
-              className="h-full w-full resize-none border-none bg-transparent leading-relaxed text-foreground shadow-none focus-visible:ring-0"
-              placeholder="Your generated post will appear here..."
-              defaultValue={`The shift to remote work isn't just a trend; it's a strategic evolution for high-growth software teams. 🚀 \n\nBy decoupling talent from geography, companies are accessing a global pool of expertise that was previously out of reach. But it's not without its challenges.\n\nHere's how top teams are maintaining high-velocity output:\n1. Async-first documentation 📝\n2. Intentional social rituals ☕\n3. Outcome-based performance metrics 📈\n\nAre you scaling remote or returning to office? Let's discuss below! 👇\n\n#RemoteWork #SoftwareEngineering #TechTrends #ScalingUp`}
-            />
-            <div className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-full border bg-background px-3 py-1 shadow-sm">
-              <span className="text-xs font-medium text-muted-foreground">
-                Character Count:
-              </span>
-              <span className="text-xs font-bold text-primary">453</span>
+      {isGenerating ? (
+        <div className="flex min-h-0 flex-1 flex-col gap-4 p-6 fade-in">
+          <div className="rounded-xl border bg-muted/30 p-4">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Loader2 className="size-4 animate-spin text-primary" />
+              Generating your post...
             </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Building the hook, structure, and CTA for{" "}
+              {platform === "linkedin" ? "LinkedIn" : "X"}.
+            </p>
           </div>
-          {/* Action Bar */}
-          <div className="mt-6 space-y-4">
-            <div className="flex gap-3">
-              <Button variant="outline" size="lg" className="flex-1 font-semibold">
-                <Wand2 className="mr-2 size-4" />
-                Improve Post
-              </Button>
-              <Button variant="outline" size="lg" className="flex-1 font-semibold">
-                <RefreshCw className="mr-2 size-4" />
-                Regenerate
-              </Button>
+
+          <div className="rounded-xl border bg-muted/20 p-4">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="mt-4 h-16 w-full" />
+            <div className="mt-6 flex flex-wrap gap-2">
+              <Skeleton className="h-6 w-24 rounded-full" />
+              <Skeleton className="h-6 w-28 rounded-full" />
+              <Skeleton className="h-6 w-32 rounded-full" />
             </div>
-            <div className="flex gap-3">
-              <Button variant="secondary" size="lg" className="flex-1 font-bold">
-                Save Draft
-              </Button>
-              <Button size="lg" className="flex-[1.5] font-bold shadow-md transition-all">
-                <Calendar className="mr-2 size-4" />
-                Schedule Post
-              </Button>
-            </div>
+            <Skeleton className="mt-6 h-24 w-full" />
+            <Skeleton className="mt-3 h-24 w-full" />
           </div>
         </div>
-      )}
+      ) : null}
+
+      {isGenerated && !isGenerating ? (
+        platform === "linkedin" ? (
+          <LinkedInPostPreview
+            postStyle={postStyle}
+            targetAudience={targetAudience}
+            generatedPost={generatedPost}
+            profile={profile}
+          />
+        ) : (
+          <XPostPreview
+            postStyle={postStyle}
+            targetAudience={targetAudience}
+            generatedPost={generatedPost}
+            profile={profile}
+          />
+        )
+      ) : null}
     </div>
   );
 }
