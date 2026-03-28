@@ -25,8 +25,10 @@ export default async function DashboardLayout({
       email: true,
       provider: true,
       onboarded: true,
+      accountName: true,
       industry: true,
       accountType: true,
+      description: true,
       createdAt: true,
     },
   });

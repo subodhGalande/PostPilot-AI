@@ -15,22 +15,7 @@ import {
 
 import { useUser } from "../context/userDetailsContext";
 
-function formatSegment(segment: string) {
-  return segment
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
 function getRouteMeta(pathname: string) {
-  if (pathname === "/dashboard") {
-    return {
-      section: "Workspace",
-      title: "Dashboard",
-      description: "Create, preview, and manage your social content drafts.",
-    };
-  }
-
   if (pathname.startsWith("/calendar")) {
     return {
       section: "Planning",
@@ -57,19 +42,11 @@ function getRouteMeta(pathname: string) {
     };
   }
 
-  const segments = pathname.split("/").filter(Boolean);
-  const title =
-    segments.length > 0
-      ? formatSegment(segments[segments.length - 1])
-      : "Dashboard";
-
+  // Default fallback for /dashboard and any other routes
   return {
-    section:
-      segments.length > 1
-        ? formatSegment(segments[segments.length - 2])
-        : "Workspace",
-    title,
-    description: "Manage your workspace and content operations.",
+    section: "Workspace",
+    title: "Dashboard",
+    description: "Create, preview, and manage your social content drafts.",
   };
 }
 

@@ -1,0 +1,33 @@
+meta {
+  name: GeneratePost
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:3000/api/dashboard/generatePost
+  body: json
+  auth: inherit
+}
+
+headers {
+  Cookie: jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtazQyM29iODAwMDF1engwdTduZzlraXQiLCJuYW1lIjoic3Vib2RoIiwiZW1haWwiOiJ5b3RpdzgxMTY0QGNhbWVsdG9rLmNvbSIsImlhdCI6MTc3NDYwODM5MCwiZXhwIjoxNzc0NjA5MjkwfQ.7gX46VjnlZWG5hhYX8OWnfDjgustR4zucakt2lMwjgI
+}
+
+body:json {
+  {
+    "modelName": "openrouter/free",
+    "platform": "linkedin",
+    "topic": "Benefits of Remote Work for Software Teams",
+    "tone": "professional",
+    "postStyle": "long-form",
+    "targetAudience": "tech-founders",
+    "keywords": ["remote work", "productivity", "scaling", "teams"]
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

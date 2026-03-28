@@ -1,50 +1,33 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 
+import { useUser } from "@/app/context/userDetailsContext";
 import { PostConfiguration } from "@/components/dashboard/post-configuration";
 import { PostPreview } from "@/components/dashboard/post-preview";
 import { cn } from "@/lib/utils";
 
 type Platform = "linkedin" | "x";
 
-const writingProfile = {
-  name: "Avery Chen",
-  description:
-    "A growth-focused operator sharing practical lessons on content, product storytelling, and audience building.",
-  industry: "B2B SaaS",
-};
-
-function generateMockPost({
-  platform,
-  topic,
-  tone,
-  postStyle,
-  targetAudience,
-  keywords,
-}: {
+type GeneratePostPayload = {
+  modelName: string;
   platform: Platform;
   topic: string;
   tone: string;
   postStyle: string;
   targetAudience: string;
   keywords: string[];
-}) {
-  const keywordHashtags = keywords
-    .slice(0, platform === "linkedin" ? 4 : 2)
-    .map((keyword) => `#${keyword.replace(/\s+/g, "")}`)
-    .join(" ");
+};
 
-  if (platform === "x") {
-    return `${topic} starts to work better when teams optimize for clarity, not volume.\n\nFor ${targetAudience.toLowerCase()}, a ${tone.toLowerCase()} ${postStyle.toLowerCase()} angle lands best when the takeaway is immediate and useful.\n\nWhat would you add?\n\n${keywordHashtags}`.trim();
-  }
-
-  return `${topic} becomes much easier to scale when the message is clear before the post is written.\n\nFor ${targetAudience.toLowerCase()}, a ${tone.toLowerCase()} tone paired with a ${postStyle.toLowerCase()} format helps the idea feel practical instead of abstract.\n\nA simple framework we keep coming back to:\n1. Lead with a concrete tension.\n2. Share one point of view worth remembering.\n3. End with a question that invites real discussion.\n\nWhat structure has worked best for your team lately?\n\n${keywordHashtags}`.trim();
-}
+type GeneratePostResponse = {
+  post: string;
+  model: string;
+};
 
 export default function DashboardPage() {
+  const { user } = useUser();
   const [isGenerated, setIsGenerated] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [platform, setPlatform] = useState<Platform>("linkedin");
   const [topic, setTopic] = useState(
     "Benefits of Remote Work for Software Teams",
@@ -60,28 +43,57 @@ export default function DashboardPage() {
   ]);
   const [generatedPost, setGeneratedPost] = useState("");
 
-  const handleGenerate = () => {
-    setIsGenerating(true);
+  const writingProfile = {
+    name: user.accountName ?? user.name,
+    description:
+      user.description ??
+      "Add your description in onboarding to personalize your generated posts.",
+    industry: user.industry ?? "Add your industry in onboarding",
+  };
 
-    setTimeout(() => {
-      setGeneratedPost(
-        generateMockPost({
-          platform,
-          topic,
-          tone,
-          postStyle,
-          targetAudience,
-          keywords,
-        }),
-      );
-      setIsGenerating(false);
+  const generatePostMutation = useMutation({
+    mutationKey: ["generatePost"],
+    mutationFn: async (
+      payload: GeneratePostPayload,
+    ): Promise<GeneratePostResponse> => {
+      const response = await fetch("/api/dashboard/generatePost", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate post.");
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      console.log(data);
+      setGeneratedPost(data.post ?? "");
       setIsGenerated(true);
-    }, 1500);
+    },
+    onError: (error) => {
+      console.error("Failed to generate post:", error);
+    },
+  });
+
+  const handleGenerate = () => {
+    generatePostMutation.mutate({
+      modelName: "openrouter/free",
+      platform,
+      topic,
+      tone,
+      postStyle,
+      targetAudience,
+      keywords,
+    });
   };
 
   const handleReset = () => {
     setIsGenerated(false);
-    setIsGenerating(false);
     setGeneratedPost("");
   };
 
@@ -108,7 +120,7 @@ export default function DashboardPage() {
           onTargetAudienceChange={setTargetAudience}
           onKeywordsChange={setKeywords}
           onGenerate={handleGenerate}
-          isGenerating={isGenerating}
+          isGenerating={generatePostMutation.isPending}
         />
       </div>
 
@@ -126,7 +138,7 @@ export default function DashboardPage() {
           generatedPost={generatedPost}
           profile={writingProfile}
           isGenerated={isGenerated}
-          isGenerating={isGenerating}
+          isGenerating={generatePostMutation.isPending}
           onReset={handleReset}
         />
       </div>

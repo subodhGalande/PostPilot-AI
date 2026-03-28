@@ -8,8 +8,10 @@ type User = {
   email: string;
   provider: "CREDENTIALS" | "GOOGLE";
   onboarded: boolean;
+  accountName: string | null;
   industry: string | null;
   accountType: "BRAND" | "INFLUENCER" | null;
+  description: string | null;
   createdAt: Date;
 };
 

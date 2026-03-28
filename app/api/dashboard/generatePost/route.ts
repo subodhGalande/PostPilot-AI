@@ -55,6 +55,7 @@ Requirements:
 export async function POST(req: Request) {
   try {
     const authUser = await requireAuthJose();
+    console.log("generatePost hit");
 
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -108,8 +109,6 @@ export async function POST(req: Request) {
         description: user.description,
       }),
     });
-
-    console.log(result.text);
 
     return NextResponse.json({
       post: result.text,
