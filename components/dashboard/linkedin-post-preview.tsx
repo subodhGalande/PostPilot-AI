@@ -1,4 +1,9 @@
+"use client";
+
 import { Building2, Calendar, RefreshCw, UserRound, Wand2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import type { Content } from "@tiptap/react";
+import { MinimalTiptapEditor } from "../ui/minimal-tiptap";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,34 +25,26 @@ export function LinkedInPostPreview({
   postStyle,
   targetAudience,
   generatedPost,
-  profile,
 }: LinkedInPostPreviewProps) {
-  const lines = generatedPost
-    .split(/\n+/)
-    .filter((line) => line.trim().length > 0);
-  const hook = lines[0] ?? "";
-  const body = lines.slice(1).join("\n\n");
+  const [value, setValue] = useState<Content>("");
+
+  useEffect(() => {
+    if (generatedPost) {
+      const html = generatedPost
+        .split(/\n+/)
+        .filter((line) => line.trim().length > 0)
+        .map((line) => `<p>${line}</p>`)
+        .join("");
+      setValue(html);
+    } else {
+      setValue("");
+    }
+  }, [generatedPost]);
+
   const wordCount = generatedPost.trim().split(/\s+/).filter(Boolean).length;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 p-6 fade-in">
-      <div className="rounded-xl border bg-muted/30 p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          Writing as
-        </p>
-        <div className="mt-3 flex flex-col gap-3 text-sm">
-          <div className="flex items-center gap-2 font-semibold text-foreground">
-            <UserRound className="size-4 text-muted-foreground" />
-            {profile.name}
-          </div>
-          <p className="text-muted-foreground">{profile.description}</p>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Building2 className="size-4" />
-            {profile.industry}
-          </div>
-        </div>
-      </div>
-
       <div className="flex flex-wrap gap-2">
         <Badge variant="secondary">LinkedIn</Badge>
         <Badge variant="outline">{postStyle}</Badge>
@@ -55,19 +52,18 @@ export function LinkedInPostPreview({
       </div>
 
       <div className="flex flex-1 flex-col rounded-xl border bg-muted/40 p-4">
-        <div className="rounded-lg border bg-background/80 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Hook
-          </p>
-          <p className="mt-2 text-base font-semibold leading-relaxed text-foreground">
-            {hook}
-          </p>
-        </div>
-
-        {body ? (
-          <div className="mt-4 flex-1 whitespace-pre-wrap text-sm leading-7 text-foreground">
-            {body}
-          </div>
+        {generatedPost ? (
+          <MinimalTiptapEditor
+            value={value}
+            onChange={setValue}
+            className="w-full"
+            editorContentClassName="p-5"
+            output="html"
+            placeholder="Enter your description..."
+            autofocus={true}
+            editable={true}
+            editorClassName="focus:outline-hidden"
+          />
         ) : null}
 
         <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border bg-background px-3 py-2 text-xs">
@@ -80,21 +76,14 @@ export function LinkedInPostPreview({
         </div>
       </div>
 
-      <div className="mt-2 flex flex-col gap-3">
-        <div className="flex flex-wrap gap-3">
+      <div className="mt-2 flex flex-col gap-6">
+        <div className="flex flex-wrap justify-between gap-3">
           <Button
             variant="ghost"
             className="h-10 rounded-xl px-4 text-sm font-semibold"
           >
             <Wand2 data-icon="inline-start" />
             Improve Post
-          </Button>
-          <Button
-            variant="ghost"
-            className="h-10 rounded-xl px-4 text-sm font-semibold"
-          >
-            <RefreshCw data-icon="inline-start" />
-            Regenerate
           </Button>
         </div>
 

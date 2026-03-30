@@ -4,6 +4,7 @@ import "./globals.css";
 import QueryProvider from "@/lib/providers/queryProvider";
 import ThemeProvider from "@/lib/providers/themeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { AppTooltipProvider } from "@/lib/providers/tooltipProvider";
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -35,10 +36,12 @@ export default function RootLayout({
       <body
         className={`${fontSans.variable} ${fontSerif.variable}  ${fontMono.variable} antialiased`}
       >
-        <ThemeProvider>
-          <QueryProvider>{children}</QueryProvider>
-          <Toaster closeButton richColors={true} position="top-center" />
-        </ThemeProvider>
+        <AppTooltipProvider>
+          <ThemeProvider>
+            <QueryProvider>{children}</QueryProvider>
+            <Toaster closeButton richColors={true} position="top-center" />
+          </ThemeProvider>
+        </AppTooltipProvider>
       </body>
     </html>
   );

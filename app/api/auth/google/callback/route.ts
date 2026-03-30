@@ -41,7 +41,7 @@ export async function GET(req: Request) {
   // Create JWT
   const jwt = await new SignJWT({ id: user.id, email: user.email })
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("1h")
+    .setExpirationTime("7d")
     .sign(new TextEncoder().encode(process.env.JWT_SECRET));
 
   // Set HttpOnly cookie
@@ -54,7 +54,7 @@ export async function GET(req: Request) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60,
+    maxAge: 60 * 60 * 24 * 7,
     sameSite: "lax",
   });
 

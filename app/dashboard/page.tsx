@@ -123,7 +123,6 @@ export default function DashboardPage() {
           isGenerating={generatePostMutation.isPending}
         />
       </div>
-
       <div
         className={cn(
           "h-full w-full flex-1 overflow-hidden",
