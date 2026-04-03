@@ -14,17 +14,13 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-type Platform = "linkedin" | "x";
-
 interface PostConfigurationProps {
   className?: string;
-  platform: Platform;
   topic: string;
   tone: string;
   postStyle: string;
   targetAudience: string;
   keywords: string[];
-  onPlatformChange: (platform: Platform) => void;
   onTopicChange: (value: string) => void;
   onToneChange: (value: string) => void;
   onPostStyleChange: (value: string) => void;
@@ -36,13 +32,11 @@ interface PostConfigurationProps {
 
 export function PostConfiguration({
   className,
-  platform,
   topic,
   tone,
   postStyle,
   targetAudience,
   keywords,
-  onPlatformChange,
   onTopicChange,
   onToneChange,
   onPostStyleChange,
@@ -93,22 +87,6 @@ export function PostConfiguration({
       </div>
 
       <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-6">
-        <div className="flex flex-col gap-2">
-          <Label className="text-sm font-semibold">Platform</Label>
-          <Select
-            value={platform}
-            onValueChange={(value) => onPlatformChange(value as Platform)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select platform" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="linkedin">LinkedIn</SelectItem>
-              <SelectItem value="x">X</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
         <div className="flex flex-col gap-2">
           <Label className="text-sm font-semibold">Topic</Label>
           <Input
@@ -237,11 +215,7 @@ export function PostConfiguration({
           {isGenerating ? "Generating..." : "Generate Post"}
         </Button>
         <p className="mt-3 text-xs text-muted-foreground">
-          Optimized for{" "}
-          {platform === "linkedin"
-            ? "LinkedIn engagement and depth"
-            : "X brevity and punch"}
-          .
+          Generates one shared content idea adapted for LinkedIn and X.
         </p>
       </div>
     </div>

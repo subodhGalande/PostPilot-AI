@@ -3,16 +3,13 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 
-import { useUser } from "@/app/context/userDetailsContext";
 import { PostConfiguration } from "@/components/dashboard/post-configuration";
 import { PostPreview } from "@/components/dashboard/post-preview";
+import type { GeneratedPostItem, GeneratedPostPack } from "@/lib/social-posts";
 import { cn } from "@/lib/utils";
-
-type Platform = "linkedin" | "x";
 
 type GeneratePostPayload = {
   modelName: string;
-  platform: Platform;
   topic: string;
   tone: string;
   postStyle: string;
@@ -20,15 +17,9 @@ type GeneratePostPayload = {
   keywords: string[];
 };
 
-type GeneratePostResponse = {
-  post: string;
-  model: string;
-};
-
 export default function DashboardPage() {
-  const { user } = useUser();
   const [isGenerated, setIsGenerated] = useState(false);
-  const [platform, setPlatform] = useState<Platform>("linkedin");
+  const [previewVersion, setPreviewVersion] = useState(0);
   const [topic, setTopic] = useState(
     "Benefits of Remote Work for Software Teams",
   );
@@ -41,21 +32,14 @@ export default function DashboardPage() {
     "scaling",
     "teams",
   ]);
-  const [generatedPost, setGeneratedPost] = useState("");
-
-  const writingProfile = {
-    name: user.accountName ?? user.name,
-    description:
-      user.description ??
-      "Add your description in onboarding to personalize your generated posts.",
-    industry: user.industry ?? "Add your industry in onboarding",
-  };
+  const [generatedPostPack, setGeneratedPostPack] =
+    useState<GeneratedPostPack | null>(null);
 
   const generatePostMutation = useMutation({
     mutationKey: ["generatePost"],
     mutationFn: async (
       payload: GeneratePostPayload,
-    ): Promise<GeneratePostResponse> => {
+    ): Promise<GeneratedPostPack> => {
       const response = await fetch("/api/dashboard/generatePost", {
         method: "POST",
         headers: {
@@ -71,8 +55,8 @@ export default function DashboardPage() {
       return response.json();
     },
     onSuccess: (data) => {
-      console.log(data);
-      setGeneratedPost(data.post ?? "");
+      setGeneratedPostPack(data);
+      setPreviewVersion((currentVersion) => currentVersion + 1);
       setIsGenerated(true);
     },
     onError: (error) => {
@@ -82,8 +66,7 @@ export default function DashboardPage() {
 
   const handleGenerate = () => {
     generatePostMutation.mutate({
-      modelName: "openrouter/free",
-      platform,
+      modelName: "gemini-2.5-flash",
       topic,
       tone,
       postStyle,
@@ -94,7 +77,43 @@ export default function DashboardPage() {
 
   const handleReset = () => {
     setIsGenerated(false);
-    setGeneratedPost("");
+    setGeneratedPostPack(null);
+  };
+
+  const handleUpdatePost = (
+    updater: (currentPost: GeneratedPostItem) => GeneratedPostItem,
+  ) => {
+    setGeneratedPostPack((currentPack) => {
+      if (!currentPack || currentPack.posts.length === 0) {
+        return currentPack;
+      }
+
+      return {
+        ...currentPack,
+        posts: [updater(currentPack.posts[0]), ...currentPack.posts.slice(1)],
+      };
+    });
+  };
+
+  const handleLinkedInChange = (content: string) => {
+    handleUpdatePost((currentPost) => ({
+      ...currentPost,
+      linkedin: {
+        content,
+      },
+    }));
+  };
+
+  const handleXPostChange = (postId: string, content: string) => {
+    handleUpdatePost((currentPost) => ({
+      ...currentPost,
+      x: {
+        ...currentPost.x,
+        posts: currentPost.x.posts.map((threadPost) =>
+          threadPost.id === postId ? { ...threadPost, content } : threadPost,
+        ),
+      },
+    }));
   };
 
   return (
@@ -107,13 +126,11 @@ export default function DashboardPage() {
       >
         <PostConfiguration
           className="w-full self-start"
-          platform={platform}
           topic={topic}
           tone={tone}
           postStyle={postStyle}
           targetAudience={targetAudience}
           keywords={keywords}
-          onPlatformChange={setPlatform}
           onTopicChange={setTopic}
           onToneChange={setTone}
           onPostStyleChange={setPostStyle}
@@ -130,12 +147,13 @@ export default function DashboardPage() {
         )}
       >
         <PostPreview
+          key={previewVersion}
           className="h-full w-full"
-          platform={platform}
           postStyle={postStyle}
           targetAudience={targetAudience}
-          generatedPost={generatedPost}
-          profile={writingProfile}
+          generatedPostPack={generatedPostPack}
+          onLinkedInChange={handleLinkedInChange}
+          onXPostChange={handleXPostChange}
           isGenerated={isGenerated}
           isGenerating={generatePostMutation.isPending}
           onReset={handleReset}

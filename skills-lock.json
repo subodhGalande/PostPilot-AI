@@ -11,6 +11,11 @@
       "sourceType": "github",
       "computedHash": "1d61d915437a447176ad9f1d7141f22b163265e64f9fac50267264674068099f"
     },
+    "tiptap": {
+      "source": "ueberdosis/tiptap",
+      "sourceType": "github",
+      "computedHash": "60765ba8cb8a71503e6f14bb3a7a6ee77b34b1d98cd04b60b1bfcbb7c41ba9c7"
+    },
     "vercel-composition-patterns": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
