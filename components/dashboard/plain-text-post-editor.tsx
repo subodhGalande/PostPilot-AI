@@ -6,9 +6,21 @@ import {
   List,
   ListOrdered,
   Pilcrow,
+  SmilePlus,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  EmojiPicker,
+  EmojiPickerContent,
+  EmojiPickerFooter,
+  EmojiPickerSearch,
+} from "@/components/ui/emoji-picker";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
@@ -63,12 +75,28 @@ export function PlainTextPostEditor({
   textareaClassName,
 }: PlainTextPostEditorProps) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = React.useState(false);
+  const selectionRef = React.useRef({ start: 0, end: 0, scrollTop: 0 });
+
+  const syncSelectionState = React.useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      return;
+    }
+
+    selectionRef.current = {
+      start: textarea.selectionStart,
+      end: textarea.selectionEnd,
+      scrollTop: textarea.scrollTop,
+    };
+  }, []);
 
   const updateValue = React.useCallback(
     (
       nextValue: string,
       selectionStart: number,
       selectionEnd = selectionStart,
+      scrollTop?: number,
     ) => {
       onChange(nextValue);
 
@@ -80,9 +108,28 @@ export function PlainTextPostEditor({
 
         textarea.focus();
         textarea.setSelectionRange(selectionStart, selectionEnd);
+        if (typeof scrollTop === "number") {
+          textarea.scrollTop = scrollTop;
+        }
       });
     },
     [onChange],
+  );
+
+  const insertTextAtSelection = React.useCallback(
+    (text: string) => {
+      const textarea = textareaRef.current;
+      if (!textarea) {
+        return;
+      }
+
+      const { start, end, scrollTop } = selectionRef.current;
+      const nextValue = `${value.slice(0, start)}${text}${value.slice(end)}`;
+      const cursorPosition = start + text.length;
+
+      updateValue(nextValue, cursorPosition, cursorPosition, scrollTop);
+    },
+    [updateValue, value],
   );
 
   const insertBlankLine = React.useCallback(() => {
@@ -93,11 +140,28 @@ export function PlainTextPostEditor({
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
+    const scrollTop = textarea.scrollTop;
     const nextValue = `${value.slice(0, start)}\n\n${value.slice(end)}`;
     const cursorPosition = start + 2;
 
-    updateValue(nextValue, cursorPosition);
+    updateValue(nextValue, cursorPosition, cursorPosition, scrollTop);
   }, [updateValue, value]);
+
+  const insertEmoji = React.useCallback(
+    (emoji: string) => {
+      const { start, end } = selectionRef.current;
+      const previousCharacter = value[start - 1] ?? "";
+      const nextCharacter = value[end] ?? "";
+      const needsLeadingSpace = start > 0 && !/\s/.test(previousCharacter);
+      const needsTrailingSpace =
+        end < value.length && !/\s/.test(nextCharacter);
+      const emojiText = `${needsLeadingSpace ? " " : ""}${emoji}${needsTrailingSpace ? " " : ""}`;
+
+      insertTextAtSelection(emojiText);
+      setIsEmojiPickerOpen(false);
+    },
+    [insertTextAtSelection, value],
+  );
 
   const formatSelectedLines = React.useCallback(
     (formatter: (lines: string[]) => string[]) => {
@@ -108,6 +172,7 @@ export function PlainTextPostEditor({
 
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
+      const scrollTop = textarea.scrollTop;
       const { lineStart, lineEnd } = getSelectedLineRange(value, start, end);
       const selectedBlock = value.slice(lineStart, lineEnd);
       const lines = selectedBlock.split("\n");
@@ -115,7 +180,12 @@ export function PlainTextPostEditor({
       const replacement = nextLines.join("\n");
       const nextValue = `${value.slice(0, lineStart)}${replacement}${value.slice(lineEnd)}`;
 
-      updateValue(nextValue, lineStart, lineStart + replacement.length);
+      updateValue(
+        nextValue,
+        lineStart,
+        lineStart + replacement.length,
+        scrollTop,
+      );
     },
     [updateValue, value],
   );
@@ -190,13 +260,23 @@ export function PlainTextPostEditor({
 
         if (!content.trim()) {
           const nextValue = `${value.slice(0, lineStart)}${indent}${value.slice(lineEnd)}`;
-          updateValue(nextValue, lineStart + indent.length);
+          updateValue(
+            nextValue,
+            lineStart + indent.length,
+            lineStart + indent.length,
+            textarea.scrollTop,
+          );
           return;
         }
 
         const insertion = `\n${indent}${BULLET_PREFIX}`;
         const nextValue = `${value.slice(0, start)}${insertion}${value.slice(end)}`;
-        updateValue(nextValue, start + insertion.length);
+        updateValue(
+          nextValue,
+          start + insertion.length,
+          start + insertion.length,
+          textarea.scrollTop,
+        );
         return;
       }
 
@@ -208,14 +288,24 @@ export function PlainTextPostEditor({
 
         if (!content.trim()) {
           const nextValue = `${value.slice(0, lineStart)}${indent}${value.slice(lineEnd)}`;
-          updateValue(nextValue, lineStart + indent.length);
+          updateValue(
+            nextValue,
+            lineStart + indent.length,
+            lineStart + indent.length,
+            textarea.scrollTop,
+          );
           return;
         }
 
         const nextNumber = Number.parseInt(rawNumber, 10) + 1;
         const insertion = `\n${indent}${nextNumber}. `;
         const nextValue = `${value.slice(0, start)}${insertion}${value.slice(end)}`;
-        updateValue(nextValue, start + insertion.length);
+        updateValue(
+          nextValue,
+          start + insertion.length,
+          start + insertion.length,
+          textarea.scrollTop,
+        );
       }
     },
     [updateValue, value],
@@ -262,6 +352,35 @@ export function PlainTextPostEditor({
         >
           <BetweenHorizontalStart />
         </Button>
+        <Popover open={isEmojiPickerOpen} onOpenChange={setIsEmojiPickerOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              className="rounded-md"
+              aria-label="Insert emoji"
+              title="Insert emoji"
+              onMouseDown={syncSelectionState}
+            >
+              <SmilePlus />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            sideOffset={8}
+            className="w-fit border p-0 shadow-lg"
+          >
+            <EmojiPicker
+              className="h-[360px]"
+              onEmojiSelect={({ emoji }) => insertEmoji(emoji)}
+            >
+              <EmojiPickerSearch />
+              <EmojiPickerContent />
+              <EmojiPickerFooter />
+            </EmojiPicker>
+          </PopoverContent>
+        </Popover>
         <div className="mx-1 h-5 w-px bg-border" />
         <div
           className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground"
@@ -275,7 +394,11 @@ export function PlainTextPostEditor({
         ref={textareaRef}
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        onClick={syncSelectionState}
         onKeyDown={handleKeyDown}
+        onKeyUp={syncSelectionState}
+        onSelect={syncSelectionState}
+        onScroll={syncSelectionState}
         placeholder={placeholder}
         className={cn(
           "min-h-[420px] resize-none rounded-none border-0 bg-background p-5 text-sm leading-7 shadow-none focus-visible:ring-0",

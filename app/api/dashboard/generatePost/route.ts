@@ -64,6 +64,9 @@ Requirements:
 - Convert X into multiple thread posts whenever a single post would feel cramped, rushed, or incomplete.
 - Each X post must be concise, stand on its own while still flowing as a thread, and stay under 240 characters.
 - Use strong paragraph spacing and line breaks where they improve readability.
+- Use emojis more frequently when they improve readability, emphasis, or reach.
+- Make the post feel more impactful with tasteful emoji usage, while keeping it natural and platform-appropriate.
+- Prefer placing emojis in hooks, short lists, and key takeaways rather than scattering them everywhere.
 - Do not include labels like "LinkedIn Post", "Tweet 1", or markdown fences.
 - Make the opening strong for both platforms.
 - Naturally incorporate the provided keywords when relevant.
@@ -87,6 +90,9 @@ Plain-text formatting rules for LinkedIn:
 - Avoid dense blocks of text.
 - Remove filler setup lines like "Let's break it down", "Here is what this looks like", or similar transitions.
 - Do not use separators like "---".
+- LinkedIn posts should normally include relevant emojis to increase impact and scannability.
+- Unless the topic is highly sensitive, legal, or crisis-related, include at least 2 relevant emojis in the LinkedIn post.
+- Prefer using emojis in the hook, key bullet points, or closing CTA where they add emphasis naturally.
 - If using bullets, each bullet must start with "• " and each bullet must be on its own line.
 - Use bullets only when they genuinely improve scannability.
 - Keep each bullet concise, ideally 1 to 2 sentences.
@@ -105,6 +111,7 @@ Plain-text formatting rules for X:
 - Prefer 2 to 5 thread posts when the topic benefits from explanation, examples, or a list.
 - For long-form, listicle, or educational posts, thread mode is usually the right choice.
 - The first X post should open with a sharp hook.
+- X should use emojis more freely than LinkedIn to boost impact and attention, but keep them intentional and avoid spammy repetition.
 - Each follow-up X post should add one clear idea, example, or takeaway.
 - Do not cram multiple major ideas into a single X post just to avoid a thread.
 - Separate paragraphs with exactly one empty line only when needed for readability.
