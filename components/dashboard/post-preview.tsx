@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, FileText, Loader2, Save } from "lucide-react";
+import { ArrowLeft, Calendar, FileText, Loader2, Save } from "lucide-react";
 import { useState } from "react";
 
 import { LinkedInPostPreview } from "@/components/dashboard/linkedin-post-preview";
@@ -40,6 +40,8 @@ export function PostPreview({
   const activePost: GeneratedPostItem | null =
     generatedPostPack?.posts[0] ?? null;
 
+  console.log(generatedPostPack);
+
   return (
     <div
       className={cn(
@@ -64,26 +66,17 @@ export function PostPreview({
             Switch between LinkedIn and X editors for the same generated idea.
           </p>
         </div>
-
         {activePost ? (
-          <div className="hidden items-center gap-3 md:flex">
-            <Tabs
-              value={activePlatform}
-              onValueChange={(value) => setActivePlatform(value as PlatformTab)}
-            >
-              <TabsList className="bg-muted/80 border">
-                <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-                <TabsTrigger value="x">X</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <Button
-              variant="secondary"
-              className="rounded-xl border bg-muted/80 font-semibold hover:bg-muted dark:hover:bg-slate-700"
-            >
-              <Save className="mr-2 size-4" />
-              Save as Draft
-            </Button>
-          </div>
+          <Tabs
+            value={activePlatform}
+            onValueChange={(value) => setActivePlatform(value as PlatformTab)}
+            className="hidden md:flex"
+          >
+            <TabsList className="bg-muted/80 border">
+              <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
+              <TabsTrigger value="x">X</TabsTrigger>
+            </TabsList>
+          </Tabs>
         ) : null}
       </div>
 
@@ -129,26 +122,15 @@ export function PostPreview({
       {isGenerated && !isGenerating && activePost ? (
         <>
           <div className="border-b px-4 py-3 md:hidden">
-            <div className="flex flex-col gap-3">
-              <Tabs
-                value={activePlatform}
-                onValueChange={(value) =>
-                  setActivePlatform(value as PlatformTab)
-                }
-              >
-                <TabsList className="w-full bg-muted/80 dark:bg-slate-800">
-                  <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-                  <TabsTrigger value="x">X</TabsTrigger>
-                </TabsList>
-              </Tabs>
-              <Button
-                variant="secondary"
-                className="w-full rounded-xl bg-muted/80 font-semibold hover:bg-muted dark:bg-slate-800 dark:hover:bg-slate-700"
-              >
-                <Save className="mr-2 size-4" />
-                Save as Draft
-              </Button>
-            </div>
+            <Tabs
+              value={activePlatform}
+              onValueChange={(value) => setActivePlatform(value as PlatformTab)}
+            >
+              <TabsList className="w-full bg-muted/80 border">
+                <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
+                <TabsTrigger value="x">X</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
 
           {activePlatform === "linkedin" ? (
@@ -166,6 +148,22 @@ export function PostPreview({
               onPostChange={onXPostChange}
             />
           )}
+
+          <div className="border-t px-4 py-4 md:px-6 md:py-5">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button className="w-full flex-1 rounded-xl font-semibold shadow-md transition-all">
+                <Calendar className="mr-2 size-4" />
+                Add to Calender
+              </Button>
+              <Button
+                variant="secondary"
+                className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold hover:bg-muted"
+              >
+                <Save className="mr-2 size-4" />
+                Save as Draft
+              </Button>
+            </div>
+          </div>
         </>
       ) : null}
     </div>

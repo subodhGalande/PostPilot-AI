@@ -6,7 +6,6 @@ import {
   Copy,
   List,
   ListOrdered,
-  Pilcrow,
   SmilePlus,
 } from "lucide-react";
 
@@ -38,8 +37,15 @@ interface PlainTextPostEditorProps {
   textareaClassName?: string;
 }
 
-const BULLET_PREFIX = "• ";
-const bulletLinePattern = /^(\s*)•\s?(.*)$/;
+interface ToolbarButtonProps {
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+  onMouseDown?: () => void;
+}
+
+const BULLET_PREFIX = "â€¢ ";
+const bulletLinePattern = /^(\s*)â€¢\s?(.*)$/;
 const numberedLinePattern = /^(\s*)(\d+)\.\s?(.*)$/;
 
 function getSelectedLineRange(
@@ -55,22 +61,26 @@ function getSelectedLineRange(
   return { lineStart, lineEnd };
 }
 
-function getCurrentLine(
-  value: string,
-  selectionStart: number,
-  selectionEnd: number,
-) {
-  const { lineStart, lineEnd } = getSelectedLineRange(
-    value,
-    selectionStart,
-    selectionEnd,
+function ToolbarButton({
+  icon,
+  label,
+  onClick,
+  onMouseDown,
+}: ToolbarButtonProps) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="icon-sm"
+      className="rounded-md"
+      onClick={onClick}
+      onMouseDown={onMouseDown}
+      aria-label={label}
+      title={label}
+    >
+      {icon}
+    </Button>
   );
-
-  return {
-    lineStart,
-    lineEnd,
-    line: value.slice(lineStart, lineEnd),
-  };
 }
 
 export function PlainTextPostEditor({
@@ -286,7 +296,8 @@ export function PlainTextPostEditor({
         return;
       }
 
-      const { lineStart, lineEnd, line } = getCurrentLine(value, start, end);
+      const { lineStart, lineEnd } = getSelectedLineRange(value, start, end);
+      const line = value.slice(lineStart, lineEnd);
       const bulletMatch = bulletLinePattern.exec(line);
 
       if (bulletMatch) {
@@ -354,52 +365,28 @@ export function PlainTextPostEditor({
       )}
     >
       <div className="flex items-center gap-1 border-b bg-muted/40 px-2 py-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="icon-sm"
-          className="rounded-md"
+        <ToolbarButton
+          icon={<List />}
+          label="Bullet list"
           onClick={insertBulletList}
-          aria-label="Toggle bullet list"
-          title="Bullet list"
-        >
-          <List />
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon-sm"
-          className="rounded-md"
+        />
+        <ToolbarButton
+          icon={<ListOrdered />}
+          label="Numbered list"
           onClick={insertNumberedList}
-          aria-label="Toggle numbered list"
-          title="Numbered list"
-        >
-          <ListOrdered />
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon-sm"
-          className="rounded-md"
+        />
+        <ToolbarButton
+          icon={<BetweenHorizontalStart />}
+          label="Blank line"
           onClick={insertBlankLine}
-          aria-label="Insert blank line"
-          title="Blank line"
-        >
-          <BetweenHorizontalStart />
-        </Button>
+        />
         <Popover open={isEmojiPickerOpen} onOpenChange={setIsEmojiPickerOpen}>
           <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon-sm"
-              className="rounded-md"
-              aria-label="Insert emoji"
-              title="Insert emoji"
+            <ToolbarButton
+              icon={<SmilePlus />}
+              label="Insert emoji"
               onMouseDown={syncSelectionState}
-            >
-              <SmilePlus />
-            </Button>
+            />
           </PopoverTrigger>
           <PopoverContent
             align="start"
@@ -417,26 +404,14 @@ export function PlainTextPostEditor({
           </PopoverContent>
         </Popover>
         <div className="mx-1 h-5 w-px bg-border" />
-        <div
-          className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground"
-          aria-hidden="true"
-        >
-          <Pilcrow className="size-4" />
-        </div>
         {onCopy ? (
           <>
             <div className="ml-auto h-5 w-px bg-border" />
-            <Button
-              type="button"
-              variant="outline"
-              size="icon-sm"
-              className="rounded-md"
+            <ToolbarButton
+              icon={<Copy />}
+              label={copyLabel}
               onClick={onCopy}
-              aria-label={copyLabel}
-              title={copyLabel}
-            >
-              <Copy />
-            </Button>
+            />
           </>
         ) : null}
       </div>
@@ -444,12 +419,7 @@ export function PlainTextPostEditor({
       <Textarea
         ref={textareaRef}
         value={value}
-        onChange={(event) => {
-          onChange(event.target.value);
-          if (autoResize) {
-            syncTextareaHeight();
-          }
-        }}
+        onChange={(event) => onChange(event.target.value)}
         onClick={syncSelectionState}
         onKeyDown={handleKeyDown}
         onKeyUp={syncSelectionState}

@@ -6,7 +6,6 @@ export const xThreadPostSchema = z.object({
 });
 
 export const generatedPostItemSchema = z.object({
-  id: z.string().min(1),
   topic: z.string().min(1),
   baseIdea: z.string().min(1),
   linkedin: z.object({

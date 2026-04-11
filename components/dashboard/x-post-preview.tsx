@@ -1,11 +1,11 @@
 "use client";
 
-import { Calendar, Copy, Wand2 } from "lucide-react";
+import { Copy } from "lucide-react";
 import { toast } from "sonner";
 
-import { PlainTextPostEditor } from "@/components/dashboard/plain-text-post-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PlainTextPostEditor } from "@/components/ui/plain-text-post-editor";
 import type { GeneratedPostItem } from "@/lib/social-posts";
 import { copyPostContent } from "@/lib/post-content";
 import { cn } from "@/lib/utils";
@@ -141,25 +141,6 @@ export function XPostPreview({
               </div>
             );
           })}
-        </div>
-      </div>
-
-      <div className="mt-2 flex flex-col gap-3">
-        <div className="flex flex-wrap gap-3">
-          <Button
-            variant="ghost"
-            className="h-10 rounded-xl px-4 text-sm font-semibold"
-          >
-            <Wand2 data-icon="inline-start" />
-            Improve Thread
-          </Button>
-        </div>
-
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Button className="h-10 flex-1 rounded-xl text-sm font-bold shadow-md transition-all">
-            <Calendar data-icon="inline-start" />
-            Schedule X Post
-          </Button>
         </div>
       </div>
     </div>

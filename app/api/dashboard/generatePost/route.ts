@@ -246,8 +246,9 @@ export async function POST(req: Request) {
       }),
     });
 
+    console.log(result);
+
     const normalizedPost = generatedPostItemSchema.parse({
-      id: "post-1",
       topic: input.topic,
       baseIdea: result.output.baseIdea,
       linkedin: {

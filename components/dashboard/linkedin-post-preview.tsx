@@ -1,11 +1,9 @@
 "use client";
 
-import { Calendar, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { PlainTextPostEditor } from "@/components/dashboard/plain-text-post-editor";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { PlainTextPostEditor } from "@/components/ui/plain-text-post-editor";
 import type { GeneratedPostItem } from "@/lib/social-posts";
 import { copyLinkedInContent, countWords } from "@/lib/post-content";
 
@@ -67,25 +65,6 @@ export function LinkedInPostPreview({
           <span className="text-muted-foreground">
             Recommended: 120-200 words
           </span>
-        </div>
-      </div>
-
-      <div className="mt-2 flex flex-col gap-6">
-        <div className="flex flex-wrap justify-between gap-3">
-          <Button
-            variant="ghost"
-            className="h-10 rounded-xl px-4 text-sm font-semibold"
-          >
-            <Wand2 data-icon="inline-start" />
-            Improve Post
-          </Button>
-        </div>
-
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Button className="h-10 flex-1 rounded-xl text-sm font-bold shadow-md transition-all">
-            <Calendar data-icon="inline-start" />
-            Schedule Post
-          </Button>
         </div>
       </div>
     </div>
