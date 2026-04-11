@@ -49,7 +49,14 @@ export default function DashboardPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate post.");
+        const errorBody = (await response.json().catch(() => null)) as {
+          error?: string;
+          message?: string;
+        } | null;
+
+        throw new Error(
+          errorBody?.message ?? errorBody?.error ?? "Failed to generate post.",
+        );
       }
 
       return response.json();
@@ -66,7 +73,7 @@ export default function DashboardPage() {
 
   const handleGenerate = () => {
     generatePostMutation.mutate({
-      modelName: "gemini-2.5-flash",
+      modelName: "gemma-4-31b-it",
       topic,
       tone,
       postStyle,

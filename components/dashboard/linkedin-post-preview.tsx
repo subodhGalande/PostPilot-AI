@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, Copy, Wand2 } from "lucide-react";
+import { Calendar, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { PlainTextPostEditor } from "@/components/dashboard/plain-text-post-editor";
@@ -55,6 +55,8 @@ export function LinkedInPostPreview({
         <PlainTextPostEditor
           value={post.linkedin.content}
           onChange={onChange}
+          onCopy={handleCopy}
+          copyLabel="Copy for LinkedIn"
           placeholder="Write your LinkedIn post..."
         />
 
@@ -77,26 +79,12 @@ export function LinkedInPostPreview({
             <Wand2 data-icon="inline-start" />
             Improve Post
           </Button>
-          <Button
-            variant="outline"
-            className="h-10 rounded-xl px-4 text-sm font-semibold"
-            onClick={handleCopy}
-          >
-            <Copy data-icon="inline-start" />
-            Copy for LinkedIn
-          </Button>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button className="h-10 flex-1 rounded-xl text-sm font-bold shadow-md transition-all">
             <Calendar data-icon="inline-start" />
             Schedule Post
-          </Button>
-          <Button
-            variant="secondary"
-            className="h-10 flex-1 rounded-xl text-sm font-bold"
-          >
-            Save LinkedIn Draft
           </Button>
         </div>
       </div>

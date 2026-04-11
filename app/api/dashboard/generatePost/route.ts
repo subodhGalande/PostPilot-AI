@@ -1,5 +1,5 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { generateObject } from "ai";
+import { generateText, Output } from "ai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -8,13 +8,37 @@ import prisma from "@/lib/prisma";
 import { generatedPostItemSchema } from "@/lib/social-posts";
 
 const generatePostSchema = z.object({
-  modelName: z.string().min(1).default("gemini-2.5-flash"),
+  modelName: z.string().min(1),
   topic: z.string().min(1, "Topic is required"),
   tone: z.string().min(1, "Tone is required"),
   postStyle: z.string().min(1, "Post style is required"),
   targetAudience: z.string().min(1, "Target audience is required"),
   keywords: z.array(z.string().min(1)).default([]),
 });
+
+const aiGeneratedPostSchema = z.object({
+  baseIdea: z.string().min(1),
+  linkedin: z.object({
+    content: z.string().min(1),
+  }),
+  x: z.object({
+    posts: z
+      .array(
+        z.object({
+          content: z.string().min(1),
+        }),
+      )
+      .min(1),
+  }),
+});
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Failed to generate post";
+}
 
 function buildPrompt(
   input: z.infer<typeof generatePostSchema>,
@@ -70,14 +94,22 @@ Requirements:
 - Do not include labels like "LinkedIn Post", "Tweet 1", or markdown fences.
 - Make the opening strong for both platforms.
 - Naturally incorporate the provided keywords when relevant.
-- If hashtags are used, place them at the very end of the post after the full content, with exactly two empty lines before the hashtag line.
+- If hashtags are used, place them at the very end of the post after the full content, with exactly one empty lines before the hashtag line.
 - Keep all hashtags together on the final line or final hashtag block only. Do not scatter hashtags inside the main content.
 - Do not add explanations outside the schema.
-- Use these exact ids:
-  - post id: "post-1"
-  - if X is a single post, use x post id: "x-1"
-  - if X is a thread, use sequential ids like "x-1", "x-2", "x-3"
+- Return an object with exactly these top-level keys only:
+  - baseIdea
+  - linkedin
+  - x
 - baseIdea should summarize the shared message in one sentence.
+- linkedin must be an object with:
+  - content
+- x must be an object with:
+  - posts
+- x.posts must be an array of one or more objects.
+- Each x.posts item must contain:
+  - content
+- Do not include ids, topic, mode, labels, or extra keys outside this structure.
 
 Plain-text formatting rules for LinkedIn:
 - Output plain text only.
@@ -106,7 +138,9 @@ Plain-text formatting rules for LinkedIn:
 Plain-text formatting rules for X:
 - Output plain text only.
 - Do not output HTML.
-- Do not output markdown syntax like **bold**, __underline__, # headings, or code fences.
+- Do not output markdown syntax like *bold*, **bold**, __underline__, # headings, or code fences.
+- Do not use single asterisks for emphasis like *this* or any other markdown-style emphasis markers.
+- Do not wrap words or phrases in symbols for styling. Write emphasis using plain words only.
 - Each x.posts[].content must already be perfectly formatted plain text.
 - Prefer 2 to 5 thread posts when the topic benefits from explanation, examples, or a list.
 - For long-form, listicle, or educational posts, thread mode is usually the right choice.
@@ -196,9 +230,14 @@ export async function POST(req: Request) {
     const google = createGoogleGenerativeAI({ apiKey });
     const input = parsedBody.data;
 
-    const result = await generateObject({
+    const result = await generateText({
       model: google(input.modelName),
-      schema: generatedPostItemSchema,
+      output: Output.object({
+        name: "GeneratedPostContent",
+        description:
+          "A social post package with one LinkedIn post and X post content.",
+        schema: aiGeneratedPostSchema,
+      }),
       prompt: buildPrompt(input, {
         accountName: user.accountName,
         accountType: user.accountType ?? null,
@@ -207,15 +246,35 @@ export async function POST(req: Request) {
       }),
     });
 
+    const normalizedPost = generatedPostItemSchema.parse({
+      id: "post-1",
+      topic: input.topic,
+      baseIdea: result.output.baseIdea,
+      linkedin: {
+        content: result.output.linkedin.content,
+      },
+      x: {
+        mode: result.output.x.posts.length > 1 ? "thread" : "single",
+        posts: result.output.x.posts.map((post, index) => ({
+          id: `x-${index + 1}`,
+          content: post.content,
+        })),
+      },
+    });
+
     return NextResponse.json({
-      posts: [result.object],
+      posts: [normalizedPost],
       model: input.modelName,
     });
   } catch (error) {
     console.error("generatePost route error", error);
 
+    console.log(error);
     return NextResponse.json(
-      { error: "Failed to generate post" },
+      {
+        error: "Failed to generate post",
+        message: getErrorMessage(error),
+      },
       { status: 500 },
     );
   }

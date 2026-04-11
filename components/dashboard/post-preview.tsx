@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, FileText, Loader2, Save } from "lucide-react";
 import { useState } from "react";
 
 import { LinkedInPostPreview } from "@/components/dashboard/linkedin-post-preview";
@@ -66,16 +66,24 @@ export function PostPreview({
         </div>
 
         {activePost ? (
-          <Tabs
-            value={activePlatform}
-            onValueChange={(value) => setActivePlatform(value as PlatformTab)}
-            className="hidden md:flex"
-          >
-            <TabsList>
-              <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-              <TabsTrigger value="x">X</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="hidden items-center gap-3 md:flex">
+            <Tabs
+              value={activePlatform}
+              onValueChange={(value) => setActivePlatform(value as PlatformTab)}
+            >
+              <TabsList className="bg-muted/80 border">
+                <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
+                <TabsTrigger value="x">X</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Button
+              variant="secondary"
+              className="rounded-xl border bg-muted/80 font-semibold hover:bg-muted dark:hover:bg-slate-700"
+            >
+              <Save className="mr-2 size-4" />
+              Save as Draft
+            </Button>
+          </div>
         ) : null}
       </div>
 
@@ -121,15 +129,26 @@ export function PostPreview({
       {isGenerated && !isGenerating && activePost ? (
         <>
           <div className="border-b px-4 py-3 md:hidden">
-            <Tabs
-              value={activePlatform}
-              onValueChange={(value) => setActivePlatform(value as PlatformTab)}
-            >
-              <TabsList className="w-full">
-                <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-                <TabsTrigger value="x">X</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="flex flex-col gap-3">
+              <Tabs
+                value={activePlatform}
+                onValueChange={(value) =>
+                  setActivePlatform(value as PlatformTab)
+                }
+              >
+                <TabsList className="w-full bg-muted/80 dark:bg-slate-800">
+                  <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
+                  <TabsTrigger value="x">X</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <Button
+                variant="secondary"
+                className="w-full rounded-xl bg-muted/80 font-semibold hover:bg-muted dark:bg-slate-800 dark:hover:bg-slate-700"
+              >
+                <Save className="mr-2 size-4" />
+                Save as Draft
+              </Button>
+            </div>
           </div>
 
           {activePlatform === "linkedin" ? (

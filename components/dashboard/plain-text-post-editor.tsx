@@ -3,6 +3,7 @@
 import * as React from "react";
 import {
   BetweenHorizontalStart,
+  Copy,
   List,
   ListOrdered,
   Pilcrow,
@@ -27,6 +28,11 @@ import { cn } from "@/lib/utils";
 interface PlainTextPostEditorProps {
   value: string;
   onChange: (content: string) => void;
+  onCopy?: () => void;
+  copyLabel?: string;
+  autoResize?: boolean;
+  minEditorHeight?: number;
+  maxEditorHeight?: number;
   placeholder?: string;
   className?: string;
   textareaClassName?: string;
@@ -70,6 +76,11 @@ function getCurrentLine(
 export function PlainTextPostEditor({
   value,
   onChange,
+  onCopy,
+  copyLabel = "Copy content",
+  autoResize = false,
+  minEditorHeight = 420,
+  maxEditorHeight,
   placeholder,
   className,
   textareaClassName,
@@ -90,6 +101,30 @@ export function PlainTextPostEditor({
       scrollTop: textarea.scrollTop,
     };
   }, []);
+
+  const syncTextareaHeight = React.useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea || !autoResize) {
+      return;
+    }
+
+    textarea.style.height = "auto";
+    const contentHeight = Math.max(textarea.scrollHeight, minEditorHeight);
+    const nextHeight =
+      typeof maxEditorHeight === "number"
+        ? Math.min(contentHeight, maxEditorHeight)
+        : contentHeight;
+
+    textarea.style.height = `${nextHeight}px`;
+    textarea.style.overflowY =
+      typeof maxEditorHeight === "number" && contentHeight > maxEditorHeight
+        ? "auto"
+        : "hidden";
+  }, [autoResize, maxEditorHeight, minEditorHeight]);
+
+  React.useLayoutEffect(() => {
+    syncTextareaHeight();
+  }, [syncTextareaHeight]);
 
   const updateValue = React.useCallback(
     (
@@ -388,20 +423,53 @@ export function PlainTextPostEditor({
         >
           <Pilcrow className="size-4" />
         </div>
+        {onCopy ? (
+          <>
+            <div className="ml-auto h-5 w-px bg-border" />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              className="rounded-md"
+              onClick={onCopy}
+              aria-label={copyLabel}
+              title={copyLabel}
+            >
+              <Copy />
+            </Button>
+          </>
+        ) : null}
       </div>
 
       <Textarea
         ref={textareaRef}
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => {
+          onChange(event.target.value);
+          if (autoResize) {
+            syncTextareaHeight();
+          }
+        }}
         onClick={syncSelectionState}
         onKeyDown={handleKeyDown}
         onKeyUp={syncSelectionState}
         onSelect={syncSelectionState}
         onScroll={syncSelectionState}
         placeholder={placeholder}
+        style={
+          autoResize
+            ? {
+                minHeight: `${minEditorHeight}px`,
+                maxHeight:
+                  typeof maxEditorHeight === "number"
+                    ? `${maxEditorHeight}px`
+                    : undefined,
+              }
+            : undefined
+        }
         className={cn(
           "min-h-[420px] resize-none rounded-none border-0 bg-background p-5 text-sm leading-7 shadow-none focus-visible:ring-0",
+          autoResize && "overflow-y-hidden",
           textareaClassName,
         )}
       />
