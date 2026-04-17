@@ -22,6 +22,8 @@ interface PostPreviewProps {
   onXPostChange: (postId: string, content: string) => void;
   isGenerated?: boolean;
   isGenerating?: boolean;
+  isSavingDraft?: boolean;
+  onSaveDraft?: () => void;
   onReset?: () => void;
 }
 
@@ -34,13 +36,13 @@ export function PostPreview({
   onXPostChange,
   isGenerated = true,
   isGenerating = false,
+  isSavingDraft = false,
+  onSaveDraft,
   onReset,
 }: PostPreviewProps) {
   const [activePlatform, setActivePlatform] = useState<PlatformTab>("linkedin");
   const activePost: GeneratedPostItem | null =
     generatedPostPack?.posts[0] ?? null;
-
-  console.log(generatedPostPack);
 
   return (
     <div
@@ -158,9 +160,15 @@ export function PostPreview({
               <Button
                 variant="secondary"
                 className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold hover:bg-muted"
+                onClick={onSaveDraft}
+                disabled={isSavingDraft}
               >
-                <Save className="mr-2 size-4" />
-                Save as Draft
+                {isSavingDraft ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 size-4" />
+                )}
+                {isSavingDraft ? "Saving Draft..." : "Save as Draft"}
               </Button>
             </div>
           </div>

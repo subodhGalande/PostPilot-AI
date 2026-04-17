@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { PostConfiguration } from "@/components/dashboard/post-configuration";
 import { PostPreview } from "@/components/dashboard/post-preview";
@@ -17,9 +18,17 @@ type GeneratePostPayload = {
   keywords: string[];
 };
 
+type SaveDraftResponse = {
+  id: string;
+  title: string;
+  status: string;
+  createdAt: string;
+};
+
 export default function DashboardPage() {
   const [isGenerated, setIsGenerated] = useState(false);
   const [previewVersion, setPreviewVersion] = useState(0);
+  const [draftId, setDraftId] = useState<string | null>(null);
   const [topic, setTopic] = useState(
     "Benefits of Remote Work for Software Teams",
   );
@@ -63,6 +72,7 @@ export default function DashboardPage() {
     },
     onSuccess: (data) => {
       setGeneratedPostPack(data);
+      setDraftId(null);
       setPreviewVersion((currentVersion) => currentVersion + 1);
       setIsGenerated(true);
     },
@@ -85,6 +95,7 @@ export default function DashboardPage() {
   const handleReset = () => {
     setIsGenerated(false);
     setGeneratedPostPack(null);
+    setDraftId(null);
   };
 
   const handleUpdatePost = (
@@ -122,6 +133,51 @@ export default function DashboardPage() {
       },
     }));
   };
+
+  const saveDraftMutation = useMutation({
+    mutationKey: ["saveDraft", draftId],
+    mutationFn: async (): Promise<SaveDraftResponse> => {
+      if (!generatedPostPack || generatedPostPack.posts.length === 0) {
+        throw new Error("Generate a post before saving a draft.");
+      }
+
+      const activePost = generatedPostPack.posts[0];
+      const response = await fetch("/api/dashboard/saveDraft", {
+        method: draftId ? "PATCH" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...(draftId ? { draftId } : {}),
+          post: activePost,
+          model: generatedPostPack.model,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorBody = (await response.json().catch(() => null)) as {
+          error?: string;
+          message?: string;
+        } | null;
+
+        throw new Error(
+          errorBody?.message ?? errorBody?.error ?? "Failed to save draft.",
+        );
+      }
+
+      return response.json();
+    },
+    onSuccess: (draft) => {
+      setDraftId(draft.id);
+      toast.success(draftId ? "Draft updated." : "Draft saved.");
+    },
+    onError: (error) => {
+      console.error("Failed to save draft:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save draft.",
+      );
+    },
+  });
 
   return (
     <div className="relative flex flex-1 flex-col gap-6 overflow-hidden bg-slate-50/50 p-4 dark:bg-transparent md:p-6 lg:flex-row">
@@ -163,6 +219,8 @@ export default function DashboardPage() {
           onXPostChange={handleXPostChange}
           isGenerated={isGenerated}
           isGenerating={generatePostMutation.isPending}
+          isSavingDraft={saveDraftMutation.isPending}
+          onSaveDraft={() => saveDraftMutation.mutate()}
           onReset={handleReset}
         />
       </div>
