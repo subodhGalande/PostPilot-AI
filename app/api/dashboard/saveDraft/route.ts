@@ -6,12 +6,14 @@ import prisma from "@/lib/prisma";
 import { generatedPostItemSchema } from "@/lib/social-posts";
 
 const saveDraftSchema = z.object({
+  clientDraftKey: z.string().min(1, "Client draft key is required"),
   post: generatedPostItemSchema,
   model: z.string().min(1, "Model is required"),
 });
 
 const updateDraftSchema = saveDraftSchema.extend({
   draftId: z.string().min(1, "Draft id is required"),
+  updatedAt: z.string().datetime("Updated at is required"),
 });
 
 function getErrorMessage(error: unknown) {
@@ -27,6 +29,7 @@ function buildDraftData(input: z.infer<typeof saveDraftSchema>) {
 
   return {
     title,
+    clientDraftKey: input.clientDraftKey,
     content: {
       ...input.post,
       model: input.model,
@@ -45,6 +48,7 @@ export async function POST(req: Request) {
 
     const json = await req.json();
     const parsedBody = saveDraftSchema.safeParse(json);
+    console.log(parsedBody);
 
     if (!parsedBody.success) {
       return NextResponse.json(
@@ -54,6 +58,24 @@ export async function POST(req: Request) {
         },
         { status: 400 },
       );
+    }
+
+    const existingDraft = await prisma.post.findFirst({
+      where: {
+        userId: authUser.id,
+        clientDraftKey: parsedBody.data.clientDraftKey,
+      } as never,
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (existingDraft) {
+      return NextResponse.json(existingDraft);
     }
 
     const draft = await prisma.post.create({
@@ -66,6 +88,7 @@ export async function POST(req: Request) {
         title: true,
         status: true,
         createdAt: true,
+        updatedAt: true,
       },
     });
 
@@ -104,7 +127,7 @@ export async function PATCH(req: Request) {
       );
     }
 
-    const { draftId, ...draftInput } = parsedBody.data;
+    const { draftId, updatedAt, ...draftInput } = parsedBody.data;
 
     const existingDraft = await prisma.post.findFirst({
       where: {
@@ -113,11 +136,24 @@ export async function PATCH(req: Request) {
       },
       select: {
         id: true,
+        updatedAt: true,
       },
     });
 
     if (!existingDraft) {
       return NextResponse.json({ error: "Draft not found" }, { status: 404 });
+    }
+
+    if (existingDraft.updatedAt.toISOString() !== updatedAt) {
+      return NextResponse.json(
+        {
+          error: "Draft conflict",
+          message:
+            "This draft was updated in another tab. Refresh before saving again.",
+          currentUpdatedAt: existingDraft.updatedAt.toISOString(),
+        },
+        { status: 409 },
+      );
     }
 
     const draft = await prisma.post.update({
@@ -130,6 +166,7 @@ export async function PATCH(req: Request) {
         title: true,
         status: true,
         createdAt: true,
+        updatedAt: true,
       },
     });
 

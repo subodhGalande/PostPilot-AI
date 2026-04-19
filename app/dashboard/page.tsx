@@ -23,12 +23,28 @@ type SaveDraftResponse = {
   title: string;
   status: string;
   createdAt: string;
+  updatedAt: string;
 };
+
+function createClientDraftKey() {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
+    return crypto.randomUUID();
+  }
+
+  return `draft-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
 
 export default function DashboardPage() {
   const [isGenerated, setIsGenerated] = useState(false);
   const [previewVersion, setPreviewVersion] = useState(0);
   const [draftId, setDraftId] = useState<string | null>(null);
+  const [draftUpdatedAt, setDraftUpdatedAt] = useState<string | null>(null);
+  const [clientDraftKey, setClientDraftKey] = useState(() =>
+    createClientDraftKey(),
+  );
   const [topic, setTopic] = useState(
     "Benefits of Remote Work for Software Teams",
   );
@@ -73,6 +89,8 @@ export default function DashboardPage() {
     onSuccess: (data) => {
       setGeneratedPostPack(data);
       setDraftId(null);
+      setDraftUpdatedAt(null);
+      setClientDraftKey(createClientDraftKey());
       setPreviewVersion((currentVersion) => currentVersion + 1);
       setIsGenerated(true);
     },
@@ -96,6 +114,8 @@ export default function DashboardPage() {
     setIsGenerated(false);
     setGeneratedPostPack(null);
     setDraftId(null);
+    setDraftUpdatedAt(null);
+    setClientDraftKey(createClientDraftKey());
   };
 
   const handleUpdatePost = (
@@ -141,6 +161,12 @@ export default function DashboardPage() {
         throw new Error("Generate a post before saving a draft.");
       }
 
+      if (draftId && !draftUpdatedAt) {
+        throw new Error(
+          "Missing draft version. Refresh the draft before saving again.",
+        );
+      }
+
       const activePost = generatedPostPack.posts[0];
       const response = await fetch("/api/dashboard/saveDraft", {
         method: draftId ? "PATCH" : "POST",
@@ -148,7 +174,8 @@ export default function DashboardPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...(draftId ? { draftId } : {}),
+          ...(draftId ? { draftId, updatedAt: draftUpdatedAt } : {}),
+          clientDraftKey,
           post: activePost,
           model: generatedPostPack.model,
         }),
@@ -169,6 +196,7 @@ export default function DashboardPage() {
     },
     onSuccess: (draft) => {
       setDraftId(draft.id);
+      setDraftUpdatedAt(draft.updatedAt);
       toast.success(draftId ? "Draft updated." : "Draft saved.");
     },
     onError: (error) => {

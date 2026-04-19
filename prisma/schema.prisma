@@ -34,16 +34,18 @@ model User {
 }
 
 model Post {
-  id          String     @id @default(cuid())
-  title       String
-  content     Json
-  scheduledAt DateTime?
-  status      PostStatus @default(DRAFT)
-  userId      String
-  user        User       @relation(fields: [userId], references: [id])
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id             String     @id @default(cuid())
+  title          String
+  content        Json
+  clientDraftKey String?
+  scheduledAt    DateTime?
+  status         PostStatus @default(DRAFT)
+  userId         String
+  user           User       @relation(fields: [userId], references: [id])
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
+  @@unique([userId, clientDraftKey])
   @@index([userId, status, updatedAt])
 }
 
