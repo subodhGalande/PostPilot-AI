@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
   Calendar,
+  FileText,
   Laptop,
   LayoutDashboard,
   LineChart,
@@ -47,6 +48,12 @@ const navItems = [
     url: "/dashboard",
     icon: LayoutDashboard,
     match: (pathname: string) => pathname === "/dashboard",
+  },
+  {
+    title: "Drafts",
+    url: "/dashboard/drafts",
+    icon: FileText,
+    match: (pathname: string) => pathname.startsWith("/dashboard/drafts"),
   },
   {
     title: "Calendar",

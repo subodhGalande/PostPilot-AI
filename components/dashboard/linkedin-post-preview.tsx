@@ -8,8 +8,8 @@ import type { GeneratedPostItem } from "@/lib/social-posts";
 import { copyLinkedInContent, countWords } from "@/lib/post-content";
 
 interface LinkedInPostPreviewProps {
-  postStyle: string;
-  targetAudience: string;
+  postStyle?: string;
+  targetAudience?: string;
   post: GeneratedPostItem;
   onChange: (content: string) => void;
 }
@@ -45,8 +45,10 @@ export function LinkedInPostPreview({
 
       <div className="flex flex-wrap gap-2">
         <Badge variant="secondary">LinkedIn</Badge>
-        <Badge variant="outline">{postStyle}</Badge>
-        <Badge variant="outline">{targetAudience}</Badge>
+        {postStyle ? <Badge variant="outline">{postStyle}</Badge> : null}
+        {targetAudience ? (
+          <Badge variant="outline">{targetAudience}</Badge>
+        ) : null}
       </div>
 
       <div className="flex flex-1 flex-col rounded-xl border bg-muted/40 p-4">

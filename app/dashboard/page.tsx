@@ -6,6 +6,11 @@ import { toast } from "sonner";
 
 import { PostConfiguration } from "@/components/dashboard/post-configuration";
 import { PostPreview } from "@/components/dashboard/post-preview";
+import {
+  createClientDraftKey,
+  saveDraft,
+  type SaveDraftResponse,
+} from "@/lib/drafts";
 import type { GeneratedPostItem, GeneratedPostPack } from "@/lib/social-posts";
 import { cn } from "@/lib/utils";
 
@@ -17,25 +22,6 @@ type GeneratePostPayload = {
   targetAudience: string;
   keywords: string[];
 };
-
-type SaveDraftResponse = {
-  id: string;
-  title: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-function createClientDraftKey() {
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-    return crypto.randomUUID();
-  }
-
-  return `draft-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-}
 
 export default function DashboardPage() {
   const [isGenerated, setIsGenerated] = useState(false);
@@ -168,31 +154,14 @@ export default function DashboardPage() {
       }
 
       const activePost = generatedPostPack.posts[0];
-      const response = await fetch("/api/dashboard/saveDraft", {
-        method: draftId ? "PATCH" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...(draftId ? { draftId, updatedAt: draftUpdatedAt } : {}),
-          clientDraftKey,
-          post: activePost,
-          model: generatedPostPack.model,
-        }),
+      return saveDraft({
+        ...(draftId && draftUpdatedAt
+          ? { draftId, updatedAt: draftUpdatedAt }
+          : {}),
+        clientDraftKey,
+        post: activePost,
+        model: generatedPostPack.model,
       });
-
-      if (!response.ok) {
-        const errorBody = (await response.json().catch(() => null)) as {
-          error?: string;
-          message?: string;
-        } | null;
-
-        throw new Error(
-          errorBody?.message ?? errorBody?.error ?? "Failed to save draft.",
-        );
-      }
-
-      return response.json();
     },
     onSuccess: (draft) => {
       setDraftId(draft.id);

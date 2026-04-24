@@ -64,7 +64,7 @@ export async function POST(req: Request) {
       where: {
         userId: authUser.id,
         clientDraftKey: parsedBody.data.clientDraftKey,
-      } as never,
+      },
       select: {
         id: true,
         title: true,

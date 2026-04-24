@@ -12,17 +12,19 @@ import type { GeneratedPostItem, GeneratedPostPack } from "@/lib/social-posts";
 import { cn } from "@/lib/utils";
 
 type PlatformTab = "linkedin" | "x";
+type PostPreviewMode = "generated" | "draft";
 
 interface PostPreviewProps {
   className?: string;
-  postStyle: string;
-  targetAudience: string;
+  postStyle?: string;
+  targetAudience?: string;
   generatedPostPack: GeneratedPostPack | null;
   onLinkedInChange: (content: string) => void;
   onXPostChange: (postId: string, content: string) => void;
   isGenerated?: boolean;
   isGenerating?: boolean;
   isSavingDraft?: boolean;
+  mode?: PostPreviewMode;
   onSaveDraft?: () => void;
   onReset?: () => void;
 }
@@ -37,12 +39,18 @@ export function PostPreview({
   isGenerated = true,
   isGenerating = false,
   isSavingDraft = false,
+  mode = "generated",
   onSaveDraft,
   onReset,
 }: PostPreviewProps) {
   const [activePlatform, setActivePlatform] = useState<PlatformTab>("linkedin");
   const activePost: GeneratedPostItem | null =
     generatedPostPack?.posts[0] ?? null;
+  const title = mode === "draft" ? "Editor" : "Generated Preview";
+  const description =
+    mode === "draft"
+      ? ""
+      : "Switch between LinkedIn and X editors for the same generated idea.";
 
   return (
     <div
@@ -63,10 +71,10 @@ export function PostPreview({
           </Button>
         ) : null}
         <div className="min-w-0 flex-1">
-          <h3 className="text-lg font-bold">Generated Preview</h3>
-          <p className="text-sm text-muted-foreground">
-            Switch between LinkedIn and X editors for the same generated idea.
-          </p>
+          <h3 className="text-lg font-bold">{title}</h3>
+          {description ? (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          ) : null}
         </div>
         {activePost ? (
           <Tabs

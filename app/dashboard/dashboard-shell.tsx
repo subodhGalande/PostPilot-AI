@@ -16,6 +16,24 @@ import {
 import { useUser } from "../context/userDetailsContext";
 
 function getRouteMeta(pathname: string) {
+  if (pathname.startsWith("/dashboard/drafts/")) {
+    return {
+      section: "Workspace",
+      title: "Edit Draft",
+      description:
+        "Refine a saved draft and keep LinkedIn and X edits in one shared workspace.",
+    };
+  }
+
+  if (pathname.startsWith("/dashboard/drafts")) {
+    return {
+      section: "Workspace",
+      title: "Drafts",
+      description:
+        "Browse saved drafts and reopen them in the shared editor workspace.",
+    };
+  }
+
   if (pathname.startsWith("/calendar")) {
     return {
       section: "Planning",

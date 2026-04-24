@@ -13,8 +13,8 @@ import { cn } from "@/lib/utils";
 const X_CHARACTER_LIMIT = 240;
 
 interface XPostPreviewProps {
-  postStyle: string;
-  targetAudience: string;
+  postStyle?: string;
+  targetAudience?: string;
   post: GeneratedPostItem;
   onPostChange: (postId: string, content: string) => void;
 }
@@ -38,8 +38,10 @@ export function XPostPreview({
 
       <div className="flex flex-wrap gap-2">
         <Badge variant="secondary">X</Badge>
-        <Badge variant="outline">{postStyle}</Badge>
-        <Badge variant="outline">{targetAudience}</Badge>
+        {postStyle ? <Badge variant="outline">{postStyle}</Badge> : null}
+        {targetAudience ? (
+          <Badge variant="outline">{targetAudience}</Badge>
+        ) : null}
         <Badge variant="outline">
           {post.x.mode === "thread" ? "Thread" : "Single Post"}
         </Badge>
