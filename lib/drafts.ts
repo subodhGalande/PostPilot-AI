@@ -24,7 +24,7 @@ type SaveDraftPayload = {
   clientDraftKey: string;
   post: GeneratedPostItem;
   model: string;
-  draftId?: string;
+  id?: string;
   updatedAt?: string;
 };
 
@@ -63,7 +63,7 @@ export async function saveDraft(
   payload: SaveDraftPayload,
 ): Promise<SaveDraftResponse> {
   const response = await fetch("/api/dashboard/saveDraft", {
-    method: payload.draftId ? "PATCH" : "POST",
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
     },

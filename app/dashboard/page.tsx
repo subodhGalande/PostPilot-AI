@@ -155,9 +155,7 @@ export default function DashboardPage() {
 
       const activePost = generatedPostPack.posts[0];
       return saveDraft({
-        ...(draftId && draftUpdatedAt
-          ? { draftId, updatedAt: draftUpdatedAt }
-          : {}),
+        ...(draftId && draftUpdatedAt ? { id: draftId, updatedAt: draftUpdatedAt } : {}),
         clientDraftKey,
         post: activePost,
         model: generatedPostPack.model,

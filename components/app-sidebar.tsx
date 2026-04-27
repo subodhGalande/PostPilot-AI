@@ -57,9 +57,9 @@ const navItems = [
   },
   {
     title: "Calendar",
-    url: "/calendar",
+    url: "/dashboard/calendar",
     icon: Calendar,
-    match: (pathname: string) => pathname.startsWith("/calendar"),
+    match: (pathname: string) => pathname.startsWith("/dashboard/calendar"),
   },
   {
     title: "Analytics",

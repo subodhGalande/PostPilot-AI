@@ -80,7 +80,7 @@ export function DraftEditorWorkspace({
       }
 
       return saveDraft({
-        draftId: initialDraftId,
+        id: initialDraftId,
         updatedAt: draftUpdatedAt,
         clientDraftKey: initialClientDraftKey,
         post: generatedPostPack.posts[0],
@@ -107,9 +107,7 @@ export function DraftEditorWorkspace({
       : `Saved ${new Intl.RelativeTimeFormat("en", {
           numeric: "auto",
         }).format(
-          Math.round(
-            (new Date(draftUpdatedAt).getTime() - Date.now()) / 60000,
-          ),
+          Math.round((new Date(draftUpdatedAt).getTime() - Date.now()) / 60000),
           "minute",
         )}`;
 
