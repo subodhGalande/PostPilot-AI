@@ -28,6 +28,10 @@ type SaveDraftPayload = {
   updatedAt?: string;
 };
 
+export type SchedulePostPayload = SaveDraftPayload & {
+  scheduledAt: string;
+};
+
 export function createClientDraftKey() {
   if (
     typeof crypto !== "undefined" &&
@@ -78,6 +82,31 @@ export async function saveDraft(
 
     throw new Error(
       errorBody?.message ?? errorBody?.error ?? "Failed to save draft.",
+    );
+  }
+
+  return response.json();
+}
+
+export async function schedulePost(
+  payload: SchedulePostPayload,
+): Promise<SaveDraftResponse> {
+  const response = await fetch("/api/dashboard/schedulePost", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorBody = (await response.json().catch(() => null)) as {
+      error?: string;
+      message?: string;
+    } | null;
+
+    throw new Error(
+      errorBody?.message ?? errorBody?.error ?? "Failed to schedule post.",
     );
   }
 

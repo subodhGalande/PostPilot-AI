@@ -3,11 +3,20 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, Edit3, Loader2 } from "lucide-react";
+import { CheckCircle2, Edit3, Loader2, Trash2, RotateCcw } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { PostPreview } from "@/components/dashboard/post-preview";
 import { saveDraft, type SaveDraftResponse } from "@/lib/drafts";
 import type { GeneratedPostItem, GeneratedPostPack } from "@/lib/social-posts";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ConfirmationModal } from "@/components/dashboard/confirmation-modal";
 
 interface DraftEditorWorkspaceProps {
   initialDraftId: string;
@@ -15,6 +24,7 @@ interface DraftEditorWorkspaceProps {
   initialCreatedAt: string;
   initialClientDraftKey: string;
   initialPostPack: GeneratedPostPack;
+  initialStatus: string;
   postStyle?: string;
   targetAudience?: string;
 }
@@ -25,13 +35,31 @@ export function DraftEditorWorkspace({
   initialCreatedAt,
   initialClientDraftKey,
   initialPostPack,
+  initialStatus,
   postStyle,
   targetAudience,
 }: DraftEditorWorkspaceProps) {
+  const router = useRouter();
   const [generatedPostPack, setGeneratedPostPack] =
     useState<GeneratedPostPack>(initialPostPack);
   const [draftUpdatedAt, setDraftUpdatedAt] = useState(initialDraftUpdatedAt);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [status, setStatus] = useState(initialStatus);
+  const [confirmationState, setConfirmationState] = useState<{
+    isOpen: boolean;
+    type: "unschedule" | "delete" | null;
+  }>({
+    isOpen: false,
+    type: null,
+  });
+
+  const handleOpenConfirmation = (type: "unschedule" | "delete") => {
+    setConfirmationState({ isOpen: true, type });
+  };
+
+  const handleCloseConfirmation = () => {
+    setConfirmationState({ isOpen: false, type: null });
+  };
 
   const handleUpdatePost = (
     updater: (currentPost: GeneratedPostItem) => GeneratedPostItem,
@@ -100,6 +128,55 @@ export function DraftEditorWorkspace({
     },
   });
 
+  const unscheduleMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/dashboard/unschedulePost", {
+        method: "POST",
+        body: JSON.stringify({ id: initialDraftId }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to unschedule post");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      setStatus("DRAFT");
+      toast.success("Post moved back to drafts.");
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Failed to unschedule");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/dashboard/drafts/${initialDraftId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete post");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast.success("Post deleted.");
+      router.push("/dashboard/drafts");
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Failed to delete post");
+    },
+  });
+
+  const handleConfirmAction = () => {
+    if (confirmationState.type === "unschedule") {
+      unscheduleMutation.mutate();
+    } else if (confirmationState.type === "delete") {
+      deleteMutation.mutate();
+    }
+  };
+
   const saveStatusLabel = saveDraftMutation.isPending
     ? "Saving..."
     : hasUnsavedChanges
@@ -124,16 +201,48 @@ export function DraftEditorWorkspace({
 
   return (
     <div className="flex h-full w-full flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl border bg-card/90 px-4 py-3 text-sm shadow-sm">
-        <div className="inline-flex items-center gap-2 text-foreground">
-          <SaveStatusIcon
-            className={`size-4 ${saveDraftMutation.isPending ? "animate-spin text-primary" : hasUnsavedChanges ? "text-amber-600" : "text-emerald-600"}`}
-          />
-          <span className="font-medium">{saveStatusLabel}</span>
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border bg-card/90 px-4 py-3 text-sm shadow-sm">
+        <div className="flex flex-wrap items-center gap-2 text-foreground">
+          <div className="inline-flex items-center gap-2">
+            <SaveStatusIcon
+              className={`size-4 ${saveDraftMutation.isPending ? "animate-spin text-primary" : hasUnsavedChanges ? "text-amber-600" : "text-emerald-600"}`}
+            />
+            <span className="font-medium">{saveStatusLabel}</span>
+          </div>
+          <span className="rounded-full bg-muted/45 px-2.5 py-1 text-xs font-medium text-muted-foreground">
+            Created {createdLabel}
+          </span>
         </div>
-        <span className="rounded-full bg-muted/45 px-2.5 py-1 text-xs font-medium text-muted-foreground">
-          Created {createdLabel}
-        </span>
+
+        <div className="flex items-center gap-2">
+          {status === "SCHEDULED" && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 px-2">
+                  Post Actions
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => handleOpenConfirmation("unschedule")}
+                  disabled={unscheduleMutation.isPending}
+                >
+                  <RotateCcw className="mr-2 size-4" />
+                  Move to Draft
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                  onClick={() => handleOpenConfirmation("delete")}
+                  disabled={deleteMutation.isPending}
+                >
+                  <Trash2 className="mr-2 size-4" />
+                  Delete Post
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
 
       <PostPreview
@@ -145,8 +254,30 @@ export function DraftEditorWorkspace({
         onXPostChange={handleXPostChange}
         isGenerated
         isSavingDraft={saveDraftMutation.isPending}
+        id={initialDraftId}
+        updatedAt={draftUpdatedAt}
+        clientDraftKey={initialClientDraftKey}
         mode="draft"
         onSaveDraft={() => saveDraftMutation.mutate()}
+        onScheduleSuccess={(data) => {
+          setDraftUpdatedAt(data.updatedAt);
+          setHasUnsavedChanges(false);
+        }}
+      />
+
+      <ConfirmationModal
+        isOpen={confirmationState.isOpen}
+        onClose={handleCloseConfirmation}
+        onConfirm={handleConfirmAction}
+        title={confirmationState.type === "delete" ? "Delete Post" : "Unschedule Post"}
+        description={
+          confirmationState.type === "delete"
+            ? "Are you sure you want to delete this post? This action cannot be undone."
+            : "Are you sure you want to move this post back to drafts? It will be unscheduled."
+        }
+        postTitle={generatedPostPack.posts[0]?.baseIdea}
+        confirmText={confirmationState.type === "delete" ? "Delete" : "Unschedule"}
+        variant={confirmationState.type === "delete" ? "destructive" : "default"}
       />
     </div>
   );

@@ -20,7 +20,7 @@ export async function GET(
     where: {
       id,
       userId: authUser.id,
-      status: "DRAFT",
+      status: { in: ["DRAFT", "SCHEDULED"] },
     },
     select: {
       id: true,
@@ -59,7 +59,7 @@ export async function DELETE(
     where: {
       id,
       userId: authUser.id,
-      status: "DRAFT",
+      status: { in: ["DRAFT", "SCHEDULED"] },
     },
     select: {
       id: true,

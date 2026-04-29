@@ -43,11 +43,15 @@
 
   --shadow-2xs: 0 1px 3px 0px oklch(0 0 0 / 0.05);
   --shadow-xs: 0 1px 3px 0px oklch(0 0 0 / 0.05);
-  --shadow-sm: 0 1px 3px 0px oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1);
+  --shadow-sm:
+    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1);
   --shadow: 0 1px 3px 0px oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1);
-  --shadow-md: 0 1px 3px 0px oklch(0 0 0 / 0.1), 0 2px 4px -1px oklch(0 0 0 / 0.1);
-  --shadow-lg: 0 1px 3px 0px oklch(0 0 0 / 0.1), 0 4px 6px -1px oklch(0 0 0 / 0.1);
-  --shadow-xl: 0 1px 3px 0px oklch(0 0 0 / 0.1), 0 8px 10px -1px oklch(0 0 0 / 0.1);
+  --shadow-md:
+    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 2px 4px -1px oklch(0 0 0 / 0.1);
+  --shadow-lg:
+    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 4px 6px -1px oklch(0 0 0 / 0.1);
+  --shadow-xl:
+    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 8px 10px -1px oklch(0 0 0 / 0.1);
   --shadow-2xl: 0 1px 3px 0px oklch(0 0 0 / 0.25);
 
   --tracking-normal: 0em;
@@ -209,7 +213,43 @@ body {
 }
 
 .fc .fc-event {
-  @apply border-none px-1.5 py-0.5 text-xs font-medium shadow-sm rounded-md;
+  @apply border-none bg-transparent p-0 text-xs shadow-none;
+}
+
+.fc .fc-daygrid-event {
+  @apply mx-1 mb-1 rounded-lg;
+}
+
+.fc .fc-daygrid-event-harness {
+  @apply px-0.5;
+}
+
+.fc .scheduled-post-event {
+  @apply cursor-pointer rounded-lg bg-transparent;
+}
+
+.fc .scheduled-post-card {
+  @apply flex min-h-11 w-full flex-col gap-1 rounded-lg border border-primary/25 bg-primary/10 px-2 py-1.5 text-card-foreground shadow-sm transition-colors hover:border-primary/45 hover:bg-primary/15;
+}
+
+.fc .scheduled-post-meta {
+  @apply flex items-center gap-1.5 text-[10px] font-bold uppercase leading-none text-primary;
+}
+
+.fc .scheduled-post-dot {
+  @apply size-1.5 rounded-full bg-primary;
+}
+
+.fc .scheduled-post-time {
+  @apply rounded-md bg-primary/10 px-1.5 py-0.5;
+}
+
+.fc .scheduled-post-title {
+  @apply line-clamp-2 min-w-0 text-[13px] font-bold leading-4 text-foreground;
+}
+
+.fc .scheduled-post-more-link {
+  @apply mx-1 mt-1 rounded-md px-2 py-1 text-xs font-semibold text-primary hover:bg-primary/10;
 }
 
 .fc .fc-day-today {
@@ -220,4 +260,3 @@ body {
 .fc-theme-standard th {
   @apply border-border;
 }
-

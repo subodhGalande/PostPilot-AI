@@ -29,7 +29,7 @@ export default async function DraftDetailPage({
     where: {
       id,
       userId: authUser.id,
-      status: "DRAFT",
+      status: { in: ["DRAFT", "SCHEDULED"] },
     },
     select: {
       id: true,
@@ -68,6 +68,7 @@ export default async function DraftDetailPage({
         initialCreatedAt={draft.createdAt.toISOString()}
         initialClientDraftKey={draft.clientDraftKey ?? createClientDraftKey()}
         initialPostPack={mapStoredDraftToGeneratedPostPack(parsedContent)}
+        initialStatus={draft.status}
       />
     </div>
   );

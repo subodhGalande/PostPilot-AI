@@ -5,9 +5,11 @@ import { useState } from "react";
 
 import { LinkedInPostPreview } from "@/components/dashboard/linkedin-post-preview";
 import { XPostPreview } from "@/components/dashboard/x-post-preview";
+import { SchedulePostModal } from "@/components/dashboard/schedule-post-modal";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { SaveDraftResponse } from "@/lib/drafts";
 import type { GeneratedPostItem, GeneratedPostPack } from "@/lib/social-posts";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +27,11 @@ interface PostPreviewProps {
   isGenerating?: boolean;
   isSavingDraft?: boolean;
   mode?: PostPreviewMode;
+  id?: string;
+  updatedAt?: string;
+  clientDraftKey?: string;
   onSaveDraft?: () => void;
+  onScheduleSuccess?: (data: SaveDraftResponse) => void;
   onReset?: () => void;
 }
 
@@ -40,7 +46,11 @@ export function PostPreview({
   isGenerating = false,
   isSavingDraft = false,
   mode = "generated",
+  id,
+  updatedAt,
+  clientDraftKey,
   onSaveDraft,
+  onScheduleSuccess,
   onReset,
 }: PostPreviewProps) {
   const [activePlatform, setActivePlatform] = useState<PlatformTab>("linkedin");
@@ -129,7 +139,7 @@ export function PostPreview({
         </div>
       ) : null}
 
-      {isGenerated && !isGenerating && activePost ? (
+      {isGenerated && !isGenerating && generatedPostPack && activePost ? (
         <>
           <div className="border-b px-4 py-3 md:hidden">
             <Tabs
@@ -161,10 +171,19 @@ export function PostPreview({
 
           <div className="border-t px-4 py-4 md:px-6 md:py-5">
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button className="w-full flex-1 rounded-xl font-semibold shadow-md transition-all">
-                <Calendar className="mr-2 size-4" />
-                Add to Calender
-              </Button>
+              <SchedulePostModal
+                post={activePost}
+                model={generatedPostPack.model}
+                clientDraftKey={clientDraftKey || ""}
+                id={id}
+                updatedAt={updatedAt}
+                onSuccess={onScheduleSuccess}
+              >
+                <Button className="w-full flex-1 rounded-xl font-semibold shadow-md transition-all">
+                  <Calendar className="mr-2 size-4" />
+                  Add to Calendar
+                </Button>
+              </SchedulePostModal>
               <Button
                 variant="secondary"
                 className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold hover:bg-muted"

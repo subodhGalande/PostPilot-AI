@@ -215,7 +215,14 @@ export default function DashboardPage() {
           isGenerated={isGenerated}
           isGenerating={generatePostMutation.isPending}
           isSavingDraft={saveDraftMutation.isPending}
+          id={draftId || undefined}
+          updatedAt={draftUpdatedAt || undefined}
+          clientDraftKey={clientDraftKey}
           onSaveDraft={() => saveDraftMutation.mutate()}
+          onScheduleSuccess={(data) => {
+            setDraftId(data.id);
+            setDraftUpdatedAt(data.updatedAt);
+          }}
           onReset={handleReset}
         />
       </div>
