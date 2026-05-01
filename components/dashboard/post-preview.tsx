@@ -56,6 +56,10 @@ export function PostPreview({
   const [activePlatform, setActivePlatform] = useState<PlatformTab>("linkedin");
   const activePost: GeneratedPostItem | null =
     generatedPostPack?.posts[0] ?? null;
+
+  // A post is considered "streaming" if we have an active post but no content yet
+  const isThinking = isGenerating && (!activePost || (!activePost.baseIdea && !activePost.linkedin.content));
+
   const title = mode === "draft" ? "Editor" : "Generated Preview";
   const description =
     mode === "draft"
@@ -113,15 +117,17 @@ export function PostPreview({
         </div>
       ) : null}
 
-      {isGenerating ? (
+      {isThinking ? (
         <div className="flex min-h-0 flex-1 flex-col gap-4 p-6 fade-in">
           <div className="rounded-xl border bg-muted/30 p-4">
             <div className="flex items-center gap-2 text-sm font-medium text-foreground">
               <Loader2 className="size-4 animate-spin text-primary" />
-              Generating your post package...
+              {activePost ? "Streaming content..." : "Thinking..."}
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              Building a LinkedIn post and an X-ready thread from the same idea.
+              {activePost 
+                ? "Your post package is being generated in real-time."
+                : "Analyzing your request and preparing the post structure..."}
             </p>
           </div>
 
@@ -139,7 +145,7 @@ export function PostPreview({
         </div>
       ) : null}
 
-      {isGenerated && !isGenerating && generatedPostPack && activePost ? (
+      {isGenerated && (!isThinking || (activePost && (activePost.baseIdea || activePost.linkedin.content))) && generatedPostPack && activePost ? (
         <>
           <div className="border-b px-4 py-3 md:hidden">
             <Tabs
@@ -179,7 +185,10 @@ export function PostPreview({
                 updatedAt={updatedAt}
                 onSuccess={onScheduleSuccess}
               >
-                <Button className="w-full flex-1 rounded-xl font-semibold shadow-md transition-all">
+                <Button 
+                  className="w-full flex-1 rounded-xl font-semibold shadow-md transition-all"
+                  disabled={isGenerating}
+                >
                   <Calendar className="mr-2 size-4" />
                   Add to Calendar
                 </Button>
@@ -188,7 +197,7 @@ export function PostPreview({
                 variant="secondary"
                 className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold hover:bg-muted"
                 onClick={onSaveDraft}
-                disabled={isSavingDraft}
+                disabled={isSavingDraft || isGenerating}
               >
                 {isSavingDraft ? (
                   <Loader2 className="mr-2 size-4 animate-spin" />

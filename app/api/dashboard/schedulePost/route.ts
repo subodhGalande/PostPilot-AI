@@ -5,14 +5,7 @@ import { requireAuthJose } from "@/lib/auth/requireAuthJose";
 import prisma from "@/lib/prisma";
 import { generatedPostItemSchema } from "@/lib/social-posts";
 
-const schedulePostSchema = z.object({
-  id: z.string().optional(),
-  clientDraftKey: z.string().min(1, "Client draft key is required"),
-  post: generatedPostItemSchema,
-  model: z.string().min(1, "Model is required"),
-  updatedAt: z.string().datetime().optional(),
-  scheduledAt: z.string().datetime("Scheduled at is required"),
-});
+import { schedulePostSchema } from "@/lib/schemas/post.schema";
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {

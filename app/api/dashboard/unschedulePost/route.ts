@@ -3,9 +3,7 @@ import { z } from "zod";
 import { requireAuthJose } from "@/lib/auth/requireAuthJose";
 import prisma from "@/lib/prisma";
 
-const unscheduleSchema = z.object({
-  id: z.string().min(1, "Post ID is required"),
-});
+import { unscheduleSchema } from "@/lib/schemas/post.schema";
 
 export async function POST(req: Request) {
   try {

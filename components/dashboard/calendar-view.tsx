@@ -5,7 +5,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import type { DateClickArg } from "@fullcalendar/interaction";
 import type { EventClickArg, EventContentArg } from "@fullcalendar/core";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Trash2, RotateCcw } from "lucide-react";
@@ -39,6 +39,7 @@ interface CalendarEvent {
 
 export function CalendarView() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [confirmationState, setConfirmationState] = useState<{
     isOpen: boolean;
     type: "unschedule" | "delete" | null;
@@ -79,7 +80,7 @@ export function CalendarView() {
     },
     onSuccess: () => {
       toast.success("Post moved back to drafts.");
-      window.location.reload(); 
+      queryClient.invalidateQueries({ queryKey: ["scheduled-posts-calendar"] });
     },
   });
 
@@ -93,7 +94,7 @@ export function CalendarView() {
     },
     onSuccess: () => {
       toast.success("Post deleted.");
-      window.location.reload();
+      queryClient.invalidateQueries({ queryKey: ["scheduled-posts-calendar"] });
     },
   });
 
@@ -228,7 +229,7 @@ export function CalendarView() {
           ? "Are you sure you want to delete this post? This action cannot be undone."
           : "Are you sure you want to move this post back to drafts? It will be unscheduled."
       }
-      postTitle={confirmationState.postTitle}
+      postTitle={confirmationState.postTitle ?? undefined}
       confirmText={confirmationState.type === "delete" ? "Delete" : "Unschedule"}
       variant={confirmationState.type === "delete" ? "destructive" : "default"}
     />

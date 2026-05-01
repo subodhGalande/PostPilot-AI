@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Menu, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -73,9 +74,23 @@ function DashboardHeader() {
   const { isMobile, state, toggleSidebar } = useSidebar();
   const routeMeta = getRouteMeta(pathname);
   const { user } = useUser();
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  // Simple trick to show progress bar on pathname change
+  useEffect(() => {
+    setIsNavigating(true);
+    const timer = setTimeout(() => setIsNavigating(false), 800);
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   return (
-    <header className="flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3 md:gap-4 md:px-6">
+    <header className="relative flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3 md:gap-4 md:px-6">
+      {/* Global Progress Bar */}
+      {isNavigating && (
+        <div className="absolute top-0 left-0 right-0 z-50 h-[2px] w-full overflow-hidden bg-primary/10">
+          <div className="h-full w-full origin-left animate-[shimmer_1.5s_infinite] bg-primary" />
+        </div>
+      )}
       <div className="flex min-w-0 items-center gap-3">
         <Button
           variant="outline"

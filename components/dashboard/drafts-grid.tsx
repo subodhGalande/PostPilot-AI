@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -43,6 +43,7 @@ function formatDate(value: string) {
 }
 
 export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
+  const router = useRouter();
   const [drafts, setDrafts] = useState(initialDrafts);
   const [pendingDeleteDraft, setPendingDeleteDraft] =
     useState<DraftListItem | null>(null);
@@ -94,7 +95,8 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
         {drafts.map((draft) => (
           <article
             key={draft.id}
-            className="group flex h-full flex-col rounded-2xl border border-border/70 bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-primary/20 hover:bg-card dark:border-transparent dark:bg-card/80 dark:hover:bg-card"
+            className="group flex h-full cursor-pointer flex-col rounded-2xl border border-border/70 bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-primary/20 hover:bg-card dark:border-transparent dark:bg-card/80 dark:hover:bg-card"
+            onClick={() => router.push(`/dashboard/drafts/${draft.id}`)}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex size-11 items-center justify-center rounded-xl bg-primary/8 text-primary">
@@ -109,7 +111,10 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
                   variant="outline"
                   size="sm"
                   className="h-8 rounded-full border-border/60 bg-background/70 px-3 text-xs font-medium text-muted-foreground shadow-none hover:border-destructive/25 hover:bg-destructive/8 hover:text-destructive dark:bg-input/20 dark:hover:bg-destructive/15"
-                  onClick={() => setPendingDeleteDraft(draft)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPendingDeleteDraft(draft);
+                  }}
                   aria-label={`Delete ${draft.title}`}
                 >
                   <Trash2 />
@@ -118,10 +123,7 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
               </div>
             </div>
 
-            <Link
-              href={`/dashboard/drafts/${draft.id}`}
-              className="mt-5 flex flex-1 flex-col focus-visible:outline-none"
-            >
+            <div className="mt-5 flex flex-1 flex-col">
               <h3 className="line-clamp-2 text-lg font-semibold leading-7 text-foreground transition-colors group-hover:text-primary">
                 {draft.title}
               </h3>
@@ -136,7 +138,7 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
                   <span>Created {formatDate(draft.createdAt)}</span>
                 </div>
               </div>
-            </Link>
+            </div>
           </article>
         ))}
       </div>

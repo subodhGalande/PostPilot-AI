@@ -5,13 +5,7 @@ import { requireAuthJose } from "@/lib/auth/requireAuthJose";
 import prisma from "@/lib/prisma";
 import { generatedPostItemSchema } from "@/lib/social-posts";
 
-const saveDraftSchema = z.object({
-  id: z.string().optional(),
-  clientDraftKey: z.string().min(1, "Client draft key is required"),
-  post: generatedPostItemSchema,
-  model: z.string().min(1, "Model is required"),
-  updatedAt: z.string().datetime().optional(),
-});
+import { saveDraftSchema } from "@/lib/schemas/post.schema";
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -21,7 +15,7 @@ function getErrorMessage(error: unknown) {
   return "Failed to save draft";
 }
 
-function buildDraftData(input: z.infer<typeof saveDraftSchema>, status: "DRAFT" | "SCHEDULED" = "DRAFT") {
+function buildDraftData(input: z.infer<typeof saveDraftSchema>, status: any = "DRAFT") {
   const title = input.post.baseIdea.trim();
 
   return {

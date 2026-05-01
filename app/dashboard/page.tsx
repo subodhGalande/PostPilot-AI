@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { toast } from "sonner";
 
 import { PostConfiguration } from "@/components/dashboard/post-configuration";
@@ -12,16 +13,11 @@ import {
   type SaveDraftResponse,
 } from "@/lib/drafts";
 import type { GeneratedPostItem, GeneratedPostPack } from "@/lib/social-posts";
+import { generatedPostItemSchema } from "@/lib/schemas/social.schema";
 import { cn } from "@/lib/utils";
 
-type GeneratePostPayload = {
-  modelName: string;
-  topic: string;
-  tone: string;
-  postStyle: string;
-  targetAudience: string;
-  keywords: string[];
-};
+import { type GeneratePostPayload } from "@/lib/schemas/post.schema";
+import { DEFAULT_MODEL } from "@/lib/ai/models";
 
 export default function DashboardPage() {
   const [isGenerated, setIsGenerated] = useState(false);
@@ -46,48 +42,62 @@ export default function DashboardPage() {
   const [generatedPostPack, setGeneratedPostPack] =
     useState<GeneratedPostPack | null>(null);
 
-  const generatePostMutation = useMutation({
-    mutationKey: ["generatePost"],
-    mutationFn: async (
-      payload: GeneratePostPayload,
-    ): Promise<GeneratedPostPack> => {
-      const response = await fetch("/api/dashboard/generatePost", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorBody = (await response.json().catch(() => null)) as {
-          error?: string;
-          message?: string;
-        } | null;
-
-        throw new Error(
-          errorBody?.message ?? errorBody?.error ?? "Failed to generate post.",
-        );
+  const {
+    submit: submitGenerate,
+    isLoading: isGenerating,
+    error: generateError,
+    object,
+  } = useObject({
+    api: "/api/dashboard/generatePost",
+    schema: generatedPostItemSchema,
+    onFinish: ({ object }: { object: GeneratedPostItem | undefined }) => {
+      if (object) {
+        setGeneratedPostPack({
+          posts: [object as GeneratedPostItem],
+          model: DEFAULT_MODEL.id,
+        });
+        setDraftId(null);
+        setDraftUpdatedAt(null);
+        setClientDraftKey(createClientDraftKey());
+        setPreviewVersion((currentVersion) => currentVersion + 1);
+        setIsGenerated(true);
       }
-
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setGeneratedPostPack(data);
-      setDraftId(null);
-      setDraftUpdatedAt(null);
-      setClientDraftKey(createClientDraftKey());
-      setPreviewVersion((currentVersion) => currentVersion + 1);
-      setIsGenerated(true);
-    },
-    onError: (error) => {
-      console.error("Failed to generate post:", error);
     },
   });
 
+  // Effect to update the preview in real-time as it streams
+  useEffect(() => {
+    if (object) {
+      // Map partial object to GeneratedPostItem
+      const partialPost: GeneratedPostItem = {
+        topic: object.topic || topic,
+        baseIdea: object.baseIdea || "",
+        linkedin: {
+          content: object.linkedin?.content || "",
+        },
+        x: {
+          mode: object.x?.mode || "single",
+          posts: (object.x?.posts || []).map((p, i) => ({
+            id: `x-${i + 1}`,
+            content: p?.content || "",
+          })),
+        },
+      };
+
+      setGeneratedPostPack({
+        posts: [partialPost],
+        model: DEFAULT_MODEL.id,
+      });
+
+      if (!isGenerated) {
+        setIsGenerated(true);
+      }
+    }
+  }, [object, topic, isGenerated]);
+
   const handleGenerate = () => {
-    generatePostMutation.mutate({
-      modelName: "gemma-4-31b-it",
+    submitGenerate({
+      modelName: DEFAULT_MODEL.id,
       topic,
       tone,
       postStyle,
@@ -195,7 +205,7 @@ export default function DashboardPage() {
           onTargetAudienceChange={setTargetAudience}
           onKeywordsChange={setKeywords}
           onGenerate={handleGenerate}
-          isGenerating={generatePostMutation.isPending}
+          isGenerating={isGenerating}
         />
       </div>
       <div
@@ -213,7 +223,7 @@ export default function DashboardPage() {
           onLinkedInChange={handleLinkedInChange}
           onXPostChange={handleXPostChange}
           isGenerated={isGenerated}
-          isGenerating={generatePostMutation.isPending}
+          isGenerating={isGenerating}
           isSavingDraft={saveDraftMutation.isPending}
           id={draftId || undefined}
           updatedAt={draftUpdatedAt || undefined}

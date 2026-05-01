@@ -34,6 +34,7 @@ export default async function DraftDetailPage({
     select: {
       id: true,
       title: true,
+      status: true,
       createdAt: true,
       updatedAt: true,
       clientDraftKey: true,

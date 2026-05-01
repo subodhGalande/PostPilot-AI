@@ -1,27 +1,21 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { generateText, Output } from "ai";
+import { streamObject } from "ai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireAuthJose } from "@/lib/auth/requireAuthJose";
 import prisma from "@/lib/prisma";
-import { generatedPostItemSchema } from "@/lib/social-posts";
-
-const generatePostSchema = z.object({
-  modelName: z.string().min(1),
-  topic: z.string().min(1, "Topic is required"),
-  tone: z.string().min(1, "Tone is required"),
-  postStyle: z.string().min(1, "Post style is required"),
-  targetAudience: z.string().min(1, "Target audience is required"),
-  keywords: z.array(z.string().min(1)).default([]),
-});
+import { generatePostSchema } from "@/lib/schemas/post.schema";
+import { getModelById } from "@/lib/ai/models";
 
 const aiGeneratedPostSchema = z.object({
+  topic: z.string().min(1),
   baseIdea: z.string().min(1),
   linkedin: z.object({
     content: z.string().min(1),
   }),
   x: z.object({
+    mode: z.enum(["single", "thread"]),
     posts: z
       .array(
         z.object({
@@ -98,9 +92,11 @@ Requirements:
 - Keep all hashtags together on the final line or final hashtag block only. Do not scatter hashtags inside the main content.
 - Do not add explanations outside the schema.
 - Return an object with exactly these top-level keys only:
+  - topic
   - baseIdea
   - linkedin
   - x
+- topic should be the same as the input topic provided above.
 - baseIdea should summarize the shared message in one sentence.
 - linkedin must be an object with:
   - content
@@ -213,6 +209,9 @@ export async function POST(req: Request) {
       );
     }
 
+    const input = parsedBody.data;
+    const modelConfig = getModelById(input.modelName);
+
     const user = await prisma.user.findUnique({
       where: { id: authUser.id },
       select: {
@@ -228,16 +227,10 @@ export async function POST(req: Request) {
     }
 
     const google = createGoogleGenerativeAI({ apiKey });
-    const input = parsedBody.data;
 
-    const result = await generateText({
-      model: google(input.modelName),
-      output: Output.object({
-        name: "GeneratedPostContent",
-        description:
-          "A social post package with one LinkedIn post and X post content.",
-        schema: aiGeneratedPostSchema,
-      }),
+    const result = await streamObject({
+      model: google(modelConfig.id),
+      schema: aiGeneratedPostSchema,
       prompt: buildPrompt(input, {
         accountName: user.accountName,
         accountType: user.accountType ?? null,
@@ -246,31 +239,9 @@ export async function POST(req: Request) {
       }),
     });
 
-    console.log(result);
-
-    const normalizedPost = generatedPostItemSchema.parse({
-      topic: input.topic,
-      baseIdea: result.output.baseIdea,
-      linkedin: {
-        content: result.output.linkedin.content,
-      },
-      x: {
-        mode: result.output.x.posts.length > 1 ? "thread" : "single",
-        posts: result.output.x.posts.map((post, index) => ({
-          id: `x-${index + 1}`,
-          content: post.content,
-        })),
-      },
-    });
-
-    return NextResponse.json({
-      posts: [normalizedPost],
-      model: input.modelName,
-    });
+    return result.toTextStreamResponse();
   } catch (error) {
     console.error("generatePost route error", error);
-
-    console.log(error);
     return NextResponse.json(
       {
         error: "Failed to generate post",
