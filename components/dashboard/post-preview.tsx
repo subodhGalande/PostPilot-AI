@@ -7,6 +7,7 @@ import { LinkedInPostPreview } from "@/components/dashboard/linkedin-post-previe
 import { XPostPreview } from "@/components/dashboard/x-post-preview";
 import { SchedulePostModal } from "@/components/dashboard/schedule-post-modal";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { SaveDraftResponse } from "@/lib/drafts";
@@ -27,6 +28,7 @@ interface PostPreviewProps {
   isGenerating?: boolean;
   isSavingDraft?: boolean;
   mode?: PostPreviewMode;
+  status?: "DRAFT" | "SCHEDULED";
   id?: string;
   updatedAt?: string;
   clientDraftKey?: string;
@@ -46,6 +48,7 @@ export function PostPreview({
   isGenerating = false,
   isSavingDraft = false,
   mode = "generated",
+  status,
   id,
   updatedAt,
   clientDraftKey,
@@ -84,12 +87,35 @@ export function PostPreview({
             <ArrowLeft className="size-5" />
           </Button>
         ) : null}
-        <div className="min-w-0 flex-1">
-          <h3 className="text-lg font-bold">{title}</h3>
+          <div className="min-w-0 flex-1 flex items-center gap-2">
+            <h3 className="text-lg font-bold">{title}</h3>
+            {status && (
+              <Badge 
+                variant="outline"
+                className={cn(
+                  "text-[10px] uppercase tracking-wider font-medium",
+                  status === "SCHEDULED" 
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" 
+                    : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
+                )}
+              >
+                {status === "SCHEDULED" ? (
+                  <span className="flex items-center gap-1">
+                    <span className="size-1.5 rounded-full bg-emerald-500" />
+                    Scheduled
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1">
+                    <span className="size-1.5 rounded-full bg-amber-500" />
+                    Draft
+                  </span>
+                )}
+              </Badge>
+            )}
+          </div>
           {description ? (
             <p className="text-sm text-muted-foreground">{description}</p>
           ) : null}
-        </div>
         {activePost ? (
           <Tabs
             value={activePlatform}
@@ -190,7 +216,7 @@ export function PostPreview({
                   disabled={isGenerating}
                 >
                   <Calendar className="mr-2 size-4" />
-                  Add to Calendar
+                  {status === "SCHEDULED" ? "Reschedule" : "Add to Calendar"}
                 </Button>
               </SchedulePostModal>
               <Button
@@ -204,7 +230,11 @@ export function PostPreview({
                 ) : (
                   <Save className="mr-2 size-4" />
                 )}
-                {isSavingDraft ? "Saving Draft..." : "Save as Draft"}
+                {isSavingDraft 
+                  ? "Saving..." 
+                  : status === "SCHEDULED" 
+                    ? "Save Scheduled Post" 
+                    : "Save as Draft"}
               </Button>
             </div>
           </div>

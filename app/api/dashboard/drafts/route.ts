@@ -27,6 +27,7 @@ export async function GET(req: Request) {
       createdAt: true,
       updatedAt: true,
       content: true,
+      clientDraftKey: true,
     },
     orderBy: {
       updatedAt: "desc",
@@ -44,6 +45,8 @@ export async function GET(req: Request) {
         scheduledAt: post.scheduledAt,
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
+        clientDraftKey: post.clientDraftKey,
+        content: parsedContent,
         baseIdea: parsedContent.baseIdea,
         topic: parsedContent.topic,
       };

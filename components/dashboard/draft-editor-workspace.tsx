@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { CheckCircle2, Edit3, Loader2, Trash2, RotateCcw } from "lucide-react";
@@ -44,7 +44,7 @@ export function DraftEditorWorkspace({
     useState<GeneratedPostPack>(initialPostPack);
   const [draftUpdatedAt, setDraftUpdatedAt] = useState(initialDraftUpdatedAt);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [status, setStatus] = useState(initialStatus);
+  const [status, setStatus] = useState<"DRAFT" | "SCHEDULED">(initialStatus as "DRAFT" | "SCHEDULED");
   const [confirmationState, setConfirmationState] = useState<{
     isOpen: boolean;
     type: "unschedule" | "delete" | null;
@@ -177,16 +177,32 @@ export function DraftEditorWorkspace({
     }
   };
 
-  const saveStatusLabel = saveDraftMutation.isPending
-    ? "Saving..."
-    : hasUnsavedChanges
-      ? "Unsaved changes"
-      : `Saved ${new Intl.RelativeTimeFormat("en", {
-          numeric: "auto",
-        }).format(
-          Math.round((new Date(draftUpdatedAt).getTime() - Date.now()) / 60000),
-          "minute",
-        )}`;
+  const saveStatusLabel = useMemo(() => {
+    if (saveDraftMutation.isPending) return "Saving...";
+    if (hasUnsavedChanges) return "Unsaved changes";
+
+    const updatedAtDate = new Date(draftUpdatedAt);
+    const diffMs = updatedAtDate.getTime() - Date.now();
+    const diffMins = Math.round(diffMs / 60000);
+    const diffHours = Math.round(diffMins / 60);
+
+    if (Math.abs(diffMins) < 60) {
+      return `Saved ${new Intl.RelativeTimeFormat("en", {
+        numeric: "auto",
+      }).format(diffMins, "minute")}`;
+    }
+
+    if (Math.abs(diffHours) < 24) {
+      return `Saved ${new Intl.RelativeTimeFormat("en", {
+        numeric: "auto",
+      }).format(diffHours, "hour")}`;
+    }
+
+    return `Saved on ${new Intl.DateTimeFormat("en-IN", {
+      day: "numeric",
+      month: "short",
+    }).format(updatedAtDate)}`;
+  }, [saveDraftMutation.isPending, hasUnsavedChanges, draftUpdatedAt]);
 
   const createdLabel = new Intl.DateTimeFormat("en-IN", {
     day: "numeric",
@@ -245,25 +261,26 @@ export function DraftEditorWorkspace({
         </div>
       </div>
 
-      <PostPreview
-        className="h-full w-full"
-        postStyle={postStyle}
-        targetAudience={targetAudience}
-        generatedPostPack={generatedPostPack}
-        onLinkedInChange={handleLinkedInChange}
-        onXPostChange={handleXPostChange}
-        isGenerated
-        isSavingDraft={saveDraftMutation.isPending}
-        id={initialDraftId}
-        updatedAt={draftUpdatedAt}
-        clientDraftKey={initialClientDraftKey}
-        mode="draft"
-        onSaveDraft={() => saveDraftMutation.mutate()}
-        onScheduleSuccess={(data) => {
-          setDraftUpdatedAt(data.updatedAt);
-          setHasUnsavedChanges(false);
-        }}
-      />
+       <PostPreview
+         className="h-full w-full"
+         postStyle={postStyle}
+         targetAudience={targetAudience}
+         generatedPostPack={generatedPostPack}
+         onLinkedInChange={handleLinkedInChange}
+         onXPostChange={handleXPostChange}
+         isGenerated
+         isSavingDraft={saveDraftMutation.isPending}
+         id={initialDraftId}
+         updatedAt={draftUpdatedAt}
+         clientDraftKey={initialClientDraftKey}
+         mode="draft"
+         status={status}
+         onSaveDraft={() => saveDraftMutation.mutate()}
+         onScheduleSuccess={(data) => {
+           setDraftUpdatedAt(data.updatedAt);
+           setHasUnsavedChanges(false);
+         }}
+       />
 
       <ConfirmationModal
         isOpen={confirmationState.isOpen}

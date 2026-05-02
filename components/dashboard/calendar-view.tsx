@@ -2,13 +2,14 @@
 
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import type { DateClickArg } from "@fullcalendar/interaction";
-import type { EventClickArg, EventContentArg } from "@fullcalendar/core";
+import type { EventClickArg, EventContentArg, EventDropArg } from "@fullcalendar/core";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Trash2, RotateCcw } from "lucide-react";
+import { Trash2, RotateCcw, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,13 +18,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ConfirmationModal } from "@/components/dashboard/confirmation-modal";
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 
 interface ScheduledPost {
   id: string;
   title: string;
   status: string;
   scheduledAt: string;
+  content: any;
+  clientDraftKey: string;
+  updatedAt: string;
 }
 
 interface CalendarEvent {
@@ -98,6 +102,45 @@ export function CalendarView() {
     },
   });
 
+  const rescheduleMutation = useMutation({
+    mutationFn: async ({ id, newDate }: { id: string; newDate: string }) => {
+      const post = scheduledPosts?.find((p) => p.id === id);
+      if (!post) throw new Error("Post not found");
+
+      const storedContent = post.content as any;
+      if (!storedContent) throw new Error("Post content not found");
+
+      const { model, ...postData } = storedContent;
+
+      const response = await fetch("/api/dashboard/schedulePost", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          clientDraftKey: post.clientDraftKey,
+          post: postData,
+          model: model || "gemini-2.0-flash",
+          scheduledAt: newDate,
+          updatedAt: post.updatedAt,
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to reschedule");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast.success("Post rescheduled successfully.");
+      queryClient.invalidateQueries({ queryKey: ["scheduled-posts-calendar"] });
+    },
+    onError: (error: Error) => {
+      console.error("Reschedule error:", error);
+      toast.error(error.message || "Failed to reschedule post");
+      queryClient.invalidateQueries({ queryKey: ["scheduled-posts-calendar"] });
+    },
+  });
+
   const handleConfirmAction = () => {
     const { type, postId } = confirmationState;
     if (!postId) return;
@@ -110,17 +153,20 @@ export function CalendarView() {
     handleCloseConfirmation();
   };
 
-  const events: CalendarEvent[] = (scheduledPosts || []).map((post) => ({
-
-    id: post.id,
-    title: post.title,
-    start: post.scheduledAt,
-    classNames: ["scheduled-post-event"],
-    extendedProps: {
-      status: post.status,
-      type: "scheduled",
-    },
-  }));
+  const events = useMemo((): CalendarEvent[] => {
+    return (scheduledPosts || []).map((post) => ({
+      id: post.id,
+      title: post.title,
+      start: post.scheduledAt,
+      end: new Date(new Date(post.scheduledAt).getTime() + 30 * 60000).toISOString(),
+      classNames: ["scheduled-post-event"],
+      extendedProps: {
+        status: post.status,
+        type: "scheduled",
+        content: post.content,
+      },
+    }));
+  }, [scheduledPosts]);
 
   const handleEventClick = (info: EventClickArg) => {
     // We now let the event content handle its own actions, 
@@ -137,88 +183,118 @@ export function CalendarView() {
     });
   };
 
-  const renderEventContent = (eventInfo: EventContentArg) => {
-    const postId = eventInfo.event.id;
-    const postTitle = eventInfo.event.title;
-    return (
-      <div className="scheduled-post-card relative flex flex-col gap-1">
-        <div className="overflow-hidden">
-          <span className="scheduled-post-meta">
-            <span className="scheduled-post-dot" />
-            <span className="scheduled-post-time">{eventInfo.timeText}</span>
-          </span>
-          <span className="scheduled-post-title truncate block">{eventInfo.event.title}</span>
-        </div>
-        
-        <div className="absolute top-1 right-1">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="size-5 h-5 w-5 p-0 post-action-btn opacity-0 hover:opacity-100 transition-opacity bg-primary/20 hover:bg-primary/40 text-primary">
-                ...
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem 
-                className="cursor-pointer" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenConfirmation("unschedule", postId, postTitle);
-                }}
-              >
-                <RotateCcw className="mr-2 size-4" />
-                Unschedule
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="cursor-pointer text-destructive focus:text-destructive" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenConfirmation("delete", postId, postTitle);
-                }}
-              >
-                <Trash2 className="mr-2 size-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-    );
+  const handleEventDrop = (info: EventDropArg) => {
+    const postId = info.event.id;
+    const newDate = info.event.start?.toISOString() || info.event.startStr;
+    
+    rescheduleMutation.mutate({ id: postId, newDate });
   };
 
-  return (
+  const renderEventContent = useCallback((eventInfo: EventContentArg) => {
+    const postId = eventInfo.event.id;
+    const postTitle = eventInfo.event.title;
+    const eventContent = eventInfo.event.extendedProps.content as { linkedin?: { content?: string }; x?: { posts?: { content?: string }[] } } | null;
+    
+    const linkedInContent = eventContent?.linkedin?.content || "";
+    const xContent = eventContent?.x?.posts?.[0]?.content || "";
+    const combinedContent = [linkedInContent, xContent].filter(Boolean).join(" | ");
+    const truncatedContent = combinedContent.length > 80 ? combinedContent.slice(0, 80) + "..." : combinedContent;
+
+    return (
+      <div className="scheduled-post-card group flex w-full flex-col gap-1 px-2 py-1.5">
+        <div className="flex w-full items-center justify-between gap-2">
+          <span className="scheduled-post-time whitespace-nowrap text-[11px] font-semibold text-primary/80">
+            {eventInfo.timeText}
+          </span>
+          
+          <div className="flex shrink-0 items-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 h-8 w-8 p-0 hover:bg-primary/10 text-muted-foreground hover:text-primary focus-visible:ring-2 focus-visible:ring-primary"
+                  title="Actions"
+                  aria-label="Post actions"
+                >
+                  <MoreVertical className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40 shadow-lg">
+                <DropdownMenuItem 
+                  className="cursor-pointer gap-2" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenConfirmation("unschedule", postId, postTitle);
+                  }}
+                >
+                  <RotateCcw className="size-3.5 text-amber-500" />
+                  <span className="text-xs">Unschedule</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="group cursor-pointer gap-2 text-red-600 focus:bg-red-600 focus:text-white" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenConfirmation("delete", postId, postTitle);
+                  }}
+                >
+                  <Trash2 className="size-3.5 text-red-500 group-hover:text-white focus:text-white" />
+                  <span className="text-xs">Delete</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+        
+        <span className="scheduled-post-title min-w-0 line-clamp-2 text-[13px] font-medium leading-tight text-foreground" title={eventInfo.event.title}>
+          {eventInfo.event.title}
+        </span>
+        
+        {truncatedContent && (
+          <p className="scheduled-post-preview line-clamp-1 text-[11px] leading-snug text-muted-foreground/80">
+            {truncatedContent}
+          </p>
+        )}
+      </div>
+    );
+  }, [handleOpenConfirmation]);
+
+return (
     <div className="h-full p-4 md:p-6 bg-card">
       <FullCalendar
-        plugins={[dayGridPlugin, interactionPlugin]}
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         headerToolbar={{
           left: "prev,next today",
           center: "title",
-          right: "dayGridMonth",
+          right: "dayGridMonth,dayGridWeek,dayGridDay",
         }}
         events={events}
         eventContent={renderEventContent}
         eventClick={handleEventClick}
         dateClick={handleDateClick}
-      height="auto"
-      aspectRatio={1.8}
-      editable={false}
-      selectable={true}
-      dayMaxEvents={true}
-      nowIndicator={true}
-      displayEventTime={true}
-      eventTimeFormat={{
-        hour: "numeric",
-        minute: "2-digit",
-        meridiem: "short",
-      }}
-      eventDisplay="block"
-      moreLinkClassNames="scheduled-post-more-link"
-      loading={(loading) => {
-        if (loading || isLoading) {
-          return;
-        }
-      }}
-    />
+        eventDrop={handleEventDrop}
+        height="auto"
+        aspectRatio={1.8}
+        editable={true}
+        eventStartEditable={true}
+        selectable={true}
+        dayMaxEvents={3}
+        nowIndicator={true}
+        displayEventTime={true}
+        eventTimeFormat={{
+          hour: "numeric",
+          minute: "2-digit",
+          meridiem: "short",
+        }}
+        eventDisplay="block"
+        moreLinkClassNames="scheduled-post-more-link"
+        loading={(loading) => {
+          if (loading || isLoading) {
+            return;
+          }
+        }}
+      />
     <ConfirmationModal
       isOpen={confirmationState.isOpen}
       onClose={handleCloseConfirmation}

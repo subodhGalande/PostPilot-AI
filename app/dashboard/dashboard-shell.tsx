@@ -20,9 +20,9 @@ function getRouteMeta(pathname: string) {
   if (pathname.startsWith("/dashboard/drafts/")) {
     return {
       section: "Workspace",
-      title: "Edit Draft",
+      title: "Post Editor",
       description:
-        "Refine a saved draft and keep LinkedIn and X edits in one shared workspace.",
+        "Refine your post and keep LinkedIn and X edits in one shared workspace.",
     };
   }
 

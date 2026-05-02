@@ -257,35 +257,39 @@ body {
 }
 
 .fc .fc-daygrid-event {
-  @apply mx-1 mb-1 rounded-lg;
+  @apply mx-1 my-1 rounded-lg;
 }
 
 .fc .fc-daygrid-event-harness {
   @apply px-0.5;
 }
 
+.fc .fc-timegrid-event {
+  @apply rounded-lg;
+}
+
 .fc .scheduled-post-event {
-  @apply cursor-pointer rounded-lg bg-transparent;
+  @apply cursor-grab rounded-lg bg-transparent;
+}
+
+.fc .scheduled-post-event:active {
+  @apply cursor-grabbing;
 }
 
 .fc .scheduled-post-card {
-  @apply flex min-h-11 w-full flex-col gap-1 rounded-lg border border-primary/25 bg-primary/10 px-2 py-1.5 text-card-foreground shadow-sm transition-colors hover:border-primary/45 hover:bg-primary/15;
-}
-
-.fc .scheduled-post-meta {
-  @apply flex items-center gap-1.5 text-[10px] font-bold uppercase leading-none text-primary;
-}
-
-.fc .scheduled-post-dot {
-  @apply size-1.5 rounded-full bg-primary;
+  @apply flex w-full flex-col gap-1 rounded-lg border border-primary/20 bg-primary/10 px-2 py-1.5 text-card-foreground transition-all hover:border-primary/40 hover:bg-primary/20 hover:shadow-sm;
 }
 
 .fc .scheduled-post-time {
-  @apply rounded-md bg-primary/10 px-1.5 py-0.5;
+  @apply bg-primary/10 px-1 py-0.5 rounded;
 }
 
 .fc .scheduled-post-title {
-  @apply line-clamp-2 min-w-0 text-[13px] font-bold leading-4 text-foreground;
+  @apply line-clamp-2 min-w-0 text-[13px] font-medium leading-tight text-foreground;
+}
+
+.fc .scheduled-post-preview {
+  @apply line-clamp-1 text-[11px] leading-snug text-muted-foreground/70;
 }
 
 .fc .scheduled-post-more-link {
@@ -299,4 +303,21 @@ body {
 .fc-theme-standard td,
 .fc-theme-standard th {
   @apply border-border;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc .scheduled-post-card,
+  .fc .fc-button,
+  .fc .fc-event {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+.fc .fc-timegrid-slot {
+  @apply h-10;
+}
+
+.fc .fc-timegrid-slot-label {
+  @apply text-xs font-medium text-muted-foreground;
 }
