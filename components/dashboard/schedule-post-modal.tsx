@@ -32,6 +32,7 @@ interface SchedulePostModalProps {
   clientDraftKey: string;
   id?: string;
   updatedAt?: string;
+  platform?: "linkedin" | "x";
   onSuccess?: (data: SaveDraftResponse) => void;
 }
 
@@ -98,6 +99,7 @@ export function SchedulePostModal({
   clientDraftKey,
   id,
   updatedAt,
+  platform,
   onSuccess,
 }: SchedulePostModalProps) {
   const [open, setOpen] = useState(false);
@@ -167,12 +169,13 @@ export function SchedulePostModal({
         post,
         model,
         scheduledAt: scheduledAt.toISOString(),
+        platform,
       };
 
       return schedulePost(payload);
     },
     onSuccess: (data) => {
-      toast.success("Post scheduled successfully!");
+      toast.success(`${platform ? (platform === 'linkedin' ? 'LinkedIn' : 'X') : 'Post'} scheduled successfully!`);
       setOpen(false);
       queryClient.invalidateQueries({ queryKey: ["scheduled-posts-calendar"] });
       onSuccess?.(data);
@@ -189,7 +192,7 @@ export function SchedulePostModal({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="gap-3 sm:max-w-[410px]">
         <DialogHeader>
-          <DialogTitle>Schedule Post</DialogTitle>
+          <DialogTitle>Schedule {platform === 'linkedin' ? 'LinkedIn' : platform === 'x' ? 'X' : 'Post'}</DialogTitle>
           <DialogDescription>Pick a publish time.</DialogDescription>
         </DialogHeader>
 

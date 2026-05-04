@@ -12,18 +12,32 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
-  const status = (searchParams.get("status") as any) || "DRAFT";
+  const fetchType = searchParams.get("fetch") as string || "drafts";
 
+  // For drafts: show posts where at least one platform is DRAFT
+  // For calendar: show posts where at least one platform is SCHEDULED
+  const isScheduled = fetchType === "scheduled";
+  
   const posts = await prisma.post.findMany({
     where: {
       userId: authUser.id,
-      status: status,
+      OR: isScheduled 
+        ? [
+            { linkedinStatus: "SCHEDULED" },
+            { xStatus: "SCHEDULED" },
+          ]
+        : [
+            { linkedinStatus: "DRAFT" },
+            { xStatus: "DRAFT" },
+          ],
     },
     select: {
       id: true,
       title: true,
-      status: true,
-      scheduledAt: true,
+      linkedinStatus: true,
+      linkedinScheduledAt: true,
+      xStatus: true,
+      xScheduledAt: true,
       createdAt: true,
       updatedAt: true,
       content: true,
@@ -41,8 +55,10 @@ export async function GET(req: Request) {
       return {
         id: post.id,
         title: post.title,
-        status: post.status,
-        scheduledAt: post.scheduledAt,
+        linkedinStatus: post.linkedinStatus,
+        linkedinScheduledAt: post.linkedinScheduledAt,
+        xStatus: post.xStatus,
+        xScheduledAt: post.xScheduledAt,
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
         clientDraftKey: post.clientDraftKey,

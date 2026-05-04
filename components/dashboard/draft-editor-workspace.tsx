@@ -7,7 +7,7 @@ import { CheckCircle2, Edit3, Loader2, Trash2, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { PostPreview } from "@/components/dashboard/post-preview";
-import { saveDraft, type SaveDraftResponse } from "@/lib/drafts";
+import { saveDraft, parseStoredDraftContent, type SaveDraftResponse } from "@/lib/drafts";
 import type { GeneratedPostItem, GeneratedPostPack } from "@/lib/social-posts";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +24,10 @@ interface DraftEditorWorkspaceProps {
   initialCreatedAt: string;
   initialClientDraftKey: string;
   initialPostPack: GeneratedPostPack;
-  initialStatus: string;
+  initialStatus?: string;
+  initialPlatform?: "linkedin" | "x";
+  linkedinStatus?: string;
+  xStatus?: string;
   postStyle?: string;
   targetAudience?: string;
 }
@@ -36,6 +39,9 @@ export function DraftEditorWorkspace({
   initialClientDraftKey,
   initialPostPack,
   initialStatus,
+  initialPlatform,
+  linkedinStatus,
+  xStatus,
   postStyle,
   targetAudience,
 }: DraftEditorWorkspaceProps) {
@@ -81,6 +87,7 @@ export function DraftEditorWorkspace({
     handleUpdatePost((currentPost) => ({
       ...currentPost,
       linkedin: {
+        ...currentPost.linkedin,
         content,
       },
     }));
@@ -115,8 +122,18 @@ export function DraftEditorWorkspace({
         model: generatedPostPack.model,
       });
     },
-    onSuccess: (draft) => {
+    onSuccess: (draft: any) => {
       setDraftUpdatedAt(draft.updatedAt);
+      setStatus(draft.status);
+      
+      if (draft.content) {
+        const updatedContent = parseStoredDraftContent(draft.content);
+        setGeneratedPostPack({
+          posts: [updatedContent],
+          model: updatedContent.model
+        });
+      }
+      
       setHasUnsavedChanges(false);
       toast.success("Draft updated.");
     },
@@ -261,23 +278,36 @@ export function DraftEditorWorkspace({
         </div>
       </div>
 
-       <PostPreview
-         className="h-full w-full"
-         postStyle={postStyle}
-         targetAudience={targetAudience}
-         generatedPostPack={generatedPostPack}
-         onLinkedInChange={handleLinkedInChange}
-         onXPostChange={handleXPostChange}
-         isGenerated
-         isSavingDraft={saveDraftMutation.isPending}
-         id={initialDraftId}
-         updatedAt={draftUpdatedAt}
-         clientDraftKey={initialClientDraftKey}
-         mode="draft"
-         status={status}
-         onSaveDraft={() => saveDraftMutation.mutate()}
-         onScheduleSuccess={(data) => {
+<PostPreview
+          className="h-full w-full"
+          postStyle={postStyle}
+          targetAudience={targetAudience}
+          generatedPostPack={generatedPostPack}
+          onLinkedInChange={handleLinkedInChange}
+          onXPostChange={handleXPostChange}
+          isGenerated
+          isSavingDraft={saveDraftMutation.isPending}
+          id={initialDraftId}
+          updatedAt={draftUpdatedAt}
+          clientDraftKey={initialClientDraftKey}
+          mode="draft"
+          status={status}
+          initialPlatform={initialPlatform}
+          linkedinStatus={linkedinStatus}
+          xStatus={xStatus}
+          onSaveDraft={() => saveDraftMutation.mutate()}
+         onScheduleSuccess={(data: any) => {
            setDraftUpdatedAt(data.updatedAt);
+           setStatus(data.status);
+           
+           if (data.content) {
+             const updatedContent = parseStoredDraftContent(data.content);
+             setGeneratedPostPack({
+               posts: [updatedContent],
+               model: updatedContent.model
+             });
+           }
+           
            setHasUnsavedChanges(false);
          }}
        />

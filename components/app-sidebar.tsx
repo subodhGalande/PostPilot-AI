@@ -1,8 +1,9 @@
 "use client";
 
 import type * as React from "react";
+import { Suspense } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
   Calendar,
@@ -47,39 +48,83 @@ const navItems = [
     title: "Dashboard",
     url: "/dashboard",
     icon: LayoutDashboard,
-    match: (pathname: string) => pathname === "/dashboard",
+    match: (pathname: string, from?: string | null) => pathname === "/dashboard",
   },
   {
     title: "Drafts",
     url: "/dashboard/drafts",
     icon: FileText,
-    match: (pathname: string) => pathname.startsWith("/dashboard/drafts"),
+    match: (pathname: string, from?: string | null) => 
+      pathname.startsWith("/dashboard/drafts") && from !== "calendar",
   },
   {
     title: "Calendar",
     url: "/dashboard/calendar",
     icon: Calendar,
-    match: (pathname: string) => pathname.startsWith("/dashboard/calendar"),
+    match: (pathname: string, from?: string | null) => 
+      pathname.startsWith("/dashboard/calendar") || from === "calendar",
   },
   {
     title: "Analytics",
     url: "/analytics",
     icon: LineChart,
-    match: (pathname: string) => pathname.startsWith("/analytics"),
+    match: (pathname: string, from?: string | null) => pathname.startsWith("/analytics"),
   },
   {
     title: "Settings",
     url: "/settings",
     icon: Settings,
-    match: (pathname: string) => pathname.startsWith("/settings"),
+    match: (pathname: string, from?: string | null) => pathname.startsWith("/settings"),
   },
 ];
 
+function SidebarMenuItems() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from");
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  return (
+    <SidebarMenu className="gap-1.5">
+      {navItems.map((item) => {
+        const isActive = item.match(pathname, from);
+
+        return (
+          <SidebarMenuItem key={item.title}>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive}
+              tooltip={item.title}
+              className={cn(
+                "h-11 rounded-xl border border-transparent px-3 text-sidebar-foreground/72 transition-all duration-200 md:h-10",
+                "hover:border-sidebar-border/60 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground",
+                "data-[active=true]:border-primary/15 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:shadow-sm",
+                "[&_svg]:text-sidebar-foreground/65 hover:[&_svg]:text-sidebar-foreground data-[active=true]:[&_svg]:text-primary",
+              )}
+            >
+              <Link
+                href={item.url}
+                onClick={() => {
+                  if (isMobile) {
+                    setOpenMobile(false);
+                  }
+                }}
+              >
+                <item.icon />
+                <span className="font-medium">{item.title}</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        );
+      })}
+    </SidebarMenu>
+  );
+}
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
-  const { isMobile, setOpenMobile } = useSidebar();
   const { setTheme, resolvedTheme, theme } = useTheme();
-
+  const { isMobile } = useSidebar();
   const activeTheme =
     theme === "system" ? "system" : (resolvedTheme ?? "system");
   const activeThemeLabel =
@@ -111,39 +156,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             Workspace
           </SidebarGroupLabel>
           <SidebarGroupContent className="mt-2">
-            <SidebarMenu className="gap-1.5">
-              {navItems.map((item) => {
-                const isActive = item.match(pathname);
-
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      tooltip={item.title}
-                      className={cn(
-                        "h-11 rounded-xl border border-transparent px-3 text-sidebar-foreground/72 transition-all duration-200 md:h-10",
-                        "hover:border-sidebar-border/60 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground",
-                        "data-[active=true]:border-primary/15 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:shadow-sm",
-                        "[&_svg]:text-sidebar-foreground/65 hover:[&_svg]:text-sidebar-foreground data-[active=true]:[&_svg]:text-primary",
-                      )}
-                    >
-                      <Link
-                        href={item.url}
-                        onClick={() => {
-                          if (isMobile) {
-                            setOpenMobile(false);
-                          }
-                        }}
-                      >
-                        <item.icon />
-                        <span className="font-medium">{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
+            <Suspense fallback={<div className="h-40" />}>
+              <SidebarMenuItems />
+            </Suspense>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

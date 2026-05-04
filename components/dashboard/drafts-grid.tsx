@@ -10,6 +10,8 @@ import {
   History,
   Loader2,
   Trash2,
+  Linkedin,
+  Twitter,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,6 +31,10 @@ type DraftListItem = {
   topic: string;
   createdAt: string;
   updatedAt: string;
+  linkedinStatus?: string;
+  linkedinScheduledAt?: string | null;
+  xStatus?: string;
+  xScheduledAt?: string | null;
 };
 
 interface DraftsGridProps {
@@ -103,9 +109,21 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
                 <FileText className="size-5" />
               </div>
               <div className="flex items-center gap-2">
-                <span className="rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                  {draft.topic}
-                </span>
+                {/* Platform badges for draft platforms */}
+                {(draft.linkedinStatus === "DRAFT" || draft.xStatus === "DRAFT") && (
+                  <div className="flex gap-1">
+                    {draft.linkedinStatus === "DRAFT" && (
+                      <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-600 border border-blue-200">
+                        LinkedIn
+                      </span>
+                    )}
+                    {draft.xStatus === "DRAFT" && (
+                      <span className="rounded-full bg-slate-900/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                        X
+                      </span>
+                    )}
+                  </div>
+                )}
                 <Button
                   type="button"
                   variant="outline"

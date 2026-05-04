@@ -32,9 +32,13 @@ interface PostPreviewProps {
   id?: string;
   updatedAt?: string;
   clientDraftKey?: string;
+  initialPlatform?: PlatformTab;
+  linkedinStatus?: string;
+  xStatus?: string;
   onSaveDraft?: () => void;
   onScheduleSuccess?: (data: SaveDraftResponse) => void;
   onReset?: () => void;
+  hideStatusBadge?: boolean;
 }
 
 export function PostPreview({
@@ -52,22 +56,33 @@ export function PostPreview({
   id,
   updatedAt,
   clientDraftKey,
+  initialPlatform = "linkedin",
+  linkedinStatus,
+  xStatus,
   onSaveDraft,
   onScheduleSuccess,
   onReset,
+  hideStatusBadge = false,
 }: PostPreviewProps) {
-  const [activePlatform, setActivePlatform] = useState<PlatformTab>("linkedin");
+  // Determine default platform based on draft status
+  const getDefaultPlatform = (): PlatformTab => {
+    if (linkedinStatus === "DRAFT" && xStatus !== "DRAFT") return "linkedin";
+    if (xStatus === "DRAFT" && linkedinStatus !== "DRAFT") return "x";
+    return initialPlatform;
+  };
+  
+  const [activePlatform, setActivePlatform] =
+    useState<PlatformTab>(getDefaultPlatform());
   const activePost: GeneratedPostItem | null =
     generatedPostPack?.posts[0] ?? null;
 
   // A post is considered "streaming" if we have an active post but no content yet
-  const isThinking = isGenerating && (!activePost || (!activePost.baseIdea && !activePost.linkedin.content));
+  const isThinking =
+    isGenerating &&
+    (!activePost || (!activePost.baseIdea && !activePost.linkedin.content));
 
   const title = mode === "draft" ? "Editor" : "Generated Preview";
-  const description =
-    mode === "draft"
-      ? ""
-      : "Switch between LinkedIn and X editors for the same generated idea.";
+  const description = mode === "draft" ? "" : "Edit for LinkedIn or X";
 
   return (
     <div
@@ -87,44 +102,50 @@ export function PostPreview({
             <ArrowLeft className="size-5" />
           </Button>
         ) : null}
-          <div className="min-w-0 flex-1 flex items-center gap-2">
-            <h3 className="text-lg font-bold">{title}</h3>
-            {status && (
-              <Badge 
-                variant="outline"
-                className={cn(
-                  "text-[10px] uppercase tracking-wider font-medium",
-                  status === "SCHEDULED" 
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" 
-                    : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
-                )}
-              >
-                {status === "SCHEDULED" ? (
-                  <span className="flex items-center gap-1">
-                    <span className="size-1.5 rounded-full bg-emerald-500" />
-                    Scheduled
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1">
-                    <span className="size-1.5 rounded-full bg-amber-500" />
-                    Draft
-                  </span>
-                )}
-              </Badge>
-            )}
-          </div>
-          {description ? (
-            <p className="text-sm text-muted-foreground">{description}</p>
-          ) : null}
-        {activePost ? (
+        <div className="min-w-0 flex-1 flex items-center gap-2">
+          <h3 className="text-lg font-bold">{title}</h3>
+          {!hideStatusBadge && activePost && (
+            <Badge
+              variant="outline"
+              className={cn(
+                "text-[10px] uppercase tracking-wider font-medium",
+                activePost[activePlatform].status === "SCHEDULED"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                  : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100",
+              )}
+            >
+              {activePost[activePlatform].status === "SCHEDULED" ? (
+                <span className="flex items-center gap-1">
+                  <span className="size-1.5 rounded-full bg-emerald-500" />
+                  {activePlatform === "linkedin"
+                    ? "LinkedIn Scheduled"
+                    : "X Scheduled"}
+                </span>
+              ) : (
+                <span className="flex items-center gap-1">
+                  <span className="size-1.5 rounded-full bg-amber-500" />
+                  {activePlatform === "linkedin" ? "LinkedIn Draft" : "X Draft"}
+                </span>
+              )}
+            </Badge>
+          )}
+        </div>
+        {description ? (
+          <p className="text-sm text-muted-foreground pr-2">{description}</p>
+        ) : null}
+        {activePost && (mode === "generated" || linkedinStatus === "DRAFT" || xStatus === "DRAFT") ? (
           <Tabs
             value={activePlatform}
             onValueChange={(value) => setActivePlatform(value as PlatformTab)}
             className="hidden md:flex"
           >
             <TabsList className="bg-muted/80 border">
-              <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-              <TabsTrigger value="x">X</TabsTrigger>
+              {mode === "generated" || linkedinStatus === "DRAFT" ? (
+                <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
+              ) : null}
+              {mode === "generated" || xStatus === "DRAFT" ? (
+                <TabsTrigger value="x">X</TabsTrigger>
+              ) : null}
             </TabsList>
           </Tabs>
         ) : null}
@@ -151,7 +172,7 @@ export function PostPreview({
               {activePost ? "Streaming content..." : "Thinking..."}
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              {activePost 
+              {activePost
                 ? "Your post package is being generated in real-time."
                 : "Analyzing your request and preparing the post structure..."}
             </p>
@@ -171,19 +192,27 @@ export function PostPreview({
         </div>
       ) : null}
 
-      {isGenerated && (!isThinking || (activePost && (activePost.baseIdea || activePost.linkedin.content))) && generatedPostPack && activePost ? (
-        <>
-          <div className="border-b px-4 py-3 md:hidden">
-            <Tabs
-              value={activePlatform}
-              onValueChange={(value) => setActivePlatform(value as PlatformTab)}
-            >
-              <TabsList className="w-full bg-muted/80 border">
-                <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-                <TabsTrigger value="x">X</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
+      {isGenerated &&
+        (!isThinking ||
+          (activePost && (activePost.baseIdea || activePost.linkedin.content))) &&
+        generatedPostPack &&
+        activePost ? (
+          <>
+            <div className="border-b px-4 py-3 md:hidden">
+              <Tabs
+                value={activePlatform}
+                onValueChange={(value) => setActivePlatform(value as PlatformTab)}
+              >
+                <TabsList className="w-full bg-muted/80 border">
+                  {mode === "generated" || linkedinStatus === "DRAFT" ? (
+                    <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
+                  ) : null}
+                  {mode === "generated" || xStatus === "DRAFT" ? (
+                    <TabsTrigger value="x">X</TabsTrigger>
+                  ) : null}
+                </TabsList>
+              </Tabs>
+            </div>
 
           {activePlatform === "linkedin" ? (
             <LinkedInPostPreview
@@ -209,14 +238,17 @@ export function PostPreview({
                 clientDraftKey={clientDraftKey || ""}
                 id={id}
                 updatedAt={updatedAt}
+                platform={activePlatform}
                 onSuccess={onScheduleSuccess}
               >
-                <Button 
+                <Button
                   className="w-full flex-1 rounded-xl font-semibold shadow-md transition-all"
                   disabled={isGenerating}
                 >
                   <Calendar className="mr-2 size-4" />
-                  {status === "SCHEDULED" ? "Reschedule" : "Add to Calendar"}
+                  {activePost[activePlatform].status === "SCHEDULED"
+                    ? `Reschedule ${activePlatform === "linkedin" ? "LinkedIn" : "X"}`
+                    : `Schedule ${activePlatform === "linkedin" ? "LinkedIn" : "X"}`}
                 </Button>
               </SchedulePostModal>
               <Button
@@ -230,10 +262,10 @@ export function PostPreview({
                 ) : (
                   <Save className="mr-2 size-4" />
                 )}
-                {isSavingDraft 
-                  ? "Saving..." 
-                  : status === "SCHEDULED" 
-                    ? "Save Scheduled Post" 
+                {isSavingDraft
+                  ? "Saving..."
+                  : status === "SCHEDULED"
+                    ? "Save Scheduled Post"
                     : "Save as Draft"}
               </Button>
             </div>

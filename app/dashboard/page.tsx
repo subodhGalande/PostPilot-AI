@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { toast } from "sonner";
@@ -18,6 +18,44 @@ import { cn } from "@/lib/utils";
 
 import { type GeneratePostPayload } from "@/lib/schemas/post.schema";
 import { DEFAULT_MODEL } from "@/lib/ai/models";
+
+const DRAFT_STATE_KEY = "postpilot-draft-state";
+
+interface DraftState {
+  topic: string;
+  tone: string;
+  postStyle: string;
+  targetAudience: string;
+  keywords: string[];
+  generatedPostPack: GeneratedPostPack | null;
+  isGenerated: boolean;
+  clientDraftKey: string;
+}
+
+function saveDraftState(state: DraftState) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(DRAFT_STATE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.error("Failed to save draft state:", e);
+  }
+}
+
+function loadDraftState(): DraftState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = localStorage.getItem(DRAFT_STATE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch (e) {
+    console.error("Failed to load draft state:", e);
+    return null;
+  }
+}
+
+function clearDraftState() {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(DRAFT_STATE_KEY);
+}
 
 export default function DashboardPage() {
   const [isGenerated, setIsGenerated] = useState(false);
@@ -64,6 +102,38 @@ export default function DashboardPage() {
       }
     },
   });
+
+  // Restore from localStorage on mount
+  useEffect(() => {
+    const saved = loadDraftState();
+    if (saved && saved.isGenerated && saved.generatedPostPack) {
+      setTopic(saved.topic);
+      setTone(saved.tone);
+      setPostStyle(saved.postStyle);
+      setTargetAudience(saved.targetAudience);
+      setKeywords(saved.keywords);
+      setGeneratedPostPack(saved.generatedPostPack);
+      setIsGenerated(saved.isGenerated);
+      setClientDraftKey(saved.clientDraftKey);
+      setPreviewVersion((v) => v + 1);
+    }
+  }, []);
+
+  // Persist to localStorage on changes
+  useEffect(() => {
+    if (isGenerated && generatedPostPack) {
+      saveDraftState({
+        topic,
+        tone,
+        postStyle,
+        targetAudience,
+        keywords,
+        generatedPostPack,
+        isGenerated,
+        clientDraftKey,
+      });
+    }
+  }, [topic, tone, postStyle, targetAudience, keywords, generatedPostPack, isGenerated, clientDraftKey]);
 
   // Effect to update the preview in real-time as it streams
   useEffect(() => {
@@ -112,6 +182,7 @@ export default function DashboardPage() {
     setDraftId(null);
     setDraftUpdatedAt(null);
     setClientDraftKey(createClientDraftKey());
+    clearDraftState();
   };
 
   const handleUpdatePost = (
@@ -165,7 +236,9 @@ export default function DashboardPage() {
 
       const activePost = generatedPostPack.posts[0];
       return saveDraft({
-        ...(draftId && draftUpdatedAt ? { id: draftId, updatedAt: draftUpdatedAt } : {}),
+        ...(draftId && draftUpdatedAt
+          ? { id: draftId, updatedAt: draftUpdatedAt }
+          : {}),
         clientDraftKey,
         post: activePost,
         model: generatedPostPack.model,
@@ -174,6 +247,9 @@ export default function DashboardPage() {
     onSuccess: (draft) => {
       setDraftId(draft.id);
       setDraftUpdatedAt(draft.updatedAt);
+      clearDraftState();
+      setIsGenerated(false);
+      setGeneratedPostPack(null);
       toast.success(draftId ? "Draft updated." : "Draft saved.");
     },
     onError: (error) => {
@@ -234,6 +310,7 @@ export default function DashboardPage() {
             setDraftUpdatedAt(data.updatedAt);
           }}
           onReset={handleReset}
+          hideStatusBadge={true}
         />
       </div>
     </div>

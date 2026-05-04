@@ -245,7 +245,11 @@ body {
 }
 
 .fc .fc-col-header-cell {
-  @apply bg-muted/50 py-3 font-semibold text-muted-foreground;
+  @apply bg-muted/50 py-3 font-semibold text-muted-foreground uppercase text-[11px] tracking-wider;
+}
+
+.dark .fc .fc-col-header-cell {
+  @apply bg-muted/30 text-foreground/70 border-b border-border;
 }
 
 .fc .fc-daygrid-day-number {
@@ -280,16 +284,44 @@ body {
   @apply flex w-full flex-col gap-1 rounded-lg border border-primary/20 bg-primary/10 px-2 py-1.5 text-card-foreground transition-all hover:border-primary/40 hover:bg-primary/20 hover:shadow-sm;
 }
 
+.fc .platform-linkedin .scheduled-post-card {
+  @apply border-blue-400/30 bg-blue-500/10 hover:bg-blue-500/20 hover:border-blue-400/50;
+}
+
+.dark .fc .platform-linkedin .scheduled-post-card {
+  @apply border-blue-400/40 bg-blue-600/20 hover:bg-blue-600/30 hover:border-blue-400/60;
+}
+
+.fc .platform-x .scheduled-post-card {
+  @apply border-slate-400/30 bg-slate-500/10 hover:bg-slate-500/20 hover:border-slate-400/50;
+}
+
+.dark .fc .platform-x .scheduled-post-card {
+  @apply border-slate-300/40 bg-slate-400/15 hover:bg-slate-400/25 hover:border-slate-300/60;
+}
+
 .fc .scheduled-post-time {
-  @apply bg-primary/10 px-1 py-0.5 rounded;
+  @apply bg-primary/15 px-1.5 py-0.5 rounded text-[10px] font-bold text-primary;
+}
+
+.dark .fc .scheduled-post-time {
+  @apply bg-primary/30 text-primary-foreground;
 }
 
 .fc .scheduled-post-title {
-  @apply line-clamp-2 min-w-0 text-[13px] font-medium leading-tight text-foreground;
+  @apply line-clamp-2 min-w-0 text-[13px] font-bold leading-tight text-foreground;
+}
+
+.dark .fc .scheduled-post-title {
+  @apply text-foreground font-extrabold;
 }
 
 .fc .scheduled-post-preview {
-  @apply line-clamp-1 text-[11px] leading-snug text-muted-foreground/70;
+  @apply line-clamp-1 text-[11px] leading-snug text-muted-foreground;
+}
+
+.dark .fc .scheduled-post-preview {
+  @apply text-muted-foreground/80;
 }
 
 .fc .scheduled-post-more-link {
@@ -297,7 +329,11 @@ body {
 }
 
 .fc .fc-day-today {
-  @apply bg-accent/30;
+  @apply bg-accent/20;
+}
+
+.dark .fc .fc-day-today {
+  @apply bg-accent/15;
 }
 
 .fc-theme-standard td,
@@ -320,4 +356,8 @@ body {
 
 .fc .fc-timegrid-slot-label {
   @apply text-xs font-medium text-muted-foreground;
+}
+
+.dark .fc .fc-timegrid-slot-label {
+  @apply text-foreground/60;
 }

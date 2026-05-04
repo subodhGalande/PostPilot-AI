@@ -52,13 +52,13 @@ function Calendar({
         range_start: "day-range-start",
         range_end: "day-range-end",
         selected:
-          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-        today: "bg-accent/70 text-accent-foreground",
+          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground font-semibold shadow-sm",
+        today: "bg-accent/40 text-accent-foreground font-semibold ring-1 ring-inset ring-accent/50",
         outside:
-          "day-outside text-muted-foreground aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
-        disabled: "text-muted-foreground opacity-50",
+          "day-outside text-muted-foreground/50 aria-selected:bg-accent/40 aria-selected:text-muted-foreground",
+        disabled: "text-muted-foreground opacity-30",
         range_middle:
-          "aria-selected:bg-accent aria-selected:text-accent-foreground",
+          "aria-selected:bg-accent/40 aria-selected:text-accent-foreground",
         hidden: "invisible",
         ...classNames,
       }}

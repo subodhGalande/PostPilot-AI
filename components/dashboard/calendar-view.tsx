@@ -9,7 +9,7 @@ import type { EventClickArg, EventContentArg, EventDropArg } from "@fullcalendar
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Trash2, RotateCcw, MoreVertical } from "lucide-react";
+import { Trash2, RotateCcw, MoreVertical, Linkedin, Twitter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,8 +23,10 @@ import { useState, useMemo, useCallback } from "react";
 interface ScheduledPost {
   id: string;
   title: string;
-  status: string;
-  scheduledAt: string;
+  linkedinStatus: string;
+  linkedinScheduledAt: string | null;
+  xStatus: string;
+  xScheduledAt: string | null;
   content: any;
   clientDraftKey: string;
   updatedAt: string;
@@ -37,7 +39,10 @@ interface CalendarEvent {
   classNames?: string[];
   extendedProps: {
     status: string;
-    type: "draft" | "scheduled";
+    type: "scheduled";
+    platform: "linkedin" | "x";
+    content: any;
+    postId: string;
   };
 }
 
@@ -49,6 +54,7 @@ export function CalendarView() {
     type: "unschedule" | "delete" | null;
     postId: string | null;
     postTitle: string | null;
+    platform?: "linkedin" | "x";
   }>({
     isOpen: false,
     type: null,
@@ -56,8 +62,8 @@ export function CalendarView() {
     postTitle: null,
   });
 
-  const handleOpenConfirmation = (type: "unschedule" | "delete", postId: string, postTitle: string) => {
-    setConfirmationState({ isOpen: true, type, postId, postTitle });
+  const handleOpenConfirmation = (type: "unschedule" | "delete", postId: string, postTitle: string, platform?: "linkedin" | "x") => {
+    setConfirmationState({ isOpen: true, type, postId, postTitle, platform });
   };
 
   const handleCloseConfirmation = () => {
@@ -67,17 +73,17 @@ export function CalendarView() {
   const { data: scheduledPosts, isLoading } = useQuery({
     queryKey: ["scheduled-posts-calendar"],
     queryFn: async (): Promise<ScheduledPost[]> => {
-      const response = await fetch("/api/dashboard/drafts?status=SCHEDULED");
+      const response = await fetch("/api/dashboard/drafts?fetch=scheduled");
       if (!response.ok) throw new Error("Failed to fetch scheduled posts");
       return response.json();
     },
   });
 
   const unscheduleMutation = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, platform }: { id: string; platform?: "linkedin" | "x" }) => {
       const response = await fetch("/api/dashboard/unschedulePost", {
         method: "POST",
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id, platform }),
       });
       if (!response.ok) throw new Error("Failed to unschedule");
       return response.json();
@@ -103,7 +109,7 @@ export function CalendarView() {
   });
 
   const rescheduleMutation = useMutation({
-    mutationFn: async ({ id, newDate }: { id: string; newDate: string }) => {
+    mutationFn: async ({ id, newDate, platform }: { id: string; newDate: string; platform: "linkedin" | "x" }) => {
       const post = scheduledPosts?.find((p) => p.id === id);
       if (!post) throw new Error("Post not found");
 
@@ -121,6 +127,7 @@ export function CalendarView() {
           post: postData,
           model: model || "gemini-2.0-flash",
           scheduledAt: newDate,
+          platform,
           updatedAt: post.updatedAt,
         }),
       });
@@ -142,11 +149,11 @@ export function CalendarView() {
   });
 
   const handleConfirmAction = () => {
-    const { type, postId } = confirmationState;
+    const { type, postId, platform } = confirmationState;
     if (!postId) return;
 
     if (type === "unschedule") {
-      unscheduleMutation.mutate(postId);
+      unscheduleMutation.mutate({ id: postId, platform });
     } else if (type === "delete") {
       deleteMutation.mutate(postId);
     }
@@ -154,18 +161,47 @@ export function CalendarView() {
   };
 
   const events = useMemo((): CalendarEvent[] => {
-    return (scheduledPosts || []).map((post) => ({
-      id: post.id,
-      title: post.title,
-      start: post.scheduledAt,
-      end: new Date(new Date(post.scheduledAt).getTime() + 30 * 60000).toISOString(),
-      classNames: ["scheduled-post-event"],
-      extendedProps: {
-        status: post.status,
-        type: "scheduled",
-        content: post.content,
-      },
-    }));
+    const calendarEvents: CalendarEvent[] = [];
+
+    (scheduledPosts || []).forEach((post) => {
+      // Add LinkedIn event if scheduled
+      if (post.linkedinStatus === "SCHEDULED" && post.linkedinScheduledAt) {
+        calendarEvents.push({
+          id: `${post.id}-linkedin`,
+          title: post.title,
+          start: post.linkedinScheduledAt,
+          end: new Date(new Date(post.linkedinScheduledAt).getTime() + 30 * 60000).toISOString(),
+          classNames: ["scheduled-post-event", "platform-linkedin"],
+          extendedProps: {
+            status: post.linkedinStatus,
+            type: "scheduled",
+            platform: "linkedin",
+            content: post.content,
+            postId: post.id,
+          },
+        });
+      }
+
+      // Add X event if scheduled
+      if (post.xStatus === "SCHEDULED" && post.xScheduledAt) {
+        calendarEvents.push({
+          id: `${post.id}-x`,
+          title: post.title,
+          start: post.xScheduledAt,
+          end: new Date(new Date(post.xScheduledAt).getTime() + 30 * 60000).toISOString(),
+          classNames: ["scheduled-post-event", "platform-x"],
+          extendedProps: {
+            status: post.xStatus,
+            type: "scheduled",
+            platform: "x",
+            content: post.content,
+            postId: post.id,
+          },
+        });
+      }
+    });
+
+    return calendarEvents;
   }, [scheduledPosts]);
 
   const handleEventClick = (info: EventClickArg) => {
@@ -174,7 +210,8 @@ export function CalendarView() {
     if ((info.jsEvent.target as HTMLElement).closest(".post-action-btn")) {
       return;
     }
-    router.push(`/dashboard/drafts/${info.event.id}`);
+    const platform = info.event.extendedProps.platform;
+    router.push(`/dashboard/drafts/${info.event.extendedProps.postId}?platform=${platform}&from=calendar`);
   };
 
   const handleDateClick = (info: DateClickArg) => {
@@ -184,28 +221,39 @@ export function CalendarView() {
   };
 
   const handleEventDrop = (info: EventDropArg) => {
-    const postId = info.event.id;
+    const postId = info.event.extendedProps.postId;
+    const platform = info.event.extendedProps.platform;
     const newDate = info.event.start?.toISOString() || info.event.startStr;
     
-    rescheduleMutation.mutate({ id: postId, newDate });
+    rescheduleMutation.mutate({ id: postId, newDate, platform });
   };
 
   const renderEventContent = useCallback((eventInfo: EventContentArg) => {
-    const postId = eventInfo.event.id;
+    const postId = eventInfo.event.extendedProps.postId;
     const postTitle = eventInfo.event.title;
+    const platform = eventInfo.event.extendedProps.platform as "linkedin" | "x";
     const eventContent = eventInfo.event.extendedProps.content as { linkedin?: { content?: string }; x?: { posts?: { content?: string }[] } } | null;
     
-    const linkedInContent = eventContent?.linkedin?.content || "";
-    const xContent = eventContent?.x?.posts?.[0]?.content || "";
-    const combinedContent = [linkedInContent, xContent].filter(Boolean).join(" | ");
-    const truncatedContent = combinedContent.length > 80 ? combinedContent.slice(0, 80) + "..." : combinedContent;
+    const content = platform === "linkedin" 
+      ? eventContent?.linkedin?.content || "" 
+      : eventContent?.x?.posts?.[0]?.content || "";
+    
+    const truncatedContent = content.length > 80 ? content.slice(0, 80) + "..." : content;
+
+    const PlatformIcon = platform === "linkedin" ? Linkedin : Twitter;
+    const platformColor = platform === "linkedin" ? "text-blue-600 bg-blue-50" : "text-slate-900 bg-slate-50";
 
     return (
       <div className="scheduled-post-card group flex w-full flex-col gap-1 px-2 py-1.5">
         <div className="flex w-full items-center justify-between gap-2">
-          <span className="scheduled-post-time whitespace-nowrap text-[11px] font-semibold text-primary/80">
-            {eventInfo.timeText}
-          </span>
+          <div className="flex items-center gap-1.5 overflow-hidden">
+             <div className={`flex size-5 shrink-0 items-center justify-center rounded-md border ${platformColor}`}>
+                <PlatformIcon className="size-3" />
+             </div>
+             <span className="scheduled-post-time whitespace-nowrap text-[11px] font-semibold text-primary/80">
+              {eventInfo.timeText}
+            </span>
+          </div>
           
           <div className="flex shrink-0 items-center">
             <DropdownMenu>
@@ -213,11 +261,11 @@ export function CalendarView() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-8 h-8 w-8 p-0 hover:bg-primary/10 text-muted-foreground hover:text-primary focus-visible:ring-2 focus-visible:ring-primary"
+                  className="size-7 h-7 w-7 p-0 hover:bg-primary/10 text-muted-foreground hover:text-primary focus-visible:ring-2 focus-visible:ring-primary"
                   title="Actions"
                   aria-label="Post actions"
                 >
-                  <MoreVertical className="size-4" />
+                  <MoreVertical className="size-3.5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-40 shadow-lg">
@@ -225,11 +273,11 @@ export function CalendarView() {
                   className="cursor-pointer gap-2" 
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleOpenConfirmation("unschedule", postId, postTitle);
+                    handleOpenConfirmation("unschedule", postId, postTitle, platform);
                   }}
                 >
                   <RotateCcw className="size-3.5 text-amber-500" />
-                  <span className="text-xs">Unschedule</span>
+                  <span className="text-xs">Unschedule {platform === 'linkedin' ? 'LinkedIn' : 'X'}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   className="group cursor-pointer gap-2 text-red-600 focus:bg-red-600 focus:text-white" 
@@ -239,19 +287,19 @@ export function CalendarView() {
                   }}
                 >
                   <Trash2 className="size-3.5 text-red-500 group-hover:text-white focus:text-white" />
-                  <span className="text-xs">Delete</span>
+                  <span className="text-xs">Delete Entire Draft</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
         
-        <span className="scheduled-post-title min-w-0 line-clamp-2 text-[13px] font-medium leading-tight text-foreground" title={eventInfo.event.title}>
+        <span className="scheduled-post-title min-w-0 line-clamp-1 text-[13px] font-bold leading-tight text-foreground" title={eventInfo.event.title}>
           {eventInfo.event.title}
         </span>
         
         {truncatedContent && (
-          <p className="scheduled-post-preview line-clamp-1 text-[11px] leading-snug text-muted-foreground/80">
+          <p className="scheduled-post-preview line-clamp-2 text-[11px] leading-snug text-muted-foreground/80">
             {truncatedContent}
           </p>
         )}

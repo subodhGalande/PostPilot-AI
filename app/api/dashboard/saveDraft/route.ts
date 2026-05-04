@@ -15,8 +15,15 @@ function getErrorMessage(error: unknown) {
   return "Failed to save draft";
 }
 
-function buildDraftData(input: z.infer<typeof saveDraftSchema>, status: any = "DRAFT") {
+function buildDraftData(input: z.infer<typeof saveDraftSchema>) {
   const title = input.post.baseIdea.trim();
+  
+  // Defensive: ensure platform status always exists
+  const linkedinData = input.post.linkedin || {};
+  const xData = input.post.x || {};
+  
+  console.log("buildDraftData - linkedin:", JSON.stringify(linkedinData, null, 2));
+  console.log("buildDraftData - x:", JSON.stringify(xData, null, 2));
 
   return {
     title,
@@ -24,8 +31,26 @@ function buildDraftData(input: z.infer<typeof saveDraftSchema>, status: any = "D
     content: {
       ...input.post,
       model: input.model,
+      linkedin: {
+        ...linkedinData,
+        status: linkedinData.status || "DRAFT",
+        scheduledAt: linkedinData.scheduledAt || null,
+      },
+      x: {
+        ...xData,
+        status: xData.status || "DRAFT",
+        scheduledAt: xData.scheduledAt || null,
+      },
     },
-    status: status,
+    // Platform-specific statuses only
+    linkedinStatus: (linkedinData.status || "DRAFT") as any,
+    linkedinScheduledAt: linkedinData.scheduledAt 
+      ? new Date(linkedinData.scheduledAt) 
+      : null,
+    xStatus: (xData.status || "DRAFT") as any,
+    xScheduledAt: xData.scheduledAt 
+      ? new Date(xData.scheduledAt) 
+      : null,
   };
 }
 
@@ -52,6 +77,8 @@ export async function POST(req: Request) {
 
     const { id, clientDraftKey, updatedAt, ...draftInput } = parsedBody.data;
 
+    console.log("Save draft payload:", JSON.stringify(parsedBody.data, null, 2));
+
     // 1. Try to find existing draft by ID or ClientDraftKey
     let existingDraft = null;
 
@@ -64,7 +91,6 @@ export async function POST(req: Request) {
         select: {
           id: true,
           updatedAt: true,
-          status: true,
         },
       });
     } else {
@@ -76,13 +102,11 @@ export async function POST(req: Request) {
         select: {
           id: true,
           updatedAt: true,
-          status: true,
         },
       });
     }
 
-    const status = existingDraft ? existingDraft.status : "DRAFT";
-    const draftData = buildDraftData(parsedBody.data, status);
+    const draftData = buildDraftData(parsedBody.data);
 
     // 2. If draft exists, check for conflicts and update
     if (existingDraft) {
@@ -106,7 +130,7 @@ export async function POST(req: Request) {
         select: {
           id: true,
           title: true,
-          status: true,
+          content: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -124,7 +148,7 @@ export async function POST(req: Request) {
       select: {
         id: true,
         title: true,
-        status: true,
+        content: true,
         createdAt: true,
         updatedAt: true,
       },

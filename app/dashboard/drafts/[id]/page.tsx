@@ -14,8 +14,10 @@ import prisma from "@/lib/prisma";
 
 export default async function DraftDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ platform?: string; from?: string }>;
 }) {
   const authUser = await requireAuthJose();
 
@@ -24,21 +26,28 @@ export default async function DraftDetailPage({
   }
 
   const { id } = await params;
+  const { platform, from } = await searchParams;
 
   const draft = await prisma.post.findFirst({
     where: {
       id,
       userId: authUser.id,
-      status: { in: ["DRAFT", "SCHEDULED"] },
+      OR: [
+        { linkedinStatus: { in: ["DRAFT", "SCHEDULED"] } },
+        { xStatus: { in: ["DRAFT", "SCHEDULED"] } },
+      ],
     },
     select: {
       id: true,
       title: true,
-      status: true,
       createdAt: true,
       updatedAt: true,
       clientDraftKey: true,
       content: true,
+      linkedinStatus: true,
+      linkedinScheduledAt: true,
+      xStatus: true,
+      xScheduledAt: true,
     },
   });
 
@@ -48,14 +57,31 @@ export default async function DraftDetailPage({
 
   const parsedContent = parseStoredDraftContent(draft.content);
 
+  const breadcrumbHref = from === "calendar" ? "/dashboard/calendar" : "/dashboard/drafts";
+  const breadcrumbLabel = from === "calendar" ? "Calendar" : "Drafts";
+
+  // Determine initial platform based on draft status
+  // If URL has platform param, use it; otherwise auto-select draft platform
+  const linkedinIsDraft = draft.linkedinStatus === "DRAFT";
+  const xIsDraft = draft.xStatus === "DRAFT";
+  
+  let initialPlatform: "linkedin" | "x" | undefined;
+  if (platform === "linkedin" || platform === "x") {
+    initialPlatform = platform as "linkedin" | "x";
+  } else if (linkedinIsDraft) {
+    initialPlatform = "linkedin";
+  } else if (xIsDraft) {
+    initialPlatform = "x";
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-4 bg-slate-50/50 p-4 dark:bg-transparent md:p-6">
       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
         <Link
-          href="/dashboard/drafts"
+          href={breadcrumbHref}
           className="font-medium transition-colors hover:text-foreground"
         >
-          Drafts
+          {breadcrumbLabel}
         </Link>
         <ChevronRight className="size-4" />
         <span className="max-w-[24rem] truncate text-foreground">
@@ -69,7 +95,9 @@ export default async function DraftDetailPage({
         initialCreatedAt={draft.createdAt.toISOString()}
         initialClientDraftKey={draft.clientDraftKey ?? createClientDraftKey()}
         initialPostPack={mapStoredDraftToGeneratedPostPack(parsedContent)}
-        initialStatus={draft.status}
+        initialPlatform={initialPlatform}
+        linkedinStatus={draft.linkedinStatus}
+        xStatus={draft.xStatus}
       />
     </div>
   );

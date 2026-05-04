@@ -20,16 +20,20 @@ export async function GET(
     where: {
       id,
       userId: authUser.id,
-      status: { in: ["DRAFT", "SCHEDULED"] },
+      OR: [
+        { linkedinStatus: { in: ["DRAFT", "SCHEDULED"] } },
+        { xStatus: { in: ["DRAFT", "SCHEDULED"] } },
+      ],
     },
     select: {
       id: true,
       title: true,
-      status: true,
       createdAt: true,
       updatedAt: true,
       clientDraftKey: true,
       content: true,
+      linkedinStatus: true,
+      xStatus: true,
     },
   });
 
@@ -39,6 +43,8 @@ export async function GET(
 
   return NextResponse.json({
     ...draft,
+    linkedinStatus: draft.linkedinStatus,
+    xStatus: draft.xStatus,
     content: parseStoredDraftContent(draft.content),
   });
 }
@@ -59,7 +65,10 @@ export async function DELETE(
     where: {
       id,
       userId: authUser.id,
-      status: { in: ["DRAFT", "SCHEDULED"] },
+      OR: [
+        { linkedinStatus: { in: ["DRAFT", "SCHEDULED"] } },
+        { xStatus: { in: ["DRAFT", "SCHEDULED"] } },
+      ],
     },
     select: {
       id: true,

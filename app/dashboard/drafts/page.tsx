@@ -18,7 +18,10 @@ export default async function DraftsPage() {
   const drafts = await prisma.post.findMany({
     where: {
       userId: authUser.id,
-      status: "DRAFT",
+      OR: [
+        { linkedinStatus: "DRAFT" },
+        { xStatus: "DRAFT" },
+      ],
     },
     select: {
       id: true,
@@ -26,6 +29,10 @@ export default async function DraftsPage() {
       createdAt: true,
       updatedAt: true,
       content: true,
+      linkedinStatus: true,
+      linkedinScheduledAt: true,
+      xStatus: true,
+      xScheduledAt: true,
     },
     orderBy: {
       updatedAt: "desc",
@@ -82,6 +89,10 @@ export default async function DraftsPage() {
               topic: parsedContent.topic,
               createdAt: draft.createdAt.toISOString(),
               updatedAt: draft.updatedAt.toISOString(),
+              linkedinStatus: draft.linkedinStatus,
+              linkedinScheduledAt: draft.linkedinScheduledAt?.toISOString() || null,
+              xStatus: draft.xStatus,
+              xScheduledAt: draft.xScheduledAt?.toISOString() || null,
             };
           })}
         />
