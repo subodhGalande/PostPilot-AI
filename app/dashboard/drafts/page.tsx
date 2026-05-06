@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { DraftsGrid } from "@/components/dashboard/drafts-grid";
 import { Button } from "@/components/ui/button";
 import { requireAuthJose } from "@/lib/auth/requireAuthJose";
-import { parseStoredDraftContent } from "@/lib/drafts";
+import { reconstructPostContent } from "@/lib/drafts";
 import prisma from "@/lib/prisma";
 
 export default async function DraftsPage() {
@@ -26,13 +26,17 @@ export default async function DraftsPage() {
     select: {
       id: true,
       title: true,
-      createdAt: true,
-      updatedAt: true,
-      content: true,
+      topic: true,
+      baseIdea: true,
+      model: true,
+      linkedinContent: true,
+      xContent: true,
       linkedinStatus: true,
       linkedinScheduledAt: true,
       xStatus: true,
       xScheduledAt: true,
+      createdAt: true,
+      updatedAt: true,
     },
     orderBy: {
       updatedAt: "desc",
@@ -81,7 +85,7 @@ export default async function DraftsPage() {
       ) : (
         <DraftsGrid
           initialDrafts={drafts.map((draft) => {
-            const parsedContent = parseStoredDraftContent(draft.content);
+            const parsedContent = reconstructPostContent(draft);
 
             return {
               id: draft.id,

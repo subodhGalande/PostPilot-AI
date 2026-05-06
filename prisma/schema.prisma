@@ -36,9 +36,15 @@ model User {
 model Post {
   id                  String     @id @default(cuid())
   title               String
-  content             Json
+  topic               String?
+  baseIdea            String?
+  model               String?
   clientDraftKey      String?
   
+  // Platform Content
+  linkedinContent     Json?
+  xContent            Json?
+
   // Independent Lifecycles - each platform has its own status
   linkedinStatus      PostStatus @default(DRAFT)
   linkedinScheduledAt DateTime?
@@ -75,6 +81,7 @@ enum PostStatus {
   SCHEDULED
   PUBLISHED
   ARCHIVED
+  DELETED
 }
 
 enum AccountType {

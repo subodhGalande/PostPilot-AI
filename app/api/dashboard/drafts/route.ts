@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { requireAuthJose } from "@/lib/auth/requireAuthJose";
-import { parseStoredDraftContent } from "@/lib/drafts";
+import { reconstructPostContent } from "@/lib/drafts";
 import prisma from "@/lib/prisma";
 
 export async function GET(req: Request) {
@@ -34,13 +34,17 @@ export async function GET(req: Request) {
     select: {
       id: true,
       title: true,
+      topic: true,
+      baseIdea: true,
+      model: true,
+      linkedinContent: true,
+      xContent: true,
       linkedinStatus: true,
       linkedinScheduledAt: true,
       xStatus: true,
       xScheduledAt: true,
       createdAt: true,
       updatedAt: true,
-      content: true,
       clientDraftKey: true,
     },
     orderBy: {
@@ -50,7 +54,7 @@ export async function GET(req: Request) {
 
   return NextResponse.json(
     posts.map((post) => {
-      const parsedContent = parseStoredDraftContent(post.content);
+      const parsedContent = reconstructPostContent(post);
 
       return {
         id: post.id,

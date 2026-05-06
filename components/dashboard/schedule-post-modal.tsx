@@ -178,7 +178,7 @@ export function SchedulePostModal({
       toast.success(`${platform ? (platform === 'linkedin' ? 'LinkedIn' : 'X') : 'Post'} scheduled successfully!`);
       setOpen(false);
       queryClient.invalidateQueries({ queryKey: ["scheduled-posts-calendar"] });
-      onSuccess?.(data);
+      onSuccess?.({ ...data, platform });
     },
     onError: (error) => {
       toast.error(

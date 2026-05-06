@@ -10,6 +10,7 @@ import { PostPreview } from "@/components/dashboard/post-preview";
 import {
   createClientDraftKey,
   saveDraft,
+  parseStoredDraftContent,
   type SaveDraftResponse,
 } from "@/lib/drafts";
 import type { GeneratedPostItem, GeneratedPostPack } from "@/lib/social-posts";
@@ -91,7 +92,21 @@ export default function DashboardPage() {
     onFinish: ({ object }: { object: GeneratedPostItem | undefined }) => {
       if (object) {
         setGeneratedPostPack({
-          posts: [object as GeneratedPostItem],
+          posts: [
+            {
+              ...object,
+              linkedin: {
+                ...object.linkedin,
+                status: "DRAFT",
+                scheduledAt: null,
+              },
+              x: {
+                ...object.x,
+                status: "DRAFT",
+                scheduledAt: null,
+              },
+            } as GeneratedPostItem,
+          ],
           model: DEFAULT_MODEL.id,
         });
         setDraftId(null);
@@ -133,7 +148,16 @@ export default function DashboardPage() {
         clientDraftKey,
       });
     }
-  }, [topic, tone, postStyle, targetAudience, keywords, generatedPostPack, isGenerated, clientDraftKey]);
+  }, [
+    topic,
+    tone,
+    postStyle,
+    targetAudience,
+    keywords,
+    generatedPostPack,
+    isGenerated,
+    clientDraftKey,
+  ]);
 
   // Effect to update the preview in real-time as it streams
   useEffect(() => {
@@ -144,6 +168,8 @@ export default function DashboardPage() {
         baseIdea: object.baseIdea || "",
         linkedin: {
           content: object.linkedin?.content || "",
+          status: "DRAFT",
+          scheduledAt: null,
         },
         x: {
           mode: object.x?.mode || "single",
@@ -151,6 +177,8 @@ export default function DashboardPage() {
             id: `x-${i + 1}`,
             content: p?.content || "",
           })),
+          status: "DRAFT",
+          scheduledAt: null,
         },
       };
 
@@ -182,7 +210,6 @@ export default function DashboardPage() {
     setDraftId(null);
     setDraftUpdatedAt(null);
     setClientDraftKey(createClientDraftKey());
-    clearDraftState();
   };
 
   const handleUpdatePost = (
@@ -204,6 +231,7 @@ export default function DashboardPage() {
     handleUpdatePost((currentPost) => ({
       ...currentPost,
       linkedin: {
+        ...currentPost.linkedin,
         content,
       },
     }));
@@ -245,12 +273,14 @@ export default function DashboardPage() {
       });
     },
     onSuccess: (draft) => {
-      setDraftId(draft.id);
-      setDraftUpdatedAt(draft.updatedAt);
+      const wasUpdating = !!draftId;
       clearDraftState();
       setIsGenerated(false);
       setGeneratedPostPack(null);
-      toast.success(draftId ? "Draft updated." : "Draft saved.");
+      setDraftId(null);
+      setDraftUpdatedAt(null);
+      setClientDraftKey(createClientDraftKey());
+      toast.success(wasUpdating ? "Draft updated." : "Draft saved.");
     },
     onError: (error) => {
       console.error("Failed to save draft:", error);
@@ -308,6 +338,15 @@ export default function DashboardPage() {
           onScheduleSuccess={(data) => {
             setDraftId(data.id);
             setDraftUpdatedAt(data.updatedAt);
+
+            if (data.content) {
+              const updatedContent = parseStoredDraftContent(data.content);
+
+              setGeneratedPostPack({
+                posts: [updatedContent],
+                model: updatedContent.model,
+              });
+            }
           }}
           onReset={handleReset}
           hideStatusBadge={true}

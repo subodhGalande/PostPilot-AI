@@ -15,34 +15,42 @@ function getErrorMessage(error: unknown) {
   return "Failed to schedule post";
 }
 
-function buildPostData(input: z.infer<typeof schedulePostSchema>, existingContent?: any) {
-  const title = input.post.baseIdea.trim();
-  
-  // Merge with existing content if available (preserves other platform's schedule)
-  const existing = existingContent || { linkedin: {}, x: {} };
-  const platform = input.platform;
+function buildPostData(
+  input: z.infer<typeof schedulePostSchema>,
+  existingPost?: any,
+) {
+  const { post, model, clientDraftKey, platform, scheduledAt } = input;
 
-  // Preserve existing platform data - only update the platform being scheduled
-  const updatedContent = {
-    ...input.post,
-    model: input.model,
-    linkedin: platform === "x"
-      ? existing.linkedin
-      : { ...existing.linkedin, status: "SCHEDULED", scheduledAt: input.scheduledAt },
-    x: platform === "linkedin"
-      ? existing.x
-      : { ...existing.x, status: "SCHEDULED", scheduledAt: input.scheduledAt },
-  };
+  const linkedinStatus =
+    platform === "linkedin"
+      ? "SCHEDULED"
+      : existingPost?.linkedinStatus || "DRAFT";
+  const linkedinScheduledAt =
+    platform === "linkedin"
+      ? new Date(scheduledAt)
+      : existingPost?.linkedinScheduledAt;
+
+  const xStatus =
+    platform === "x" ? "SCHEDULED" : existingPost?.xStatus || "DRAFT";
+  const xScheduledAt =
+    platform === "x" ? new Date(scheduledAt) : existingPost?.xScheduledAt;
 
   return {
-    title,
-    clientDraftKey: input.clientDraftKey,
-    content: updatedContent,
-    // Update platform-specific statuses only
-    linkedinStatus: updatedContent.linkedin.status,
-    linkedinScheduledAt: updatedContent.linkedin.scheduledAt ? new Date(updatedContent.linkedin.scheduledAt) : null,
-    xStatus: updatedContent.x.status,
-    xScheduledAt: updatedContent.x.scheduledAt ? new Date(updatedContent.x.scheduledAt) : null,
+    title: post.baseIdea.trim(),
+    topic: post.topic,
+    baseIdea: post.baseIdea,
+    model: model,
+    clientDraftKey,
+
+    // Platform Content (stripped of metadata)
+    linkedinContent: { content: post.linkedin.content },
+    xContent: { mode: post.x.mode, posts: post.x.posts },
+
+    // Single Source of Truth for Status
+    linkedinStatus: linkedinStatus as any,
+    linkedinScheduledAt,
+    xStatus: xStatus as any,
+    xScheduledAt,
   };
 }
 
@@ -67,9 +75,28 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log("Schedule post payload:", JSON.stringify(parsedBody.data, null, 2));
+    console.log(
+      "Schedule post payload:",
+      JSON.stringify(parsedBody.data, null, 2),
+    );
 
-    const { id, clientDraftKey, updatedAt } = parsedBody.data;
+    const { id, clientDraftKey, updatedAt, post } = parsedBody.data;
+
+    // Validate at least one platform has content
+    const hasLinkedInContent =
+      post.linkedin?.content && post.linkedin.content.trim().length > 0;
+    const hasXContent =
+      post.x?.posts &&
+      post.x.posts.length > 0 &&
+      post.x.posts[0]?.content &&
+      post.x.posts[0].content.trim().length > 0;
+
+    if (!hasLinkedInContent && !hasXContent) {
+      return NextResponse.json(
+        { error: "At least one platform must have content" },
+        { status: 400 },
+      );
+    }
 
     // 1. Try to find existing post by ID or ClientDraftKey
     let existingPost = null;
@@ -83,7 +110,10 @@ export async function POST(req: Request) {
         select: {
           id: true,
           updatedAt: true,
-          content: true,
+          linkedinStatus: true,
+          linkedinScheduledAt: true,
+          xStatus: true,
+          xScheduledAt: true,
         },
       });
     } else {
@@ -95,12 +125,15 @@ export async function POST(req: Request) {
         select: {
           id: true,
           updatedAt: true,
-          content: true,
+          linkedinStatus: true,
+          linkedinScheduledAt: true,
+          xStatus: true,
+          xScheduledAt: true,
         },
       });
     }
 
-    const postData = buildPostData(parsedBody.data, existingPost?.content);
+    const postData = buildPostData(parsedBody.data, existingPost);
 
     // 2. If post exists, check for conflicts and update to SCHEDULED
     if (existingPost) {
@@ -124,7 +157,11 @@ export async function POST(req: Request) {
         select: {
           id: true,
           title: true,
-          content: true,
+          topic: true,
+          baseIdea: true,
+          model: true,
+          linkedinContent: true,
+          xContent: true,
           createdAt: true,
           updatedAt: true,
           clientDraftKey: true,
@@ -147,7 +184,11 @@ export async function POST(req: Request) {
       select: {
         id: true,
         title: true,
-        content: true,
+        topic: true,
+        baseIdea: true,
+        model: true,
+        linkedinContent: true,
+        xContent: true,
         createdAt: true,
         updatedAt: true,
         clientDraftKey: true,

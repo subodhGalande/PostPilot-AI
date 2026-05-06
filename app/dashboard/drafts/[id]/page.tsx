@@ -8,7 +8,7 @@ import { requireAuthJose } from "@/lib/auth/requireAuthJose";
 import {
   createClientDraftKey,
   mapStoredDraftToGeneratedPostPack,
-  parseStoredDraftContent,
+  reconstructPostContent,
 } from "@/lib/drafts";
 import prisma from "@/lib/prisma";
 
@@ -40,14 +40,18 @@ export default async function DraftDetailPage({
     select: {
       id: true,
       title: true,
-      createdAt: true,
-      updatedAt: true,
-      clientDraftKey: true,
-      content: true,
+      topic: true,
+      baseIdea: true,
+      model: true,
+      linkedinContent: true,
+      xContent: true,
       linkedinStatus: true,
       linkedinScheduledAt: true,
       xStatus: true,
       xScheduledAt: true,
+      createdAt: true,
+      updatedAt: true,
+      clientDraftKey: true,
     },
   });
 
@@ -55,7 +59,7 @@ export default async function DraftDetailPage({
     notFound();
   }
 
-  const parsedContent = parseStoredDraftContent(draft.content);
+  const parsedContent = reconstructPostContent(draft);
 
   const breadcrumbHref = from === "calendar" ? "/dashboard/calendar" : "/dashboard/drafts";
   const breadcrumbLabel = from === "calendar" ? "Calendar" : "Drafts";

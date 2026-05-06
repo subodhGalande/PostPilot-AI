@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeft, Calendar, FileText, Loader2, Save } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { LinkedInPostPreview } from "@/components/dashboard/linkedin-post-preview";
 import { XPostPreview } from "@/components/dashboard/x-post-preview";
@@ -65,16 +65,54 @@ export function PostPreview({
   hideStatusBadge = false,
 }: PostPreviewProps) {
   // Determine default platform based on draft status
+  // Explicit initialPlatform from URL (calendar navigation) takes priority
   const getDefaultPlatform = (): PlatformTab => {
+    if (initialPlatform) return initialPlatform;
     if (linkedinStatus === "DRAFT" && xStatus !== "DRAFT") return "linkedin";
     if (xStatus === "DRAFT" && linkedinStatus !== "DRAFT") return "x";
     return initialPlatform;
   };
-  
-  const [activePlatform, setActivePlatform] =
-    useState<PlatformTab>(getDefaultPlatform());
+
+  // Check if both platforms are editable (both DRAFT or undefined for generated preview)
+  // If linkedinStatus/xStatus are undefined, show tabs (generated preview case)
+  // If defined and both DRAFT, show tabs (draft editor with both editable)
+  const bothEditable =
+    (!linkedinStatus && !xStatus) ||
+    (linkedinStatus === "DRAFT" && xStatus === "DRAFT");
+  // Check if only one platform is editable (one DRAFT, one SCHEDULED/DELETED)
+  const onlyOneEditable =
+    (linkedinStatus === "DRAFT" && xStatus !== "DRAFT") ||
+    (xStatus === "DRAFT" && linkedinStatus !== "DRAFT");
+
+  const [activePlatform, setActivePlatform] = useState<PlatformTab>(
+    getDefaultPlatform(),
+  );
   const activePost: GeneratedPostItem | null =
     generatedPostPack?.posts[0] ?? null;
+
+  // Check if both platforms have content
+  const linkedInHasContent = !!activePost?.linkedin?.content?.trim();
+  const xHasContent =
+    activePost?.x?.posts &&
+    activePost.x.posts.length > 0 &&
+    activePost.x.posts[0]?.content?.trim();
+  const bothHaveContent = linkedInHasContent && xHasContent;
+
+  // Auto-switch platform if current one becomes scheduled
+  // Skip auto-switch if user explicitly navigated to a specific platform (from calendar)
+  useEffect(() => {
+    if (!activePost) return;
+    if (initialPlatform) return; // Don't auto-switch when explicitly navigated
+
+    const isLinkedInScheduled = activePost.linkedin.status === "SCHEDULED";
+    const isXScheduled = activePost.x.status === "SCHEDULED";
+
+    if (activePlatform === "linkedin" && isLinkedInScheduled && !isXScheduled) {
+      setActivePlatform("x");
+    } else if (activePlatform === "x" && isXScheduled && !isLinkedInScheduled) {
+      setActivePlatform("linkedin");
+    }
+  }, [activePost, activePlatform, initialPlatform]);
 
   // A post is considered "streaming" if we have an active post but no content yet
   const isThinking =
@@ -133,21 +171,30 @@ export function PostPreview({
         {description ? (
           <p className="text-sm text-muted-foreground pr-2">{description}</p>
         ) : null}
-        {activePost && (mode === "generated" || linkedinStatus === "DRAFT" || xStatus === "DRAFT") ? (
-          <Tabs
-            value={activePlatform}
-            onValueChange={(value) => setActivePlatform(value as PlatformTab)}
-            className="hidden md:flex"
-          >
-            <TabsList className="bg-muted/80 border">
-              {mode === "generated" || linkedinStatus === "DRAFT" ? (
-                <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-              ) : null}
-              {mode === "generated" || xStatus === "DRAFT" ? (
-                <TabsTrigger value="x">X</TabsTrigger>
-              ) : null}
-            </TabsList>
-          </Tabs>
+        {activePost &&
+        (mode === "generated" ||
+          linkedinStatus === "DRAFT" ||
+          xStatus === "DRAFT") ? (
+          bothHaveContent ? (
+            <Tabs
+              value={activePlatform}
+              onValueChange={(value) => setActivePlatform(value as PlatformTab)}
+              className="hidden md:flex"
+            >
+              <TabsList className="bg-muted/80 border">
+                {(mode === "generated" &&
+                  activePost.linkedin.status !== "SCHEDULED") ||
+                (mode === "draft" && linkedinStatus === "DRAFT") ? (
+                  <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
+                ) : null}
+                {(mode === "generated" &&
+                  activePost.x.status !== "SCHEDULED") ||
+                (mode === "draft" && xStatus === "DRAFT") ? (
+                  <TabsTrigger value="x">X</TabsTrigger>
+                ) : null}
+              </TabsList>
+            </Tabs>
+          ) : null
         ) : null}
       </div>
 
@@ -193,26 +240,34 @@ export function PostPreview({
       ) : null}
 
       {isGenerated &&
-        (!isThinking ||
-          (activePost && (activePost.baseIdea || activePost.linkedin.content))) &&
-        generatedPostPack &&
-        activePost ? (
-          <>
-            <div className="border-b px-4 py-3 md:hidden">
+      (!isThinking ||
+        (activePost && (activePost.baseIdea || activePost.linkedin.content))) &&
+      generatedPostPack &&
+      activePost ? (
+        <>
+          <div className="border-b px-4 py-3 md:hidden">
+            {bothHaveContent ? (
               <Tabs
                 value={activePlatform}
-                onValueChange={(value) => setActivePlatform(value as PlatformTab)}
+                onValueChange={(value) =>
+                  setActivePlatform(value as PlatformTab)
+                }
               >
                 <TabsList className="w-full bg-muted/80 border">
-                  {mode === "generated" || linkedinStatus === "DRAFT" ? (
+                  {(mode === "generated" &&
+                    activePost.linkedin.status !== "SCHEDULED") ||
+                  (mode === "draft" && linkedinStatus === "DRAFT") ? (
                     <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
                   ) : null}
-                  {mode === "generated" || xStatus === "DRAFT" ? (
+                  {(mode === "generated" &&
+                    activePost.x.status !== "SCHEDULED") ||
+                  (mode === "draft" && xStatus === "DRAFT") ? (
                     <TabsTrigger value="x">X</TabsTrigger>
                   ) : null}
                 </TabsList>
               </Tabs>
-            </div>
+            ) : null}
+          </div>
 
           {activePlatform === "linkedin" ? (
             <LinkedInPostPreview

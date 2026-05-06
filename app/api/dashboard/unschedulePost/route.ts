@@ -36,11 +36,8 @@ export async function POST(req: Request) {
       },
       select: {
         id: true,
-        content: true,
         linkedinStatus: true,
-        linkedinScheduledAt: true,
         xStatus: true,
-        xScheduledAt: true,
       },
     });
 
@@ -48,31 +45,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
-    // 2. Get existing content and preserve the other platform
-    const existingContent = post.content as any;
-    const updatedContent = { ...existingContent };
-    
-    // Only clear the platform being unscheduled, preserve other
+    // 2. Determine what to unschedule
     const doUnscheduleLinkedin = !platform || platform === "linkedin";
     const doUnscheduleX = !platform || platform === "x";
 
+    const updateData: any = {};
     if (doUnscheduleLinkedin) {
-      updatedContent.linkedin = { ...existingContent.linkedin, status: "DRAFT", scheduledAt: null };
+      updateData.linkedinStatus = "DRAFT";
+      updateData.linkedinScheduledAt = null;
     }
     if (doUnscheduleX) {
-      updatedContent.x = { ...existingContent.x, status: "DRAFT", scheduledAt: null };
+      updateData.xStatus = "DRAFT";
+      updateData.xScheduledAt = null;
     }
 
-    // 4. Update post - platform statuses only
+    // 3. Update post - platform statuses only
     const updatedPost = await prisma.post.update({
       where: { id },
-      data: {
-        content: updatedContent,
-        linkedinStatus: updatedContent.linkedin.status,
-        linkedinScheduledAt: doUnscheduleLinkedin ? null : post.linkedinScheduledAt,
-        xStatus: updatedContent.x.status,
-        xScheduledAt: doUnscheduleX ? null : post.xScheduledAt,
-      },
+      data: updateData,
       select: {
         id: true,
         updatedAt: true,

@@ -18,6 +18,8 @@ export type SaveDraftResponse = {
   status: string;
   createdAt: string;
   updatedAt: string;
+  platform?: "linkedin" | "x";
+  content?: any;
 };
 
 type SaveDraftPayload = {
@@ -30,6 +32,7 @@ type SaveDraftPayload = {
 
 export type SchedulePostPayload = SaveDraftPayload & {
   scheduledAt: string;
+  platform?: "linkedin" | "x";
 };
 
 export function createClientDraftKey() {
@@ -45,6 +48,33 @@ export function createClientDraftKey() {
 
 export function parseStoredDraftContent(content: unknown) {
   return storedDraftContentSchema.parse(content);
+}
+
+export function reconstructPostContent(post: any): StoredDraftContent {
+  const linkedin = (post.linkedinContent as any) || { content: "" };
+  const x = (post.xContent as any) || { mode: "single", posts: [] };
+
+  const reconstructed = {
+    topic: post.topic || "",
+    baseIdea: post.baseIdea || "",
+    model: post.model || "",
+    linkedin: {
+      ...linkedin,
+      status: post.linkedinStatus,
+      scheduledAt: post.linkedinScheduledAt instanceof Date 
+        ? post.linkedinScheduledAt.toISOString() 
+        : (post.linkedinScheduledAt || null),
+    },
+    x: {
+      ...x,
+      status: post.xStatus,
+      scheduledAt: post.xScheduledAt instanceof Date 
+        ? post.xScheduledAt.toISOString() 
+        : (post.xScheduledAt || null),
+    },
+  };
+
+  return storedDraftContentSchema.parse(reconstructed);
 }
 
 export function mapStoredDraftToGeneratedPostPack(

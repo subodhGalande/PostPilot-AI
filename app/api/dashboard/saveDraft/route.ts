@@ -16,41 +16,26 @@ function getErrorMessage(error: unknown) {
 }
 
 function buildDraftData(input: z.infer<typeof saveDraftSchema>) {
-  const title = input.post.baseIdea.trim();
-  
-  // Defensive: ensure platform status always exists
-  const linkedinData = input.post.linkedin || {};
-  const xData = input.post.x || {};
-  
-  console.log("buildDraftData - linkedin:", JSON.stringify(linkedinData, null, 2));
-  console.log("buildDraftData - x:", JSON.stringify(xData, null, 2));
+  const { post, model, clientDraftKey } = input;
 
   return {
-    title,
-    clientDraftKey: input.clientDraftKey,
-    content: {
-      ...input.post,
-      model: input.model,
-      linkedin: {
-        ...linkedinData,
-        status: linkedinData.status || "DRAFT",
-        scheduledAt: linkedinData.scheduledAt || null,
-      },
-      x: {
-        ...xData,
-        status: xData.status || "DRAFT",
-        scheduledAt: xData.scheduledAt || null,
-      },
-    },
-    // Platform-specific statuses only
-    linkedinStatus: (linkedinData.status || "DRAFT") as any,
-    linkedinScheduledAt: linkedinData.scheduledAt 
-      ? new Date(linkedinData.scheduledAt) 
+    title: post.baseIdea.trim(),
+    topic: post.topic,
+    baseIdea: post.baseIdea,
+    model: model,
+    clientDraftKey,
+
+    // Platform Content (stripped of metadata)
+    linkedinContent: { content: post.linkedin.content },
+    xContent: { mode: post.x.mode, posts: post.x.posts },
+
+    // Single Source of Truth for Status
+    linkedinStatus: (post.linkedin.status || "DRAFT") as any,
+    linkedinScheduledAt: post.linkedin.scheduledAt
+      ? new Date(post.linkedin.scheduledAt)
       : null,
-    xStatus: (xData.status || "DRAFT") as any,
-    xScheduledAt: xData.scheduledAt 
-      ? new Date(xData.scheduledAt) 
-      : null,
+    xStatus: (post.x.status || "DRAFT") as any,
+    xScheduledAt: post.x.scheduledAt ? new Date(post.x.scheduledAt) : null,
   };
 }
 
@@ -75,9 +60,23 @@ export async function POST(req: Request) {
       );
     }
 
-    const { id, clientDraftKey, updatedAt, ...draftInput } = parsedBody.data;
+    const { id, clientDraftKey, updatedAt, post } = parsedBody.data;
 
-    console.log("Save draft payload:", JSON.stringify(parsedBody.data, null, 2));
+    // Validate at least one platform has content
+    const hasLinkedInContent =
+      post.linkedin?.content && post.linkedin.content.trim().length > 0;
+    const hasXContent =
+      post.x?.posts &&
+      post.x.posts.length > 0 &&
+      post.x.posts[0]?.content &&
+      post.x.posts[0].content.trim().length > 0;
+
+    if (!hasLinkedInContent && !hasXContent) {
+      return NextResponse.json(
+        { error: "At least one platform must have content" },
+        { status: 400 },
+      );
+    }
 
     // 1. Try to find existing draft by ID or ClientDraftKey
     let existingDraft = null;
@@ -130,7 +129,15 @@ export async function POST(req: Request) {
         select: {
           id: true,
           title: true,
-          content: true,
+          topic: true,
+          baseIdea: true,
+          model: true,
+          linkedinContent: true,
+          xContent: true,
+          linkedinStatus: true,
+          linkedinScheduledAt: true,
+          xStatus: true,
+          xScheduledAt: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -148,7 +155,15 @@ export async function POST(req: Request) {
       select: {
         id: true,
         title: true,
-        content: true,
+        topic: true,
+        baseIdea: true,
+        model: true,
+        linkedinContent: true,
+        xContent: true,
+        linkedinStatus: true,
+        linkedinScheduledAt: true,
+        xStatus: true,
+        xScheduledAt: true,
         createdAt: true,
         updatedAt: true,
       },

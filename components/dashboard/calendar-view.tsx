@@ -5,11 +5,21 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import type { DateClickArg } from "@fullcalendar/interaction";
-import type { EventClickArg, EventContentArg, EventDropArg } from "@fullcalendar/core";
+import type {
+  EventClickArg,
+  EventContentArg,
+  EventDropArg,
+} from "@fullcalendar/core";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Trash2, RotateCcw, MoreVertical, Linkedin, Twitter } from "lucide-react";
+import {
+  Trash2,
+  RotateCcw,
+  MoreVertical,
+  Linkedin,
+  Twitter,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -36,6 +46,7 @@ interface CalendarEvent {
   id: string;
   title: string;
   start: string;
+  end?: string;
   classNames?: string[];
   extendedProps: {
     status: string;
@@ -62,12 +73,22 @@ export function CalendarView() {
     postTitle: null,
   });
 
-  const handleOpenConfirmation = (type: "unschedule" | "delete", postId: string, postTitle: string, platform?: "linkedin" | "x") => {
+  const handleOpenConfirmation = (
+    type: "unschedule" | "delete",
+    postId: string,
+    postTitle: string,
+    platform?: "linkedin" | "x",
+  ) => {
     setConfirmationState({ isOpen: true, type, postId, postTitle, platform });
   };
 
   const handleCloseConfirmation = () => {
-    setConfirmationState({ isOpen: false, type: null, postId: null, postTitle: null });
+    setConfirmationState({
+      isOpen: false,
+      type: null,
+      postId: null,
+      postTitle: null,
+    });
   };
 
   const { data: scheduledPosts, isLoading } = useQuery({
@@ -80,7 +101,13 @@ export function CalendarView() {
   });
 
   const unscheduleMutation = useMutation({
-    mutationFn: async ({ id, platform }: { id: string; platform?: "linkedin" | "x" }) => {
+    mutationFn: async ({
+      id,
+      platform,
+    }: {
+      id: string;
+      platform?: "linkedin" | "x";
+    }) => {
       const response = await fetch("/api/dashboard/unschedulePost", {
         method: "POST",
         body: JSON.stringify({ id, platform }),
@@ -95,21 +122,48 @@ export function CalendarView() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/dashboard/drafts/${id}`, {
+    mutationFn: async ({
+      id,
+      platform,
+    }: {
+      id: string;
+      platform?: "linkedin" | "x";
+    }) => {
+      const url = platform
+        ? `/api/dashboard/drafts/${id}?platform=${platform}`
+        : `/api/dashboard/drafts/${id}`;
+      const response = await fetch(url, {
         method: "DELETE",
       });
-      if (!response.ok) throw new Error("Failed to delete");
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || "Failed to delete");
+      }
       return response.json();
     },
-    onSuccess: () => {
-      toast.success("Post deleted.");
+    onSuccess: (data) => {
+      if (data.deletedEntirePost) {
+        toast.success("Post deleted.");
+      } else {
+        toast.success("Platform content deleted.");
+      }
       queryClient.invalidateQueries({ queryKey: ["scheduled-posts-calendar"] });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete");
     },
   });
 
   const rescheduleMutation = useMutation({
-    mutationFn: async ({ id, newDate, platform }: { id: string; newDate: string; platform: "linkedin" | "x" }) => {
+    mutationFn: async ({
+      id,
+      newDate,
+      platform,
+    }: {
+      id: string;
+      newDate: string;
+      platform: "linkedin" | "x";
+    }) => {
       const post = scheduledPosts?.find((p) => p.id === id);
       if (!post) throw new Error("Post not found");
 
@@ -155,7 +209,7 @@ export function CalendarView() {
     if (type === "unschedule") {
       unscheduleMutation.mutate({ id: postId, platform });
     } else if (type === "delete") {
-      deleteMutation.mutate(postId);
+      deleteMutation.mutate({ id: postId, platform });
     }
     handleCloseConfirmation();
   };
@@ -170,7 +224,9 @@ export function CalendarView() {
           id: `${post.id}-linkedin`,
           title: post.title,
           start: post.linkedinScheduledAt,
-          end: new Date(new Date(post.linkedinScheduledAt).getTime() + 30 * 60000).toISOString(),
+          end: new Date(
+            new Date(post.linkedinScheduledAt).getTime() + 30 * 60000,
+          ).toISOString(),
           classNames: ["scheduled-post-event", "platform-linkedin"],
           extendedProps: {
             status: post.linkedinStatus,
@@ -188,7 +244,9 @@ export function CalendarView() {
           id: `${post.id}-x`,
           title: post.title,
           start: post.xScheduledAt,
-          end: new Date(new Date(post.xScheduledAt).getTime() + 30 * 60000).toISOString(),
+          end: new Date(
+            new Date(post.xScheduledAt).getTime() + 30 * 60000,
+          ).toISOString(),
           classNames: ["scheduled-post-event", "platform-x"],
           extendedProps: {
             status: post.xStatus,
@@ -205,13 +263,15 @@ export function CalendarView() {
   }, [scheduledPosts]);
 
   const handleEventClick = (info: EventClickArg) => {
-    // We now let the event content handle its own actions, 
+    // We now let the event content handle its own actions,
     // but we keep a fallback redirect if the click isn't on a button
     if ((info.jsEvent.target as HTMLElement).closest(".post-action-btn")) {
       return;
     }
     const platform = info.event.extendedProps.platform;
-    router.push(`/dashboard/drafts/${info.event.extendedProps.postId}?platform=${platform}&from=calendar`);
+    router.push(
+      `/dashboard/drafts/${info.event.extendedProps.postId}?platform=${platform}&from=calendar`,
+    );
   };
 
   const handleDateClick = (info: DateClickArg) => {
@@ -224,90 +284,122 @@ export function CalendarView() {
     const postId = info.event.extendedProps.postId;
     const platform = info.event.extendedProps.platform;
     const newDate = info.event.start?.toISOString() || info.event.startStr;
-    
+
     rescheduleMutation.mutate({ id: postId, newDate, platform });
   };
 
-  const renderEventContent = useCallback((eventInfo: EventContentArg) => {
-    const postId = eventInfo.event.extendedProps.postId;
-    const postTitle = eventInfo.event.title;
-    const platform = eventInfo.event.extendedProps.platform as "linkedin" | "x";
-    const eventContent = eventInfo.event.extendedProps.content as { linkedin?: { content?: string }; x?: { posts?: { content?: string }[] } } | null;
-    
-    const content = platform === "linkedin" 
-      ? eventContent?.linkedin?.content || "" 
-      : eventContent?.x?.posts?.[0]?.content || "";
-    
-    const truncatedContent = content.length > 80 ? content.slice(0, 80) + "..." : content;
+  const renderEventContent = useCallback(
+    (eventInfo: EventContentArg) => {
+      const postId = eventInfo.event.extendedProps.postId;
+      const postTitle = eventInfo.event.title;
+      const platform = eventInfo.event.extendedProps.platform as
+        | "linkedin"
+        | "x";
+      const eventContent = eventInfo.event.extendedProps.content as {
+        linkedin?: { content?: string };
+        x?: { posts?: { content?: string }[] };
+      } | null;
 
-    const PlatformIcon = platform === "linkedin" ? Linkedin : Twitter;
-    const platformColor = platform === "linkedin" ? "text-blue-600 bg-blue-50" : "text-slate-900 bg-slate-50";
+      const content =
+        platform === "linkedin"
+          ? eventContent?.linkedin?.content || ""
+          : eventContent?.x?.posts?.[0]?.content || "";
 
-    return (
-      <div className="scheduled-post-card group flex w-full flex-col gap-1 px-2 py-1.5">
-        <div className="flex w-full items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 overflow-hidden">
-             <div className={`flex size-5 shrink-0 items-center justify-center rounded-md border ${platformColor}`}>
+      const truncatedContent =
+        content.length > 80 ? content.slice(0, 80) + "..." : content;
+
+      const PlatformIcon = platform === "linkedin" ? Linkedin : Twitter;
+      const platformColor =
+        platform === "linkedin"
+          ? "text-blue-600 bg-blue-50"
+          : "text-slate-900 bg-slate-50";
+
+      return (
+        <div className="scheduled-post-card group flex w-full flex-col gap-1 px-2 py-1.5">
+          <div className="flex w-full items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 overflow-hidden">
+              <div
+                className={`flex size-5 shrink-0 items-center justify-center rounded-md border ${platformColor}`}
+              >
                 <PlatformIcon className="size-3" />
-             </div>
-             <span className="scheduled-post-time whitespace-nowrap text-[11px] font-semibold text-primary/80">
-              {eventInfo.timeText}
-            </span>
-          </div>
-          
-          <div className="flex shrink-0 items-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-7 h-7 w-7 p-0 hover:bg-primary/10 text-muted-foreground hover:text-primary focus-visible:ring-2 focus-visible:ring-primary"
-                  title="Actions"
-                  aria-label="Post actions"
-                >
-                  <MoreVertical className="size-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40 shadow-lg">
-                <DropdownMenuItem 
-                  className="cursor-pointer gap-2" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenConfirmation("unschedule", postId, postTitle, platform);
-                  }}
-                >
-                  <RotateCcw className="size-3.5 text-amber-500" />
-                  <span className="text-xs">Unschedule {platform === 'linkedin' ? 'LinkedIn' : 'X'}</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="group cursor-pointer gap-2 text-red-600 focus:bg-red-600 focus:text-white" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenConfirmation("delete", postId, postTitle);
-                  }}
-                >
-                  <Trash2 className="size-3.5 text-red-500 group-hover:text-white focus:text-white" />
-                  <span className="text-xs">Delete Entire Draft</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-        
-        <span className="scheduled-post-title min-w-0 line-clamp-1 text-[13px] font-bold leading-tight text-foreground" title={eventInfo.event.title}>
-          {eventInfo.event.title}
-        </span>
-        
-        {truncatedContent && (
-          <p className="scheduled-post-preview line-clamp-2 text-[11px] leading-snug text-muted-foreground/80">
-            {truncatedContent}
-          </p>
-        )}
-      </div>
-    );
-  }, [handleOpenConfirmation]);
+              </div>
+              <span className="scheduled-post-time whitespace-nowrap text-[11px] font-semibold text-primary/80">
+                {eventInfo.timeText}
+              </span>
+            </div>
 
-return (
+            <div className="flex shrink-0 items-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 h-7 w-7 p-0 hover:bg-primary/10 text-muted-foreground hover:text-primary focus-visible:ring-2 focus-visible:ring-primary"
+                    title="Actions"
+                    aria-label="Post actions"
+                  >
+                    <MoreVertical className="size-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40 shadow-lg">
+                  <DropdownMenuItem
+                    className="cursor-pointer gap-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenConfirmation(
+                        "unschedule",
+                        postId,
+                        postTitle,
+                        platform,
+                      );
+                    }}
+                  >
+                    <RotateCcw className="size-3.5 text-amber-500" />
+                    <span className="text-xs">
+                      Unschedule {platform === "linkedin" ? "LinkedIn" : "X"}
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="group cursor-pointer gap-2 text-red-600 focus:bg-red-600 focus:text-white"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenConfirmation(
+                        "delete",
+                        postId,
+                        postTitle,
+                        platform,
+                      );
+                    }}
+                  >
+                    <Trash2 className="size-3.5 text-red-500 group-hover:text-white focus:text-white" />
+                    <span className="text-xs">
+                      Delete {platform === "linkedin" ? "LinkedIn" : "X"}
+                    </span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          <span
+            className="scheduled-post-title min-w-0 line-clamp-1 text-[13px] font-bold leading-tight text-foreground"
+            title={eventInfo.event.title}
+          >
+            {eventInfo.event.title}
+          </span>
+
+          {truncatedContent && (
+            <p className="scheduled-post-preview line-clamp-2 text-[11px] leading-snug text-muted-foreground/80">
+              {truncatedContent}
+            </p>
+          )}
+        </div>
+      );
+    },
+    [handleOpenConfirmation],
+  );
+
+  return (
     <div className="h-full p-4 md:p-6 bg-card">
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -343,20 +435,28 @@ return (
           }
         }}
       />
-    <ConfirmationModal
-      isOpen={confirmationState.isOpen}
-      onClose={handleCloseConfirmation}
-      onConfirm={handleConfirmAction}
-      title={confirmationState.type === "delete" ? "Delete Post" : "Unschedule Post"}
-      description={
-        confirmationState.type === "delete"
-          ? "Are you sure you want to delete this post? This action cannot be undone."
-          : "Are you sure you want to move this post back to drafts? It will be unscheduled."
-      }
-      postTitle={confirmationState.postTitle ?? undefined}
-      confirmText={confirmationState.type === "delete" ? "Delete" : "Unschedule"}
-      variant={confirmationState.type === "delete" ? "destructive" : "default"}
-    />
-  </div>
+      <ConfirmationModal
+        isOpen={confirmationState.isOpen}
+        onClose={handleCloseConfirmation}
+        onConfirm={handleConfirmAction}
+        title={
+          confirmationState.type === "delete"
+            ? `Delete ${confirmationState.platform === "linkedin" ? "LinkedIn" : "X"} Post`
+            : "Unschedule Post"
+        }
+        description={
+          confirmationState.type === "delete"
+            ? `Are you sure you want to delete the ${confirmationState.platform === "linkedin" ? "LinkedIn" : "X"} content? This action cannot be undone.`
+            : "Are you sure you want to move this post back to drafts? It will be unscheduled."
+        }
+        postTitle={confirmationState.postTitle ?? undefined}
+        confirmText={
+          confirmationState.type === "delete" ? "Delete" : "Unschedule"
+        }
+        variant={
+          confirmationState.type === "delete" ? "destructive" : "default"
+        }
+      />
+    </div>
   );
 }

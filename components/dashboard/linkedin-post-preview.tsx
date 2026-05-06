@@ -20,11 +20,12 @@ export function LinkedInPostPreview({
   post,
   onChange,
 }: LinkedInPostPreviewProps) {
-  const wordCount = countWords(post.linkedin.content);
+  const linkedInContent = post.linkedin.content || "";
+  const wordCount = countWords(linkedInContent);
 
   const handleCopy = async () => {
     try {
-      await copyLinkedInContent(post.linkedin.content);
+      await copyLinkedInContent(linkedInContent);
       toast.success("LinkedIn post copied.");
     } catch (error) {
       console.error("Failed to copy LinkedIn post", error);
@@ -53,7 +54,7 @@ export function LinkedInPostPreview({
 
       <div className="flex flex-1 flex-col rounded-xl border bg-muted/40 p-4">
         <PlainTextPostEditor
-          value={post.linkedin.content}
+          value={linkedInContent}
           onChange={onChange}
           onCopy={handleCopy}
           copyLabel="Copy for LinkedIn"

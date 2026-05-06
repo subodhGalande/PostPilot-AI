@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { requireAuthJose } from "@/lib/auth/requireAuthJose";
-import { parseStoredDraftContent } from "@/lib/drafts";
+import { reconstructPostContent } from "@/lib/drafts";
 import prisma from "@/lib/prisma";
 
 export async function GET(
@@ -28,12 +28,18 @@ export async function GET(
     select: {
       id: true,
       title: true,
+      topic: true,
+      baseIdea: true,
+      model: true,
+      linkedinContent: true,
+      xContent: true,
+      linkedinStatus: true,
+      linkedinScheduledAt: true,
+      xStatus: true,
+      xScheduledAt: true,
       createdAt: true,
       updatedAt: true,
       clientDraftKey: true,
-      content: true,
-      linkedinStatus: true,
-      xStatus: true,
     },
   });
 
@@ -43,14 +49,12 @@ export async function GET(
 
   return NextResponse.json({
     ...draft,
-    linkedinStatus: draft.linkedinStatus,
-    xStatus: draft.xStatus,
-    content: parseStoredDraftContent(draft.content),
+    content: reconstructPostContent(draft),
   });
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const authUser = await requireAuthJose();
@@ -60,30 +64,71 @@ export async function DELETE(
   }
 
   const { id } = await params;
+  const { searchParams } = new URL(req.url);
+  const platform = searchParams.get("platform") as "linkedin" | "x" | null;
 
-  const draft = await prisma.post.findFirst({
+  const post = await prisma.post.findFirst({
     where: {
       id,
       userId: authUser.id,
-      OR: [
-        { linkedinStatus: { in: ["DRAFT", "SCHEDULED"] } },
-        { xStatus: { in: ["DRAFT", "SCHEDULED"] } },
-      ],
     },
     select: {
       id: true,
+      linkedinContent: true,
+      linkedinStatus: true,
+      xContent: true,
+      xStatus: true,
     },
   });
 
-  if (!draft) {
+  if (!post) {
     return NextResponse.json({ error: "Draft not found" }, { status: 404 });
   }
 
-  await prisma.post.delete({
-    where: {
-      id,
-    },
-  });
+  if (platform) {
+    const isLinkedIn = platform === "linkedin";
+    const otherPlatformContent = isLinkedIn
+      ? post.xContent
+      : post.linkedinContent;
+    const otherPlatformStatus = isLinkedIn ? post.xStatus : post.linkedinStatus;
 
-  return NextResponse.json({ success: true });
+    const hasOtherPlatformContent = otherPlatformContent !== null;
+    const isOtherPlatformActive =
+      otherPlatformStatus &&
+      ["DRAFT", "SCHEDULED", "PUBLISHED"].includes(otherPlatformStatus);
+    const isOtherPlatformDeleted =
+      otherPlatformStatus === "DELETED" && otherPlatformContent === null;
+
+    const updateData: Record<string, unknown> = {};
+
+    if (isLinkedIn) {
+      updateData.linkedinContent = null;
+      updateData.linkedinStatus = "DELETED";
+    } else {
+      updateData.xContent = null;
+      updateData.xStatus = "DELETED";
+    }
+
+    if (hasOtherPlatformContent || isOtherPlatformActive) {
+      await prisma.post.update({
+        where: { id },
+        data: updateData,
+      });
+      return NextResponse.json({ success: true, deletedEntirePost: false });
+    } else if (isOtherPlatformDeleted) {
+      await prisma.post.delete({ where: { id } });
+      return NextResponse.json({ success: true, deletedEntirePost: true });
+    } else {
+      await prisma.post.update({
+        where: { id },
+        data: updateData,
+      });
+      return NextResponse.json({ success: true, deletedEntirePost: false });
+    }
+  } else {
+    await prisma.post.delete({
+      where: { id },
+    });
+    return NextResponse.json({ success: true });
+  }
 }
