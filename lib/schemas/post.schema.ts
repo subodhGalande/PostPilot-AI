@@ -18,6 +18,7 @@ export const saveDraftSchema = z.object({
   post: generatedPostItemSchema,
   model: z.string().min(1, "Model is required"),
   updatedAt: z.string().datetime().optional(),
+  platform: z.enum(["linkedin", "x"]).optional(),
 });
 
 export type SaveDraftPayload = z.infer<typeof saveDraftSchema>;

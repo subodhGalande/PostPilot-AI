@@ -20,6 +20,10 @@ export type SaveDraftResponse = {
   updatedAt: string;
   platform?: "linkedin" | "x";
   content?: any;
+  linkedinStatus?: string;
+  linkedinScheduledAt?: string | Date | null;
+  xStatus?: string;
+  xScheduledAt?: string | Date | null;
 };
 
 type SaveDraftPayload = {
@@ -28,6 +32,7 @@ type SaveDraftPayload = {
   model: string;
   id?: string;
   updatedAt?: string;
+  platform?: "linkedin" | "x";
 };
 
 export type SchedulePostPayload = SaveDraftPayload & {
@@ -61,16 +66,18 @@ export function reconstructPostContent(post: any): StoredDraftContent {
     linkedin: {
       ...linkedin,
       status: post.linkedinStatus,
-      scheduledAt: post.linkedinScheduledAt instanceof Date 
-        ? post.linkedinScheduledAt.toISOString() 
-        : (post.linkedinScheduledAt || null),
+      scheduledAt:
+        post.linkedinScheduledAt instanceof Date
+          ? post.linkedinScheduledAt.toISOString()
+          : post.linkedinScheduledAt || null,
     },
     x: {
       ...x,
       status: post.xStatus,
-      scheduledAt: post.xScheduledAt instanceof Date 
-        ? post.xScheduledAt.toISOString() 
-        : (post.xScheduledAt || null),
+      scheduledAt:
+        post.xScheduledAt instanceof Date
+          ? post.xScheduledAt.toISOString()
+          : post.xScheduledAt || null,
     },
   };
 

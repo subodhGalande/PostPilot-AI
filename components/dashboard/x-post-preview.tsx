@@ -17,6 +17,7 @@ interface XPostPreviewProps {
   targetAudience?: string;
   post: GeneratedPostItem;
   onPostChange: (postId: string, content: string) => void;
+  readOnly?: boolean;
 }
 
 export function XPostPreview({
@@ -24,6 +25,7 @@ export function XPostPreview({
   targetAudience,
   post,
   onPostChange,
+  readOnly = false,
 }: XPostPreviewProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 p-6 fade-in">
@@ -115,6 +117,7 @@ export function XPostPreview({
                   minEditorHeight={140}
                   maxEditorHeight={220}
                   textareaClassName="min-h-0"
+                  readOnly={readOnly}
                 />
 
                 <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border bg-background px-3 py-2 text-xs">

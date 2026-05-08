@@ -175,7 +175,17 @@ export function SchedulePostModal({
       return schedulePost(payload);
     },
     onSuccess: (data) => {
-      toast.success(`${platform ? (platform === 'linkedin' ? 'LinkedIn' : 'X') : 'Post'} scheduled successfully!`);
+      const platformLabel =
+        platform === "linkedin" ? "LinkedIn" : platform === "x" ? "X" : "Post";
+
+      toast.success(`${platformLabel} scheduled successfully!`, {
+        action: {
+          label: "View Calendar",
+          onClick: () => {
+            window.location.href = "/dashboard/calendar";
+          },
+        },
+      });
       setOpen(false);
       queryClient.invalidateQueries({ queryKey: ["scheduled-posts-calendar"] });
       onSuccess?.({ ...data, platform });
@@ -192,7 +202,14 @@ export function SchedulePostModal({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="gap-3 sm:max-w-[410px]">
         <DialogHeader>
-          <DialogTitle>Schedule {platform === 'linkedin' ? 'LinkedIn' : platform === 'x' ? 'X' : 'Post'}</DialogTitle>
+          <DialogTitle>
+            Schedule{" "}
+            {platform === "linkedin"
+              ? "LinkedIn"
+              : platform === "x"
+                ? "X"
+                : "Post"}
+          </DialogTitle>
           <DialogDescription>Pick a publish time.</DialogDescription>
         </DialogHeader>
 

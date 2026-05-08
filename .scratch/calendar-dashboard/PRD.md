@@ -1,6 +1,6 @@
 # PRD: Content Calendar Dashboard
 
-Status: needs-triage
+Status: ready-for-human (implemented)
 
 ## Problem Statement
 

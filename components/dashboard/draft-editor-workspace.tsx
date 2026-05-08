@@ -7,7 +7,11 @@ import { CheckCircle2, Edit3, Loader2, Trash2, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { PostPreview } from "@/components/dashboard/post-preview";
-import { saveDraft, parseStoredDraftContent, type SaveDraftResponse } from "@/lib/drafts";
+import {
+  saveDraft,
+  parseStoredDraftContent,
+  type SaveDraftResponse,
+} from "@/lib/drafts";
 import type { GeneratedPostItem, GeneratedPostPack } from "@/lib/social-posts";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +34,7 @@ interface DraftEditorWorkspaceProps {
   xStatus?: string;
   postStyle?: string;
   targetAudience?: string;
+  scheduledManagementPlatform?: "linkedin" | "x";
 }
 
 export function DraftEditorWorkspace({
@@ -44,23 +49,34 @@ export function DraftEditorWorkspace({
   xStatus,
   postStyle,
   targetAudience,
+  scheduledManagementPlatform,
 }: DraftEditorWorkspaceProps) {
   const router = useRouter();
+  const isScheduledManagementView = Boolean(scheduledManagementPlatform);
   const [generatedPostPack, setGeneratedPostPack] =
     useState<GeneratedPostPack>(initialPostPack);
   const [draftUpdatedAt, setDraftUpdatedAt] = useState(initialDraftUpdatedAt);
+  const [currentLinkedinStatus, setCurrentLinkedinStatus] =
+    useState(linkedinStatus);
+  const [currentXStatus, setCurrentXStatus] = useState(xStatus);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [status, setStatus] = useState<"DRAFT" | "SCHEDULED">(initialStatus as "DRAFT" | "SCHEDULED");
+  const [status, setStatus] = useState<"DRAFT" | "SCHEDULED">(
+    initialStatus as "DRAFT" | "SCHEDULED",
+  );
   const [confirmationState, setConfirmationState] = useState<{
     isOpen: boolean;
     type: "unschedule" | "delete" | null;
+    platform?: "linkedin" | "x";
   }>({
     isOpen: false,
     type: null,
   });
 
-  const handleOpenConfirmation = (type: "unschedule" | "delete") => {
-    setConfirmationState({ isOpen: true, type });
+  const handleOpenConfirmation = (
+    type: "unschedule" | "delete",
+    platform?: "linkedin" | "x",
+  ) => {
+    setConfirmationState({ isOpen: true, type, platform });
   };
 
   const handleCloseConfirmation = () => {
@@ -107,7 +123,9 @@ export function DraftEditorWorkspace({
 
   const saveDraftMutation = useMutation({
     mutationKey: ["draftDetailSave", initialDraftId],
-    mutationFn: async (): Promise<SaveDraftResponse> => {
+    mutationFn: async (
+      platform: "linkedin" | "x",
+    ): Promise<SaveDraftResponse> => {
       if (!draftUpdatedAt) {
         throw new Error(
           "Missing draft version. Refresh the draft before saving again.",
@@ -120,20 +138,25 @@ export function DraftEditorWorkspace({
         clientDraftKey: initialClientDraftKey,
         post: generatedPostPack.posts[0],
         model: generatedPostPack.model,
+        platform,
       });
     },
     onSuccess: (draft: any) => {
       setDraftUpdatedAt(draft.updatedAt);
-      setStatus(draft.status);
-      
+      if (draft.status === "DRAFT" || draft.status === "SCHEDULED") {
+        setStatus(draft.status);
+      }
+      setCurrentLinkedinStatus(draft.linkedinStatus ?? currentLinkedinStatus);
+      setCurrentXStatus(draft.xStatus ?? currentXStatus);
+
       if (draft.content) {
         const updatedContent = parseStoredDraftContent(draft.content);
         setGeneratedPostPack({
           posts: [updatedContent],
-          model: updatedContent.model
+          model: updatedContent.model,
         });
       }
-      
+
       setHasUnsavedChanges(false);
       toast.success("Draft updated.");
     },
@@ -146,10 +169,10 @@ export function DraftEditorWorkspace({
   });
 
   const unscheduleMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (platform?: "linkedin" | "x") => {
       const response = await fetch("/api/dashboard/unschedulePost", {
         method: "POST",
-        body: JSON.stringify({ id: initialDraftId }),
+        body: JSON.stringify({ id: initialDraftId, platform }),
       });
       if (!response.ok) {
         const errorData = await response.json();
@@ -157,18 +180,30 @@ export function DraftEditorWorkspace({
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_data, platform) => {
       setStatus("DRAFT");
       toast.success("Post moved back to drafts.");
+
+      if (platform) {
+        router.replace(
+          `/dashboard/drafts/${initialDraftId}?platform=${platform}`,
+        );
+        router.refresh();
+      }
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Failed to unschedule");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to unschedule",
+      );
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`/api/dashboard/drafts/${initialDraftId}`, {
+    mutationFn: async (platform?: "linkedin" | "x") => {
+      const url = platform
+        ? `/api/dashboard/drafts/${initialDraftId}?platform=${platform}`
+        : `/api/dashboard/drafts/${initialDraftId}`;
+      const response = await fetch(url, {
         method: "DELETE",
       });
       if (!response.ok) {
@@ -179,18 +214,24 @@ export function DraftEditorWorkspace({
     },
     onSuccess: () => {
       toast.success("Post deleted.");
-      router.push("/dashboard/drafts");
+      router.push(
+        isScheduledManagementView ? "/dashboard/calendar" : "/dashboard/drafts",
+      );
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Failed to delete post");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete post",
+      );
     },
   });
 
   const handleConfirmAction = () => {
+    const platform = confirmationState.platform ?? scheduledManagementPlatform;
+
     if (confirmationState.type === "unschedule") {
-      unscheduleMutation.mutate();
+      unscheduleMutation.mutate(platform);
     } else if (confirmationState.type === "delete") {
-      deleteMutation.mutate();
+      deleteMutation.mutate(platform);
     }
   };
 
@@ -248,7 +289,49 @@ export function DraftEditorWorkspace({
         </div>
 
         <div className="flex items-center gap-2">
-          {status === "SCHEDULED" && (
+          {isScheduledManagementView ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 px-2">
+                  Post Actions
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() =>
+                    handleOpenConfirmation(
+                      "unschedule",
+                      scheduledManagementPlatform,
+                    )
+                  }
+                  disabled={unscheduleMutation.isPending}
+                >
+                  <RotateCcw className="mr-2 size-4" />
+                  Unschedule{" "}
+                  {scheduledManagementPlatform === "linkedin"
+                    ? "LinkedIn"
+                    : "X"}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                  onClick={() =>
+                    handleOpenConfirmation(
+                      "delete",
+                      scheduledManagementPlatform,
+                    )
+                  }
+                  disabled={deleteMutation.isPending}
+                >
+                  <Trash2 className="mr-2 size-4" />
+                  Delete{" "}
+                  {scheduledManagementPlatform === "linkedin"
+                    ? "LinkedIn"
+                    : "X"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : status === "SCHEDULED" ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 px-2">
@@ -274,57 +357,110 @@ export function DraftEditorWorkspace({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
+          ) : null}
         </div>
       </div>
 
-<PostPreview
-          className="h-full w-full"
-          postStyle={postStyle}
-          targetAudience={targetAudience}
-          generatedPostPack={generatedPostPack}
-          onLinkedInChange={handleLinkedInChange}
-          onXPostChange={handleXPostChange}
-          isGenerated
-          isSavingDraft={saveDraftMutation.isPending}
-          id={initialDraftId}
-          updatedAt={draftUpdatedAt}
-          clientDraftKey={initialClientDraftKey}
-          mode="draft"
-          status={status}
-          initialPlatform={initialPlatform}
-          linkedinStatus={linkedinStatus}
-          xStatus={xStatus}
-          onSaveDraft={() => saveDraftMutation.mutate()}
-         onScheduleSuccess={(data: any) => {
-           setDraftUpdatedAt(data.updatedAt);
-           setStatus(data.status);
-           
-           if (data.content) {
-             const updatedContent = parseStoredDraftContent(data.content);
-             setGeneratedPostPack({
-               posts: [updatedContent],
-               model: updatedContent.model
-             });
-           }
-           
-           setHasUnsavedChanges(false);
-         }}
-       />
+      <PostPreview
+        className="h-full w-full"
+        postStyle={postStyle}
+        targetAudience={targetAudience}
+        generatedPostPack={generatedPostPack}
+        onLinkedInChange={handleLinkedInChange}
+        onXPostChange={handleXPostChange}
+        isGenerated
+        isSavingDraft={saveDraftMutation.isPending}
+        id={initialDraftId}
+        updatedAt={draftUpdatedAt}
+        clientDraftKey={initialClientDraftKey}
+        mode="draft"
+        status={status}
+        initialPlatform={initialPlatform}
+        linkedinStatus={currentLinkedinStatus}
+        xStatus={currentXStatus}
+        readOnly={isScheduledManagementView}
+        onSaveDraft={(platform) => saveDraftMutation.mutate(platform)}
+        onScheduleSuccess={(data) => {
+          setDraftUpdatedAt(data.updatedAt);
+          const nextLinkedinStatus =
+            data.linkedinStatus ?? currentLinkedinStatus;
+          const nextXStatus = data.xStatus ?? currentXStatus;
+
+          if (data.status === "DRAFT" || data.status === "SCHEDULED") {
+            setStatus(data.status);
+          }
+          setCurrentLinkedinStatus(nextLinkedinStatus);
+          setCurrentXStatus(nextXStatus);
+
+          if (nextLinkedinStatus !== "DRAFT" && nextXStatus !== "DRAFT") {
+            setHasUnsavedChanges(false);
+            router.push("/dashboard/calendar");
+            return;
+          }
+
+          setGeneratedPostPack((currentPack) => {
+            const currentPost = currentPack.posts[0];
+            if (!currentPost || !data.platform) return currentPack;
+
+            const scheduledAt =
+              data.platform === "linkedin"
+                ? data.linkedinScheduledAt
+                : data.xScheduledAt;
+
+            const updatedPost =
+              data.platform === "linkedin"
+                ? {
+                    ...currentPost,
+                    linkedin: {
+                      ...currentPost.linkedin,
+                      status: "SCHEDULED" as const,
+                      scheduledAt: scheduledAt
+                        ? new Date(scheduledAt).toISOString()
+                        : null,
+                    },
+                  }
+                : {
+                    ...currentPost,
+                    x: {
+                      ...currentPost.x,
+                      status: "SCHEDULED" as const,
+                      scheduledAt: scheduledAt
+                        ? new Date(scheduledAt).toISOString()
+                        : null,
+                    },
+                  };
+
+            return {
+              ...currentPack,
+              posts: [updatedPost, ...currentPack.posts.slice(1)],
+            };
+          });
+
+          setHasUnsavedChanges(false);
+        }}
+      />
 
       <ConfirmationModal
         isOpen={confirmationState.isOpen}
         onClose={handleCloseConfirmation}
         onConfirm={handleConfirmAction}
-        title={confirmationState.type === "delete" ? "Delete Post" : "Unschedule Post"}
+        title={
+          confirmationState.type === "delete"
+            ? "Delete Post"
+            : "Unschedule Post"
+        }
         description={
           confirmationState.type === "delete"
             ? "Are you sure you want to delete this post? This action cannot be undone."
             : "Are you sure you want to move this post back to drafts? It will be unscheduled."
         }
         postTitle={generatedPostPack.posts[0]?.baseIdea}
-        confirmText={confirmationState.type === "delete" ? "Delete" : "Unschedule"}
-        variant={confirmationState.type === "delete" ? "destructive" : "default"}
+        confirmText={
+          confirmationState.type === "delete" ? "Delete" : "Unschedule"
+        }
+        variant={
+          confirmationState.type === "delete" ? "destructive" : "default"
+        }
       />
     </div>
   );

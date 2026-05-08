@@ -3,7 +3,6 @@ import { ChevronRight } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 
 import { DraftEditorWorkspace } from "@/components/dashboard/draft-editor-workspace";
-import { Button } from "@/components/ui/button";
 import { requireAuthJose } from "@/lib/auth/requireAuthJose";
 import {
   createClientDraftKey,
@@ -61,14 +60,15 @@ export default async function DraftDetailPage({
 
   const parsedContent = reconstructPostContent(draft);
 
-  const breadcrumbHref = from === "calendar" ? "/dashboard/calendar" : "/dashboard/drafts";
+  const breadcrumbHref =
+    from === "calendar" ? "/dashboard/calendar" : "/dashboard/drafts";
   const breadcrumbLabel = from === "calendar" ? "Calendar" : "Drafts";
 
   // Determine initial platform based on draft status
   // If URL has platform param, use it; otherwise auto-select draft platform
   const linkedinIsDraft = draft.linkedinStatus === "DRAFT";
   const xIsDraft = draft.xStatus === "DRAFT";
-  
+
   let initialPlatform: "linkedin" | "x" | undefined;
   if (platform === "linkedin" || platform === "x") {
     initialPlatform = platform as "linkedin" | "x";
@@ -77,6 +77,13 @@ export default async function DraftDetailPage({
   } else if (xIsDraft) {
     initialPlatform = "x";
   }
+
+  const scheduledManagementPlatform =
+    from === "calendar" &&
+    ((platform === "linkedin" && draft.linkedinStatus === "SCHEDULED") ||
+      (platform === "x" && draft.xStatus === "SCHEDULED"))
+      ? (platform as "linkedin" | "x")
+      : undefined;
 
   return (
     <div className="flex flex-1 flex-col gap-4 bg-slate-50/50 p-4 dark:bg-transparent md:p-6">
@@ -100,8 +107,10 @@ export default async function DraftDetailPage({
         initialClientDraftKey={draft.clientDraftKey ?? createClientDraftKey()}
         initialPostPack={mapStoredDraftToGeneratedPostPack(parsedContent)}
         initialPlatform={initialPlatform}
+        initialStatus={scheduledManagementPlatform ? "SCHEDULED" : "DRAFT"}
         linkedinStatus={draft.linkedinStatus}
         xStatus={draft.xStatus}
+        scheduledManagementPlatform={scheduledManagementPlatform}
       />
     </div>
   );

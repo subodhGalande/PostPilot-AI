@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { requireAuthJose } from "@/lib/auth/requireAuthJose";
 import prisma from "@/lib/prisma";
-import { generatedPostItemSchema } from "@/lib/social-posts";
 
 import { saveDraftSchema } from "@/lib/schemas/post.schema";
 
@@ -16,27 +15,41 @@ function getErrorMessage(error: unknown) {
 }
 
 function buildDraftData(input: z.infer<typeof saveDraftSchema>) {
-  const { post, model, clientDraftKey } = input;
+  const { post, model, clientDraftKey, platform } = input;
 
-  return {
+  const draftData: {
+    title: string;
+    topic: string;
+    baseIdea: string;
+    model: string;
+    clientDraftKey: string;
+    linkedinContent?: { content?: string };
+    linkedinStatus?: "DRAFT";
+    linkedinScheduledAt?: null;
+    xContent?: { mode?: "single" | "thread"; posts: typeof post.x.posts };
+    xStatus?: "DRAFT";
+    xScheduledAt?: null;
+  } = {
     title: post.baseIdea.trim(),
     topic: post.topic,
     baseIdea: post.baseIdea,
     model: model,
     clientDraftKey,
-
-    // Platform Content (stripped of metadata)
-    linkedinContent: { content: post.linkedin.content },
-    xContent: { mode: post.x.mode, posts: post.x.posts },
-
-    // Single Source of Truth for Status
-    linkedinStatus: (post.linkedin.status || "DRAFT") as any,
-    linkedinScheduledAt: post.linkedin.scheduledAt
-      ? new Date(post.linkedin.scheduledAt)
-      : null,
-    xStatus: (post.x.status || "DRAFT") as any,
-    xScheduledAt: post.x.scheduledAt ? new Date(post.x.scheduledAt) : null,
   };
+
+  if (!platform || platform === "linkedin") {
+    draftData.linkedinContent = { content: post.linkedin.content };
+    draftData.linkedinStatus = "DRAFT";
+    draftData.linkedinScheduledAt = null;
+  }
+
+  if (!platform || platform === "x") {
+    draftData.xContent = { mode: post.x.mode, posts: post.x.posts };
+    draftData.xStatus = "DRAFT";
+    draftData.xScheduledAt = null;
+  }
+
+  return draftData;
 }
 
 export async function POST(req: Request) {

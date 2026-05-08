@@ -35,6 +35,7 @@ interface PlainTextPostEditorProps {
   placeholder?: string;
   className?: string;
   textareaClassName?: string;
+  readOnly?: boolean;
 }
 
 interface ToolbarButtonProps {
@@ -94,6 +95,7 @@ export function PlainTextPostEditor({
   placeholder,
   className,
   textareaClassName,
+  readOnly = false,
 }: PlainTextPostEditorProps) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = React.useState(false);
@@ -163,6 +165,8 @@ export function PlainTextPostEditor({
 
   const insertTextAtSelection = React.useCallback(
     (text: string) => {
+      if (readOnly) return;
+
       const textarea = textareaRef.current;
       if (!textarea) {
         return;
@@ -174,10 +178,12 @@ export function PlainTextPostEditor({
 
       updateValue(nextValue, cursorPosition, cursorPosition, scrollTop);
     },
-    [updateValue, value],
+    [readOnly, updateValue, value],
   );
 
   const insertBlankLine = React.useCallback(() => {
+    if (readOnly) return;
+
     const textarea = textareaRef.current;
     if (!textarea) {
       return;
@@ -190,7 +196,7 @@ export function PlainTextPostEditor({
     const cursorPosition = start + 2;
 
     updateValue(nextValue, cursorPosition, cursorPosition, scrollTop);
-  }, [updateValue, value]);
+  }, [readOnly, updateValue, value]);
 
   const insertEmoji = React.useCallback(
     (emoji: string) => {
@@ -280,6 +286,10 @@ export function PlainTextPostEditor({
 
   const handleKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (readOnly) {
+        return;
+      }
+
       if (event.key !== "Enter" || event.shiftKey) {
         return;
       }
@@ -354,7 +364,7 @@ export function PlainTextPostEditor({
         );
       }
     },
-    [updateValue, value],
+    [readOnly, updateValue, value],
   );
 
   return (
@@ -364,57 +374,66 @@ export function PlainTextPostEditor({
         className,
       )}
     >
-      <div className="flex items-center gap-1 border-b bg-muted/40 px-2 py-2">
-        <ToolbarButton
-          icon={<List />}
-          label="Bullet list"
-          onClick={insertBulletList}
-        />
-        <ToolbarButton
-          icon={<ListOrdered />}
-          label="Numbered list"
-          onClick={insertNumberedList}
-        />
-        <ToolbarButton
-          icon={<BetweenHorizontalStart />}
-          label="Blank line"
-          onClick={insertBlankLine}
-        />
-        <Popover open={isEmojiPickerOpen} onOpenChange={setIsEmojiPickerOpen}>
-          <PopoverTrigger asChild>
-            <ToolbarButton
-              icon={<SmilePlus />}
-              label="Insert emoji"
-              onMouseDown={syncSelectionState}
-            />
-          </PopoverTrigger>
-          <PopoverContent
-            align="start"
-            sideOffset={8}
-            className="w-fit border p-0 shadow-lg"
-          >
-            <EmojiPicker
-              className="h-[360px]"
-              onEmojiSelect={({ emoji }) => insertEmoji(emoji)}
-            >
-              <EmojiPickerSearch />
-              <EmojiPickerContent />
-              <EmojiPickerFooter />
-            </EmojiPicker>
-          </PopoverContent>
-        </Popover>
-        <div className="mx-1 h-5 w-px bg-border" />
-        {onCopy ? (
-          <>
-            <div className="ml-auto h-5 w-px bg-border" />
-            <ToolbarButton
-              icon={<Copy />}
-              label={copyLabel}
-              onClick={onCopy}
-            />
-          </>
-        ) : null}
-      </div>
+      {!readOnly || onCopy ? (
+        <div className="flex items-center gap-1 border-b bg-muted/40 px-2 py-2">
+          {!readOnly ? (
+            <>
+              <ToolbarButton
+                icon={<List />}
+                label="Bullet list"
+                onClick={insertBulletList}
+              />
+              <ToolbarButton
+                icon={<ListOrdered />}
+                label="Numbered list"
+                onClick={insertNumberedList}
+              />
+              <ToolbarButton
+                icon={<BetweenHorizontalStart />}
+                label="Blank line"
+                onClick={insertBlankLine}
+              />
+              <Popover
+                open={isEmojiPickerOpen}
+                onOpenChange={setIsEmojiPickerOpen}
+              >
+                <PopoverTrigger asChild>
+                  <ToolbarButton
+                    icon={<SmilePlus />}
+                    label="Insert emoji"
+                    onMouseDown={syncSelectionState}
+                  />
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  sideOffset={8}
+                  className="w-fit border p-0 shadow-lg"
+                >
+                  <EmojiPicker
+                    className="h-[360px]"
+                    onEmojiSelect={({ emoji }) => insertEmoji(emoji)}
+                  >
+                    <EmojiPickerSearch />
+                    <EmojiPickerContent />
+                    <EmojiPickerFooter />
+                  </EmojiPicker>
+                </PopoverContent>
+              </Popover>
+              <div className="mx-1 h-5 w-px bg-border" />
+            </>
+          ) : null}
+          {onCopy ? (
+            <>
+              <div className="ml-auto h-5 w-px bg-border" />
+              <ToolbarButton
+                icon={<Copy />}
+                label={copyLabel}
+                onClick={onCopy}
+              />
+            </>
+          ) : null}
+        </div>
+      ) : null}
 
       <Textarea
         ref={textareaRef}
@@ -426,6 +445,7 @@ export function PlainTextPostEditor({
         onSelect={syncSelectionState}
         onScroll={syncSelectionState}
         placeholder={placeholder}
+        readOnly={readOnly}
         style={
           autoResize
             ? {

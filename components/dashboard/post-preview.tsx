@@ -35,10 +35,12 @@ interface PostPreviewProps {
   initialPlatform?: PlatformTab;
   linkedinStatus?: string;
   xStatus?: string;
-  onSaveDraft?: () => void;
+  saveDraftLabel?: string;
+  onSaveDraft?: (platform: PlatformTab) => void;
   onScheduleSuccess?: (data: SaveDraftResponse) => void;
   onReset?: () => void;
   hideStatusBadge?: boolean;
+  readOnly?: boolean;
 }
 
 export function PostPreview({
@@ -59,10 +61,12 @@ export function PostPreview({
   initialPlatform = "linkedin",
   linkedinStatus,
   xStatus,
+  saveDraftLabel,
   onSaveDraft,
   onScheduleSuccess,
   onReset,
   hideStatusBadge = false,
+  readOnly = false,
 }: PostPreviewProps) {
   // Determine default platform based on draft status
   // Explicit initialPlatform from URL (calendar navigation) takes priority
@@ -73,20 +77,16 @@ export function PostPreview({
     return initialPlatform;
   };
 
-  // Check if both platforms are editable (both DRAFT or undefined for generated preview)
-  // If linkedinStatus/xStatus are undefined, show tabs (generated preview case)
-  // If defined and both DRAFT, show tabs (draft editor with both editable)
-  const bothEditable =
-    (!linkedinStatus && !xStatus) ||
-    (linkedinStatus === "DRAFT" && xStatus === "DRAFT");
-  // Check if only one platform is editable (one DRAFT, one SCHEDULED/DELETED)
-  const onlyOneEditable =
-    (linkedinStatus === "DRAFT" && xStatus !== "DRAFT") ||
-    (xStatus === "DRAFT" && linkedinStatus !== "DRAFT");
-
   const [activePlatform, setActivePlatform] = useState<PlatformTab>(
     getDefaultPlatform(),
   );
+
+  // Sync activePlatform with initialPlatform if it changes (e.g. navigation)
+  useEffect(() => {
+    if (initialPlatform) {
+      setActivePlatform(initialPlatform);
+    }
+  }, [initialPlatform]);
   const activePost: GeneratedPostItem | null =
     generatedPostPack?.posts[0] ?? null;
 
@@ -99,10 +99,8 @@ export function PostPreview({
   const bothHaveContent = linkedInHasContent && xHasContent;
 
   // Auto-switch platform if current one becomes scheduled
-  // Skip auto-switch if user explicitly navigated to a specific platform (from calendar)
   useEffect(() => {
     if (!activePost) return;
-    if (initialPlatform) return; // Don't auto-switch when explicitly navigated
 
     const isLinkedInScheduled = activePost.linkedin.status === "SCHEDULED";
     const isXScheduled = activePost.x.status === "SCHEDULED";
@@ -112,7 +110,7 @@ export function PostPreview({
     } else if (activePlatform === "x" && isXScheduled && !isLinkedInScheduled) {
       setActivePlatform("linkedin");
     }
-  }, [activePost, activePlatform, initialPlatform]);
+  }, [activePost, activePlatform]);
 
   // A post is considered "streaming" if we have an active post but no content yet
   const isThinking =
@@ -121,6 +119,15 @@ export function PostPreview({
 
   const title = mode === "draft" ? "Editor" : "Generated Preview";
   const description = mode === "draft" ? "" : "Edit for LinkedIn or X";
+  const activePlatformLabel = activePlatform === "linkedin" ? "LinkedIn" : "X";
+  const saveButtonLabel =
+    mode === "draft"
+      ? `Save ${activePlatformLabel} Draft`
+      : saveDraftLabel
+        ? saveDraftLabel
+        : status === "SCHEDULED"
+          ? "Save Scheduled Post"
+          : "Save as Draft";
 
   return (
     <div
@@ -275,6 +282,7 @@ export function PostPreview({
               targetAudience={targetAudience}
               post={activePost}
               onChange={onLinkedInChange}
+              readOnly={readOnly}
             />
           ) : (
             <XPostPreview
@@ -282,6 +290,7 @@ export function PostPreview({
               targetAudience={targetAudience}
               post={activePost}
               onPostChange={onXPostChange}
+              readOnly={readOnly}
             />
           )}
 
@@ -302,27 +311,25 @@ export function PostPreview({
                 >
                   <Calendar className="mr-2 size-4" />
                   {activePost[activePlatform].status === "SCHEDULED"
-                    ? `Reschedule ${activePlatform === "linkedin" ? "LinkedIn" : "X"}`
-                    : `Schedule ${activePlatform === "linkedin" ? "LinkedIn" : "X"}`}
+                    ? `Reschedule ${activePlatformLabel}`
+                    : `Schedule ${activePlatformLabel}`}
                 </Button>
               </SchedulePostModal>
-              <Button
-                variant="secondary"
-                className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold hover:bg-muted"
-                onClick={onSaveDraft}
-                disabled={isSavingDraft || isGenerating}
-              >
-                {isSavingDraft ? (
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 size-4" />
-                )}
-                {isSavingDraft
-                  ? "Saving..."
-                  : status === "SCHEDULED"
-                    ? "Save Scheduled Post"
-                    : "Save as Draft"}
-              </Button>
+              {!readOnly ? (
+                <Button
+                  variant="secondary"
+                  className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold hover:bg-muted"
+                  onClick={() => onSaveDraft?.(activePlatform)}
+                  disabled={isSavingDraft || isGenerating}
+                >
+                  {isSavingDraft ? (
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 size-4" />
+                  )}
+                  {isSavingDraft ? "Saving..." : saveButtonLabel}
+                </Button>
+              ) : null}
             </div>
           </div>
         </>

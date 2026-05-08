@@ -12,6 +12,7 @@ interface LinkedInPostPreviewProps {
   targetAudience?: string;
   post: GeneratedPostItem;
   onChange: (content: string) => void;
+  readOnly?: boolean;
 }
 
 export function LinkedInPostPreview({
@@ -19,6 +20,7 @@ export function LinkedInPostPreview({
   targetAudience,
   post,
   onChange,
+  readOnly = false,
 }: LinkedInPostPreviewProps) {
   const linkedInContent = post.linkedin.content || "";
   const wordCount = countWords(linkedInContent);
@@ -59,6 +61,7 @@ export function LinkedInPostPreview({
           onCopy={handleCopy}
           copyLabel="Copy for LinkedIn"
           placeholder="Write your LinkedIn post..."
+          readOnly={readOnly}
         />
 
         <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border bg-background px-3 py-2 text-xs">

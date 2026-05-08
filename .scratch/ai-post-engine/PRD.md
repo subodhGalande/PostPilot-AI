@@ -1,6 +1,6 @@
 # PRD: AI Post Engine
 
-Status: needs-triage
+Status: ready-for-human (implemented)
 
 ## Problem Statement
 
