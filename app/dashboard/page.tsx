@@ -10,7 +10,6 @@ import { PostPreview } from "@/components/dashboard/post-preview";
 import {
   createClientDraftKey,
   saveDraft,
-  parseStoredDraftContent,
   type SaveDraftResponse,
 } from "@/lib/drafts";
 import type { GeneratedPostItem, GeneratedPostPack } from "@/lib/social-posts";
@@ -168,7 +167,6 @@ export default function DashboardPage() {
   // Effect to update the preview in real-time as it streams
   useEffect(() => {
     if (object) {
-      // Map partial object to GeneratedPostItem
       const partialPost: GeneratedPostItem = {
         topic: object.topic || topic,
         baseIdea: object.baseIdea || "",
@@ -202,6 +200,8 @@ export default function DashboardPage() {
   const handleGenerate = () => {
     setDraftId(null);
     setDraftUpdatedAt(null);
+    setGeneratedPostPack(null);
+    setIsGenerated(true);
     setClientDraftKey(createClientDraftKey());
     submitGenerate({
       modelName: DEFAULT_MODEL.id,
@@ -272,23 +272,19 @@ export default function DashboardPage() {
         );
       }
 
-      const activePost = generatedPostPack.posts[0];
       return saveDraft({
         ...(draftId && draftUpdatedAt
           ? { id: draftId, updatedAt: draftUpdatedAt }
           : {}),
         clientDraftKey,
-        post: activePost,
+        post: generatedPostPack.posts[0],
         model: generatedPostPack.model,
       });
     },
     onSuccess: (draft) => {
-      const wasUpdating = Boolean(draftId);
-
       setDraftId(draft.id);
       setDraftUpdatedAt(draft.updatedAt);
-
-      toast.success(wasUpdating ? "Draft updated." : "Draft saved.");
+      toast.success(draftId ? "Draft updated." : "Draft saved.");
     },
     onError: (error) => {
       console.error("Failed to save draft:", error);
@@ -342,20 +338,11 @@ export default function DashboardPage() {
           id={draftId || undefined}
           updatedAt={draftUpdatedAt || undefined}
           clientDraftKey={clientDraftKey}
-          saveDraftLabel={draftId ? "Update Draft" : "Save as Draft"}
           onSaveDraft={() => saveDraftMutation.mutate()}
           onScheduleSuccess={(data) => {
             setDraftId(data.id);
             setDraftUpdatedAt(data.updatedAt);
-
-            if (data.content) {
-              const updatedContent = parseStoredDraftContent(data.content);
-
-              setGeneratedPostPack({
-                posts: [updatedContent],
-                model: updatedContent.model,
-              });
-            }
+            toast.success("Post scheduled successfully.");
           }}
           onReset={handleReset}
           hideStatusBadge={true}

@@ -172,7 +172,7 @@ export async function POST(req: Request) {
         },
       });
 
-      return NextResponse.json(updatedPost);
+      return NextResponse.json({ ...updatedPost, platform: parsedBody.data.platform });
     }
 
     // 3. If no post exists, create a new one as SCHEDULED
@@ -199,7 +199,7 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(newPost, { status: 201 });
+    return NextResponse.json({ ...newPost, platform: parsedBody.data.platform }, { status: 201 });
   } catch (error) {
     console.error("schedulePost POST route error", error);
 

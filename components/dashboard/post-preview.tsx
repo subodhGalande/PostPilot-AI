@@ -33,10 +33,8 @@ interface PostPreviewProps {
   updatedAt?: string;
   clientDraftKey?: string;
   initialPlatform?: PlatformTab;
-  linkedinStatus?: string;
-  xStatus?: string;
   saveDraftLabel?: string;
-  onSaveDraft?: (platform: PlatformTab) => void;
+  onSaveDraft?: () => void;
   onScheduleSuccess?: (data: SaveDraftResponse) => void;
   onReset?: () => void;
   hideStatusBadge?: boolean;
@@ -59,8 +57,6 @@ export function PostPreview({
   updatedAt,
   clientDraftKey,
   initialPlatform = "linkedin",
-  linkedinStatus,
-  xStatus,
   saveDraftLabel,
   onSaveDraft,
   onScheduleSuccess,
@@ -68,82 +64,28 @@ export function PostPreview({
   hideStatusBadge = false,
   readOnly = false,
 }: PostPreviewProps) {
-  // Determine default platform based on draft status
-  // Explicit initialPlatform from URL (calendar navigation) takes priority
-  const getDefaultPlatform = (): PlatformTab => {
-    if (initialPlatform) return initialPlatform;
-    if (linkedinStatus === "DRAFT" && xStatus !== "DRAFT") return "linkedin";
-    if (xStatus === "DRAFT" && linkedinStatus !== "DRAFT") return "x";
-    return initialPlatform;
-  };
+  const [activePlatform, setActivePlatform] = useState<PlatformTab>(initialPlatform);
 
-  const [activePlatform, setActivePlatform] = useState<PlatformTab>(
-    getDefaultPlatform(),
-  );
-
-  // Sync activePlatform with initialPlatform if it changes (e.g. navigation)
   useEffect(() => {
     if (initialPlatform) {
       setActivePlatform(initialPlatform);
     }
   }, [initialPlatform]);
-  const activePost: GeneratedPostItem | null =
-    generatedPostPack?.posts[0] ?? null;
 
-  // Check if both platforms have content
-  const linkedInHasContent = !!activePost?.linkedin?.content?.trim();
-  const xHasContent =
-    activePost?.x?.posts &&
-    activePost.x.posts.length > 0 &&
-    activePost.x.posts[0]?.content?.trim();
-  const bothHaveContent = linkedInHasContent && xHasContent;
+  const activePost: GeneratedPostItem | null = generatedPostPack?.posts[0] ?? null;
 
-  // Auto-switch platform if current one becomes scheduled
-  useEffect(() => {
-    if (!activePost) return;
-
-    const isLinkedInScheduled = activePost.linkedin.status === "SCHEDULED";
-    const isXScheduled = activePost.x.status === "SCHEDULED";
-
-    if (activePlatform === "linkedin" && isLinkedInScheduled && !isXScheduled) {
-      setActivePlatform("x");
-    } else if (activePlatform === "x" && isXScheduled && !isLinkedInScheduled) {
-      setActivePlatform("linkedin");
-    }
-  }, [activePost, activePlatform]);
-
-  // A post is considered "streaming" if we have an active post but no content yet
-  const isThinking =
-    isGenerating &&
-    (!activePost || (!activePost.baseIdea && !activePost.linkedin.content));
+  // A post is considered "thinking" only if we are generating AND have no content at all yet
+  const isThinking = isGenerating && (!activePost || (!activePost.linkedin.content && !activePost.x.posts.length));
 
   const title = mode === "draft" ? "Editor" : "Generated Preview";
   const description = mode === "draft" ? "" : "Edit for LinkedIn or X";
   const activePlatformLabel = activePlatform === "linkedin" ? "LinkedIn" : "X";
-  const saveButtonLabel =
-    mode === "draft"
-      ? `Save ${activePlatformLabel} Draft`
-      : saveDraftLabel
-        ? saveDraftLabel
-        : status === "SCHEDULED"
-          ? "Save Scheduled Post"
-          : "Save as Draft";
 
   return (
-    <div
-      className={cn(
-        "flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm",
-        className,
-      )}
-    >
+    <div className={cn("flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm", className)}>
       <div className="flex shrink-0 items-center gap-2 border-b p-4 md:p-6">
         {isGenerated ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="-ml-2 shrink-0 lg:hidden"
-            onClick={onReset}
-          >
+          <Button variant="ghost" size="icon" className="-ml-2 shrink-0 lg:hidden" onClick={onReset}>
             <ArrowLeft className="size-5" />
           </Button>
         ) : null}
@@ -162,9 +104,7 @@ export function PostPreview({
               {activePost[activePlatform].status === "SCHEDULED" ? (
                 <span className="flex items-center gap-1">
                   <span className="size-1.5 rounded-full bg-emerald-500" />
-                  {activePlatform === "linkedin"
-                    ? "LinkedIn Scheduled"
-                    : "X Scheduled"}
+                  {activePlatform === "linkedin" ? "LinkedIn Scheduled" : "X Scheduled"}
                 </span>
               ) : (
                 <span className="flex items-center gap-1">
@@ -175,34 +115,15 @@ export function PostPreview({
             </Badge>
           )}
         </div>
-        {description ? (
-          <p className="text-sm text-muted-foreground pr-2">{description}</p>
-        ) : null}
-        {activePost &&
-        (mode === "generated" ||
-          linkedinStatus === "DRAFT" ||
-          xStatus === "DRAFT") ? (
-          bothHaveContent ? (
-            <Tabs
-              value={activePlatform}
-              onValueChange={(value) => setActivePlatform(value as PlatformTab)}
-              className="hidden md:flex"
-            >
-              <TabsList className="bg-muted/80 border">
-                {(mode === "generated" &&
-                  activePost.linkedin.status !== "SCHEDULED") ||
-                (mode === "draft" && linkedinStatus === "DRAFT") ? (
-                  <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-                ) : null}
-                {(mode === "generated" &&
-                  activePost.x.status !== "SCHEDULED") ||
-                (mode === "draft" && xStatus === "DRAFT") ? (
-                  <TabsTrigger value="x">X</TabsTrigger>
-                ) : null}
-              </TabsList>
-            </Tabs>
-          ) : null
-        ) : null}
+        {description ? <p className="text-sm text-muted-foreground pr-2">{description}</p> : null}
+        {activePost && (
+          <Tabs value={activePlatform} onValueChange={(value) => setActivePlatform(value as PlatformTab)} className="hidden md:flex">
+            <TabsList className="bg-muted/80 border">
+              <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
+              <TabsTrigger value="x">X</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
       </div>
 
       {!isGenerated && !isGenerating ? (
@@ -212,8 +133,7 @@ export function PostPreview({
           </div>
           <h4 className="mb-2 text-xl font-bold">Ready to Write</h4>
           <p className="max-w-sm text-sm text-muted-foreground">
-            Fill out the configuration on the left and hit generate to create
-            your first draft.
+            Fill out the configuration on the left and hit generate to create your first draft.
           </p>
         </div>
       ) : null}
@@ -223,15 +143,10 @@ export function PostPreview({
           <div className="rounded-xl border bg-muted/30 p-4">
             <div className="flex items-center gap-2 text-sm font-medium text-foreground">
               <Loader2 className="size-4 animate-spin text-primary" />
-              {activePost ? "Streaming content..." : "Thinking..."}
+              Thinking...
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {activePost
-                ? "Your post package is being generated in real-time."
-                : "Analyzing your request and preparing the post structure..."}
-            </p>
+            <p className="mt-2 text-sm text-muted-foreground">Analyzing your request and preparing the post structure...</p>
           </div>
-
           <div className="rounded-xl border bg-muted/20 p-4">
             <Skeleton className="h-4 w-32" />
             <Skeleton className="mt-4 h-12 w-full" />
@@ -246,52 +161,21 @@ export function PostPreview({
         </div>
       ) : null}
 
-      {isGenerated &&
-      (!isThinking ||
-        (activePost && (activePost.baseIdea || activePost.linkedin.content))) &&
-      generatedPostPack &&
-      activePost ? (
+      {isGenerated && !isThinking && activePost && generatedPostPack ? (
         <>
           <div className="border-b px-4 py-3 md:hidden">
-            {bothHaveContent ? (
-              <Tabs
-                value={activePlatform}
-                onValueChange={(value) =>
-                  setActivePlatform(value as PlatformTab)
-                }
-              >
-                <TabsList className="w-full bg-muted/80 border">
-                  {(mode === "generated" &&
-                    activePost.linkedin.status !== "SCHEDULED") ||
-                  (mode === "draft" && linkedinStatus === "DRAFT") ? (
-                    <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-                  ) : null}
-                  {(mode === "generated" &&
-                    activePost.x.status !== "SCHEDULED") ||
-                  (mode === "draft" && xStatus === "DRAFT") ? (
-                    <TabsTrigger value="x">X</TabsTrigger>
-                  ) : null}
-                </TabsList>
-              </Tabs>
-            ) : null}
+            <Tabs value={activePlatform} onValueChange={(value) => setActivePlatform(value as PlatformTab)}>
+              <TabsList className="w-full bg-muted/80 border">
+                <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
+                <TabsTrigger value="x">X</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
 
           {activePlatform === "linkedin" ? (
-            <LinkedInPostPreview
-              postStyle={postStyle}
-              targetAudience={targetAudience}
-              post={activePost}
-              onChange={onLinkedInChange}
-              readOnly={readOnly}
-            />
+            <LinkedInPostPreview postStyle={postStyle} targetAudience={targetAudience} post={activePost} onChange={onLinkedInChange} readOnly={readOnly} />
           ) : (
-            <XPostPreview
-              postStyle={postStyle}
-              targetAudience={targetAudience}
-              post={activePost}
-              onPostChange={onXPostChange}
-              readOnly={readOnly}
-            />
+            <XPostPreview postStyle={postStyle} targetAudience={targetAudience} post={activePost} onPostChange={onXPostChange} readOnly={readOnly} />
           )}
 
           <div className="border-t px-4 py-4 md:px-6 md:py-5">
@@ -305,29 +189,15 @@ export function PostPreview({
                 platform={activePlatform}
                 onSuccess={onScheduleSuccess}
               >
-                <Button
-                  className="w-full flex-1 rounded-xl font-semibold shadow-md transition-all"
-                  disabled={isGenerating}
-                >
+                <Button className="w-full flex-1 rounded-xl font-semibold shadow-md transition-all" disabled={isGenerating}>
                   <Calendar className="mr-2 size-4" />
-                  {activePost[activePlatform].status === "SCHEDULED"
-                    ? `Reschedule ${activePlatformLabel}`
-                    : `Schedule ${activePlatformLabel}`}
+                  {activePost[activePlatform].status === "SCHEDULED" ? `Reschedule ${activePlatformLabel}` : `Schedule ${activePlatformLabel}`}
                 </Button>
               </SchedulePostModal>
               {!readOnly ? (
-                <Button
-                  variant="secondary"
-                  className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold hover:bg-muted"
-                  onClick={() => onSaveDraft?.(activePlatform)}
-                  disabled={isSavingDraft || isGenerating}
-                >
-                  {isSavingDraft ? (
-                    <Loader2 className="mr-2 size-4 animate-spin" />
-                  ) : (
-                    <Save className="mr-2 size-4" />
-                  )}
-                  {isSavingDraft ? "Saving..." : saveButtonLabel}
+                <Button variant="secondary" className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold hover:bg-muted" onClick={onSaveDraft} disabled={isSavingDraft || isGenerating}>
+                  {isSavingDraft ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Save className="mr-2 size-4" />}
+                  {isSavingDraft ? "Saving..." : saveDraftLabel || "Save as Draft"}
                 </Button>
               ) : null}
             </div>

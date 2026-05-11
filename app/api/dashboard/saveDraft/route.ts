@@ -156,7 +156,7 @@ export async function POST(req: Request) {
         },
       });
 
-      return NextResponse.json(updatedDraft);
+      return NextResponse.json({ ...updatedDraft, platform: parsedBody.data.platform });
     }
 
     // 3. If no draft exists, create a new one
@@ -182,7 +182,7 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(newDraft, { status: 201 });
+    return NextResponse.json({ ...newDraft, platform: parsedBody.data.platform }, { status: 201 });
   } catch (error) {
     console.error("saveDraft POST route error", error);
 
