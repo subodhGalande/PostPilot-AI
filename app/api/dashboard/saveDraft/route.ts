@@ -14,42 +14,16 @@ function getErrorMessage(error: unknown) {
   return "Failed to save draft";
 }
 
-function buildDraftData(input: z.infer<typeof saveDraftSchema>) {
-  const { post, model, clientDraftKey, platform } = input;
+function buildPostData(input: z.infer<typeof saveDraftSchema>) {
+  const { post, model, clientDraftKey } = input;
 
-  const draftData: {
-    title: string;
-    topic: string;
-    baseIdea: string;
-    model: string;
-    clientDraftKey: string;
-    linkedinContent?: { content?: string };
-    linkedinStatus?: "DRAFT";
-    linkedinScheduledAt?: null;
-    xContent?: { mode?: "single" | "thread"; posts: typeof post.x.posts };
-    xStatus?: "DRAFT";
-    xScheduledAt?: null;
-  } = {
+  return {
     title: post.baseIdea.trim(),
     topic: post.topic,
     baseIdea: post.baseIdea,
     model: model,
     clientDraftKey,
   };
-
-  if (!platform || platform === "linkedin") {
-    draftData.linkedinContent = { content: post.linkedin.content };
-    draftData.linkedinStatus = "DRAFT";
-    draftData.linkedinScheduledAt = null;
-  }
-
-  if (!platform || platform === "x") {
-    draftData.xContent = { mode: post.x.mode, posts: post.x.posts };
-    draftData.xStatus = "DRAFT";
-    draftData.xScheduledAt = null;
-  }
-
-  return draftData;
 }
 
 export async function POST(req: Request) {
@@ -102,6 +76,7 @@ export async function POST(req: Request) {
         },
         select: {
           id: true,
+          createdAt: true,
           updatedAt: true,
         },
       });
@@ -113,12 +88,67 @@ export async function POST(req: Request) {
         },
         select: {
           id: true,
+          createdAt: true,
           updatedAt: true,
         },
       });
     }
 
-    const draftData = buildDraftData(parsedBody.data);
+    const postData = buildPostData(parsedBody.data);
+    const { platform } = parsedBody.data;
+    const createLinkedIn = !platform || platform === "linkedin";
+    const createX = !platform || platform === "x";
+
+    const buildChildRowUpdates = async (postId: string) => {
+      const updates: unknown[] = [];
+
+      if (createLinkedIn && post.linkedin?.content?.trim()) {
+        updates.push(
+          prisma.linkedInPost.upsert({
+            where: { postId },
+            update: {
+              content: post.linkedin.content,
+              status: "DRAFT",
+              scheduledAt: null,
+            },
+            create: {
+              content: post.linkedin.content,
+              status: "DRAFT",
+              scheduledAt: null,
+              postId,
+            },
+          }),
+        );
+      }
+
+      if (createX && post.x?.posts?.length > 0) {
+        const firstPost = post.x.posts[0];
+        if (firstPost?.content?.trim()) {
+          updates.push(
+            prisma.xPost.upsert({
+              where: { postId },
+              update: {
+                content: firstPost.content,
+                mode: post.x.mode || "single",
+                threadPosts: post.x.posts,
+                status: "DRAFT",
+                scheduledAt: null,
+              },
+              create: {
+                content: firstPost.content,
+                mode: post.x.mode || "single",
+                threadPosts: post.x.posts,
+                status: "DRAFT",
+                scheduledAt: null,
+                postId,
+              },
+            }),
+          );
+        }
+      }
+
+      return updates;
+    };
 
     // 2. If draft exists, check for conflicts and update
     if (existingDraft) {
@@ -134,55 +164,71 @@ export async function POST(req: Request) {
         );
       }
 
-      const updatedDraft = await prisma.post.update({
-        where: {
-          id: existingDraft.id,
-        },
-        data: draftData,
-        select: {
-          id: true,
-          title: true,
-          topic: true,
-          baseIdea: true,
-          model: true,
-          linkedinContent: true,
-          xContent: true,
-          linkedinStatus: true,
-          linkedinScheduledAt: true,
-          xStatus: true,
-          xScheduledAt: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      });
+      const childUpdates = await buildChildRowUpdates(existingDraft.id);
+      const txns = [
+        prisma.post.update({
+          where: { id: existingDraft.id },
+          data: postData,
+        }),
+        ...childUpdates,
+      ] as never[];
+      await prisma.$transaction(txns);
 
-      return NextResponse.json({ ...updatedDraft, platform: parsedBody.data.platform });
+      const [updatedLinkedIn, updatedX] = await Promise.all([
+        prisma.linkedInPost.findUnique({ where: { postId: existingDraft.id } }),
+        prisma.xPost.findUnique({ where: { postId: existingDraft.id } }),
+      ]);
+
+      return NextResponse.json({
+        id: existingDraft.id,
+        ...postData,
+        linkedin: updatedLinkedIn
+          ? { content: updatedLinkedIn.content, status: updatedLinkedIn.status, scheduledAt: updatedLinkedIn.scheduledAt }
+          : null,
+        x: updatedX
+          ? { posts: updatedX.threadPosts || [], mode: updatedX.mode, status: updatedX.status, scheduledAt: updatedX.scheduledAt }
+          : null,
+        createdAt: existingDraft.createdAt,
+        updatedAt: new Date().toISOString(),
+      });
     }
 
     // 3. If no draft exists, create a new one
     const newDraft = await prisma.post.create({
       data: {
-        ...draftData,
+        ...postData,
         userId: authUser.id,
       },
       select: {
         id: true,
-        title: true,
-        topic: true,
-        baseIdea: true,
-        model: true,
-        linkedinContent: true,
-        xContent: true,
-        linkedinStatus: true,
-        linkedinScheduledAt: true,
-        xStatus: true,
-        xScheduledAt: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
-    return NextResponse.json({ ...newDraft, platform: parsedBody.data.platform }, { status: 201 });
+    const childCreates = await buildChildRowUpdates(newDraft.id);
+    await prisma.$transaction(childCreates as never[]);
+
+    const [createdLinkedIn, createdX] = await Promise.all([
+      prisma.linkedInPost.findUnique({ where: { postId: newDraft.id } }),
+      prisma.xPost.findUnique({ where: { postId: newDraft.id } }),
+    ]);
+
+    return NextResponse.json(
+      {
+        id: newDraft.id,
+        ...postData,
+        linkedin: createdLinkedIn
+          ? { content: createdLinkedIn.content, status: createdLinkedIn.status, scheduledAt: createdLinkedIn.scheduledAt }
+          : null,
+        x: createdX
+          ? { posts: createdX.threadPosts || [], mode: createdX.mode, status: createdX.status, scheduledAt: createdX.scheduledAt }
+          : null,
+        createdAt: newDraft.createdAt,
+        updatedAt: newDraft.updatedAt,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("saveDraft POST route error", error);
 

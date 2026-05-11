@@ -8,22 +8,24 @@ Update `POST /api/dashboard/saveDraft` to upsert `LinkedInPost` and `XPost` chil
 
 ## Acceptance criteria
 
-- [ ] `POST /api/dashboard/saveDraft` creates `LinkedInPost` row on first save with content from request body
-- [ ] `POST /api/dashboard/saveDraft` creates `XPost` row on first save with content/mode/threadPosts from request body
-- [ ] Both child rows created with `status = DRAFT`, `scheduledAt = null`
-- [ ] Subsequent saves update existing child rows (not create duplicates)
-- [ ] Unique constraint on `postId` enforced — one `LinkedInPost` and one `XPost` per `Post`
-- [ ] All writes to `Post.linkedinContent`/`Post.xContent` removed from the route
-- [ ] `clientDraftKey` uniqueness still enforced at `Post` level
-- [ ] Conflict detection (`updatedAt` check) still works
-- [ ] API returns `201` for new drafts, includes child row data in response
-- [ ] API returns 200 for existing drafts after update, includes child row data in response
+- [x] `POST /api/dashboard/saveDraft` creates `LinkedInPost` row on first save with content from request body
+- [x] `POST /api/dashboard/saveDraft` creates `XPost` row on first save with content/mode/threadPosts from request body
+- [x] Both child rows created with `status = DRAFT`, `scheduledAt = null`
+- [x] Subsequent saves update existing child rows (not create duplicates)
+- [x] Unique constraint on `postId` enforced — one `LinkedInPost` and one `XPost` per `Post`
+- [x] All writes to `Post.linkedinContent`/`Post.xContent` removed from the route
+- [x] `clientDraftKey` uniqueness still enforced at `Post` level
+- [x] Conflict detection (`updatedAt` check) still works
+- [x] API returns `201` for new drafts, includes child row data in response
+- [x] API returns 200 for existing drafts after update, includes child row data in response
 
 ## Blocked by
 
 `.scratch/platform-normalized-schema/issues/01-schema-migration.md`
 
-Label: ready-for-agent
+Label: completed
+
+**Completed:** 2025-05-11 (verified 2025-05-11) - saveDraft API now uses child rows. Creates/updates LinkedInPost and XPost via upsert. Returns child data in response. TypeScript compiles.
 
 ## Agent Brief
 
