@@ -146,7 +146,9 @@ export function DraftEditorWorkspace({
       if (draft.status === "DRAFT" || draft.status === "SCHEDULED") {
         setStatus(draft.status);
       }
-      setCurrentLinkedinStatus(draft.linkedinPost?.status ?? currentLinkedinStatus);
+      setCurrentLinkedinStatus(
+        draft.linkedinPost?.status ?? currentLinkedinStatus,
+      );
       setCurrentXStatus(draft.xPost?.status ?? currentXStatus);
 
       if (draft.content) {

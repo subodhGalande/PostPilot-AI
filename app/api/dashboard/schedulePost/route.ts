@@ -118,10 +118,20 @@ export async function POST(req: Request) {
 
       // Update post metadata and target child row in transaction
       if (platform === "linkedin" && post.linkedin?.content?.trim()) {
-        await prisma.$transaction([
+        const [updatedPost] = (await prisma.$transaction([
           prisma.post.update({
             where: { id: existingPost.id },
             data: postData,
+            select: {
+              id: true,
+              title: true,
+              topic: true,
+              baseIdea: true,
+              model: true,
+              clientDraftKey: true,
+              createdAt: true,
+              updatedAt: true,
+            },
           }),
           prisma.linkedInPost.upsert({
             where: { postId: existingPost.id },
@@ -137,21 +147,23 @@ export async function POST(req: Request) {
               postId: existingPost.id,
             },
           }),
-        ]);
+        ])) as [any, any];
 
-        const [updatedPost, updatedLinkedIn] = await Promise.all([
-          prisma.post.findUnique({ where: { id: existingPost.id } }),
-          prisma.linkedInPost.findUnique({ where: { postId: existingPost.id } }),
-        ]);
+        const updatedLinkedIn = await prisma.linkedInPost.findUnique({
+          where: { postId: existingPost.id },
+        });
 
         return NextResponse.json({
           ...updatedPost,
-          linkedinPost: updatedLinkedIn ? {
-            id: updatedLinkedIn.id,
-            content: updatedLinkedIn.content,
-            status: updatedLinkedIn.status,
-            scheduledAt: updatedLinkedIn.scheduledAt,
-          } : null,
+          updatedAt: updatedPost.updatedAt.toISOString(),
+          linkedinPost: updatedLinkedIn
+            ? {
+                id: updatedLinkedIn.id,
+                content: updatedLinkedIn.content,
+                status: updatedLinkedIn.status,
+                scheduledAt: updatedLinkedIn.scheduledAt,
+              }
+            : null,
           xPost: null,
         });
       }
@@ -159,10 +171,20 @@ export async function POST(req: Request) {
       if (platform === "x" && post.x?.posts?.length > 0) {
         const firstPost = post.x.posts[0];
         if (firstPost?.content?.trim()) {
-          await prisma.$transaction([
+          const [updatedPost] = (await prisma.$transaction([
             prisma.post.update({
               where: { id: existingPost.id },
               data: postData,
+              select: {
+                id: true,
+                title: true,
+                topic: true,
+                baseIdea: true,
+                model: true,
+                clientDraftKey: true,
+                createdAt: true,
+                updatedAt: true,
+              },
             }),
             prisma.xPost.upsert({
               where: { postId: existingPost.id },
@@ -182,24 +204,26 @@ export async function POST(req: Request) {
                 postId: existingPost.id,
               },
             }),
-          ]);
+          ])) as [any, any];
 
-          const [updatedPost, updatedX] = await Promise.all([
-            prisma.post.findUnique({ where: { id: existingPost.id } }),
-            prisma.xPost.findUnique({ where: { postId: existingPost.id } }),
-          ]);
+          const updatedX = await prisma.xPost.findUnique({
+            where: { postId: existingPost.id },
+          });
 
           return NextResponse.json({
             ...updatedPost,
+            updatedAt: updatedPost.updatedAt.toISOString(),
             linkedinPost: null,
-            xPost: updatedX ? {
-              id: updatedX.id,
-              content: updatedX.content,
-              mode: updatedX.mode,
-              threadPosts: updatedX.threadPosts,
-              status: updatedX.status,
-              scheduledAt: updatedX.scheduledAt,
-            } : null,
+            xPost: updatedX
+              ? {
+                  id: updatedX.id,
+                  content: updatedX.content,
+                  mode: updatedX.mode,
+                  threadPosts: updatedX.threadPosts,
+                  status: updatedX.status,
+                  scheduledAt: updatedX.scheduledAt,
+                }
+              : null,
           });
         }
       }

@@ -165,14 +165,19 @@ export async function POST(req: Request) {
       }
 
       const childUpdates = await buildChildRowUpdates(existingDraft.id);
-      const txns = [
+      const [updatedPost] = (await prisma.$transaction([
         prisma.post.update({
           where: { id: existingDraft.id },
           data: postData,
+          select: {
+            id: true,
+            updatedAt: true,
+            createdAt: true,
+          },
         }),
         ...childUpdates,
-      ] as never[];
-      await prisma.$transaction(txns);
+      ] as any[])) as [any, ...any[]];
+
 
       const [updatedLinkedIn, updatedX] = await Promise.all([
         prisma.linkedInPost.findUnique({ where: { postId: existingDraft.id } }),
@@ -180,16 +185,28 @@ export async function POST(req: Request) {
       ]);
 
       return NextResponse.json({
-        id: existingDraft.id,
+        id: updatedPost.id,
         ...postData,
         linkedinPost: updatedLinkedIn
-          ? { id: updatedLinkedIn.id, content: updatedLinkedIn.content, status: updatedLinkedIn.status, scheduledAt: updatedLinkedIn.scheduledAt }
+          ? {
+              id: updatedLinkedIn.id,
+              content: updatedLinkedIn.content,
+              status: updatedLinkedIn.status,
+              scheduledAt: updatedLinkedIn.scheduledAt,
+            }
           : null,
         xPost: updatedX
-          ? { id: updatedX.id, content: updatedX.content, mode: updatedX.mode, threadPosts: updatedX.threadPosts, status: updatedX.status, scheduledAt: updatedX.scheduledAt }
+          ? {
+              id: updatedX.id,
+              content: updatedX.content,
+              mode: updatedX.mode,
+              threadPosts: updatedX.threadPosts,
+              status: updatedX.status,
+              scheduledAt: updatedX.scheduledAt,
+            }
           : null,
-        createdAt: existingDraft.createdAt,
-        updatedAt: new Date().toISOString(),
+        createdAt: updatedPost.createdAt,
+        updatedAt: updatedPost.updatedAt.toISOString(),
       });
     }
 
