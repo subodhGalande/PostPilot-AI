@@ -31,6 +31,7 @@ interface DraftState {
   clientDraftKey: string;
   draftId: string | null;
   draftUpdatedAt: string | null;
+  clearedPlatforms: ("linkedin" | "x")[];
 }
 
 function saveDraftState(state: DraftState) {
@@ -80,6 +81,9 @@ export default function DashboardPage() {
   ]);
   const [generatedPostPack, setGeneratedPostPack] =
     useState<GeneratedPostPack | null>(null);
+  const [clearedPlatforms, setClearedPlatforms] = useState<
+    Set<"linkedin" | "x">
+  >(new Set());
 
   const {
     submit: submitGenerate,
@@ -131,6 +135,9 @@ export default function DashboardPage() {
       setClientDraftKey(saved.clientDraftKey);
       setDraftId(saved.draftId ?? null);
       setDraftUpdatedAt(saved.draftUpdatedAt ?? null);
+      if (saved.clearedPlatforms) {
+        setClearedPlatforms(new Set(saved.clearedPlatforms));
+      }
       setPreviewVersion((v) => v + 1);
     }
   }, []);
@@ -149,6 +156,7 @@ export default function DashboardPage() {
         clientDraftKey,
         draftId,
         draftUpdatedAt,
+        clearedPlatforms: Array.from(clearedPlatforms),
       });
     }
   }, [
@@ -162,11 +170,12 @@ export default function DashboardPage() {
     clientDraftKey,
     draftId,
     draftUpdatedAt,
+    clearedPlatforms,
   ]);
 
   // Effect to update the preview in real-time as it streams
   useEffect(() => {
-    if (object) {
+    if (object && isGenerating) {
       const partialPost: GeneratedPostItem = {
         topic: object.topic || topic,
         baseIdea: object.baseIdea || "",
@@ -195,7 +204,7 @@ export default function DashboardPage() {
         setIsGenerated(true);
       }
     }
-  }, [object, topic, isGenerated]);
+  }, [object, topic, isGenerated, isGenerating]);
 
   const handleGenerate = () => {
     setDraftId(null);
@@ -203,6 +212,7 @@ export default function DashboardPage() {
     setGeneratedPostPack(null);
     setIsGenerated(true);
     setClientDraftKey(createClientDraftKey());
+    setClearedPlatforms(new Set());
     submitGenerate({
       modelName: DEFAULT_MODEL.id,
       topic,
@@ -220,6 +230,7 @@ export default function DashboardPage() {
     setDraftId(null);
     setDraftUpdatedAt(null);
     setClientDraftKey(createClientDraftKey());
+    setClearedPlatforms(new Set());
   };
 
   const handleUpdatePost = (
@@ -261,7 +272,9 @@ export default function DashboardPage() {
 
   const saveDraftMutation = useMutation({
     mutationKey: ["saveDraft", draftId],
-    mutationFn: async (): Promise<SaveDraftResponse> => {
+    mutationFn: async (
+      platform: "linkedin" | "x",
+    ): Promise<SaveDraftResponse> => {
       if (!generatedPostPack || generatedPostPack.posts.length === 0) {
         throw new Error("Generate a post before saving a draft.");
       }
@@ -279,12 +292,58 @@ export default function DashboardPage() {
         clientDraftKey,
         post: generatedPostPack.posts[0],
         model: generatedPostPack.model,
+        platform,
       });
     },
-    onSuccess: (draft) => {
+    onSuccess: (draft, platform) => {
       setDraftId(draft.id);
       setDraftUpdatedAt(draft.updatedAt);
       toast.success(draftId ? "Draft updated." : "Draft saved.");
+
+      const newClearedPlatforms = new Set(clearedPlatforms);
+      newClearedPlatforms.add(platform);
+
+      if (newClearedPlatforms.size === 2) {
+        clearDraftState();
+        setIsGenerated(false);
+        setGeneratedPostPack(null);
+        setClearedPlatforms(new Set());
+        return;
+      }
+
+      setClearedPlatforms(newClearedPlatforms);
+
+      setGeneratedPostPack((currentPack) => {
+        if (!currentPack || currentPack.posts.length === 0) return currentPack;
+
+        const currentPost = currentPack.posts[0];
+        const clearedPost: GeneratedPostItem =
+          platform === "linkedin"
+            ? {
+                ...currentPost,
+                linkedin: { ...currentPost.linkedin, content: "" },
+              }
+            : {
+                ...currentPost,
+                x: { ...currentPost.x, posts: [], mode: "single" as const },
+              };
+
+        saveDraftState({
+          topic,
+          tone,
+          postStyle,
+          targetAudience,
+          keywords,
+          generatedPostPack: { posts: [clearedPost], model: currentPack.model },
+          isGenerated: true,
+          clientDraftKey,
+          draftId: draft.id,
+          draftUpdatedAt: draft.updatedAt,
+          clearedPlatforms: Array.from(newClearedPlatforms),
+        });
+
+        return { posts: [clearedPost], model: currentPack.model };
+      });
     },
     onError: (error) => {
       console.error("Failed to save draft:", error);
@@ -338,11 +397,68 @@ export default function DashboardPage() {
           id={draftId || undefined}
           updatedAt={draftUpdatedAt || undefined}
           clientDraftKey={clientDraftKey}
-          onSaveDraft={() => saveDraftMutation.mutate()}
+          onSaveDraft={(platform) => saveDraftMutation.mutate(platform)}
+          clearedPlatforms={clearedPlatforms}
           onScheduleSuccess={(data) => {
             setDraftId(data.id);
             setDraftUpdatedAt(data.updatedAt);
             toast.success("Post scheduled successfully.");
+
+            const scheduledPlatform = data.platform;
+            if (!scheduledPlatform) return;
+
+            const newClearedPlatforms = new Set(clearedPlatforms);
+            newClearedPlatforms.add(scheduledPlatform);
+
+            if (newClearedPlatforms.size === 2) {
+              clearDraftState();
+              setIsGenerated(false);
+              setGeneratedPostPack(null);
+              setClearedPlatforms(new Set());
+              return;
+            }
+
+            setClearedPlatforms(newClearedPlatforms);
+
+            setGeneratedPostPack((currentPack) => {
+              if (!currentPack || currentPack.posts.length === 0)
+                return currentPack;
+
+              const currentPost = currentPack.posts[0];
+              const clearedPost: GeneratedPostItem =
+                scheduledPlatform === "linkedin"
+                  ? {
+                      ...currentPost,
+                      linkedin: { ...currentPost.linkedin, content: "" },
+                    }
+                  : {
+                      ...currentPost,
+                      x: {
+                        ...currentPost.x,
+                        posts: [],
+                        mode: "single" as const,
+                      },
+                    };
+
+              saveDraftState({
+                topic,
+                tone,
+                postStyle,
+                targetAudience,
+                keywords,
+                generatedPostPack: {
+                  posts: [clearedPost],
+                  model: currentPack.model,
+                },
+                isGenerated: true,
+                clientDraftKey,
+                draftId: data.id,
+                draftUpdatedAt: data.updatedAt,
+                clearedPlatforms: Array.from(newClearedPlatforms),
+              });
+
+              return { posts: [clearedPost], model: currentPack.model };
+            });
           }}
           onReset={handleReset}
           hideStatusBadge={true}

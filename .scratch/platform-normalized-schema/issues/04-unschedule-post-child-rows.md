@@ -8,18 +8,20 @@ Update `POST /api/dashboard/unschedulePost` to flip the target child row `status
 
 ## Acceptance criteria
 
-- [ ] `POST /api/dashboard/unschedulePost` sets `LinkedInPost.status = DRAFT` and `LinkedInPost.scheduledAt = null` when `platform = linkedin`
-- [ ] `POST /api/dashboard/unschedulePost` sets `XPost.status = DRAFT` and `XPost.scheduledAt = null` when `platform = x`
-- [ ] Non-target child row is left untouched
-- [ ] Child row is NOT deleted — row persists after unschedule
-- [ ] All writes to `Post.linkedinStatus`/`Post.xStatus`/`Post.linkedinScheduledAt`/`Post.xScheduledAt` removed
-- [ ] Response includes updated child row data
+- [x] `POST /api/dashboard/unschedulePost` sets `LinkedInPost.status = DRAFT` and `LinkedInPost.scheduledAt = null` when `platform = linkedin`
+- [x] `POST /api/dashboard/unschedulePost` sets `XPost.status = DRAFT` and `XPost.scheduledAt = null` when `platform = x`
+- [x] Non-target child row is left untouched
+- [x] Child row is NOT deleted — row persists after unschedule
+- [x] All writes to `Post.linkedinStatus`/`Post.xStatus`/`Post.linkedinScheduledAt`/`Post.xScheduledAt` removed
+- [x] Response includes updated child row data
 
 ## Blocked by
 
 `.scratch/platform-normalized-schema/issues/02-save-draft-child-rows.md`
 
-Label: ready-for-agent
+Label: completed
+
+**Completed:** 2025-05-11 (verified 2025-05-11) - unschedulePost now targets child rows. Sets status=DRAFT and scheduledAt=null on LinkedInPost/XPost. Child row persists (not deleted). Returns child data in response. TypeScript compiles.
 
 ## Agent Brief
 

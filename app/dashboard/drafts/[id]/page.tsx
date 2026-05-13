@@ -32,25 +32,29 @@ export default async function DraftDetailPage({
       id,
       userId: authUser.id,
       OR: [
-        { linkedinStatus: { in: ["DRAFT", "SCHEDULED"] } },
-        { xStatus: { in: ["DRAFT", "SCHEDULED"] } },
+        { linkedinPost: { status: { in: ["DRAFT", "SCHEDULED"] } } },
+        { xPost: { status: { in: ["DRAFT", "SCHEDULED"] } } },
       ],
     },
-    select: {
-      id: true,
-      title: true,
-      topic: true,
-      baseIdea: true,
-      model: true,
-      linkedinContent: true,
-      xContent: true,
-      linkedinStatus: true,
-      linkedinScheduledAt: true,
-      xStatus: true,
-      xScheduledAt: true,
-      createdAt: true,
-      updatedAt: true,
-      clientDraftKey: true,
+    include: {
+      linkedinPost: {
+        select: {
+          id: true,
+          content: true,
+          status: true,
+          scheduledAt: true,
+        },
+      },
+      xPost: {
+        select: {
+          id: true,
+          content: true,
+          mode: true,
+          threadPosts: true,
+          status: true,
+          scheduledAt: true,
+        },
+      },
     },
   });
 
@@ -66,8 +70,8 @@ export default async function DraftDetailPage({
 
   // Determine initial platform based on draft status
   // If URL has platform param, use it; otherwise auto-select draft platform
-  const linkedinIsDraft = draft.linkedinStatus === "DRAFT";
-  const xIsDraft = draft.xStatus === "DRAFT";
+  const linkedinIsDraft = draft.linkedinPost?.status === "DRAFT";
+  const xIsDraft = draft.xPost?.status === "DRAFT";
 
   let initialPlatform: "linkedin" | "x" | undefined;
   if (platform === "linkedin" || platform === "x") {
@@ -80,8 +84,8 @@ export default async function DraftDetailPage({
 
   const scheduledManagementPlatform =
     from === "calendar" &&
-    ((platform === "linkedin" && draft.linkedinStatus === "SCHEDULED") ||
-      (platform === "x" && draft.xStatus === "SCHEDULED"))
+    ((platform === "linkedin" && draft.linkedinPost?.status === "SCHEDULED") ||
+      (platform === "x" && draft.xPost?.status === "SCHEDULED"))
       ? (platform as "linkedin" | "x")
       : undefined;
 
@@ -108,8 +112,8 @@ export default async function DraftDetailPage({
         initialPostPack={mapStoredDraftToGeneratedPostPack(parsedContent)}
         initialPlatform={initialPlatform}
         initialStatus={scheduledManagementPlatform ? "SCHEDULED" : "DRAFT"}
-        linkedinStatus={draft.linkedinStatus}
-        xStatus={draft.xStatus}
+        linkedinStatus={draft.linkedinPost?.status ?? undefined}
+        xStatus={draft.xPost?.status ?? undefined}
         scheduledManagementPlatform={scheduledManagementPlatform}
       />
     </div>

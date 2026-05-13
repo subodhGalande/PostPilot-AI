@@ -8,18 +8,20 @@ Update `GET /api/dashboard/drafts/[id]` to include `linkedinPost` and `xPost` ob
 
 ## Acceptance criteria
 
-- [ ] Response includes `linkedinPost` object: `{ id, content, status, scheduledAt }`
-- [ ] Response includes `xPost` object: `{ id, content, mode, threadPosts, status, scheduledAt }`
-- [ ] Status fields (`linkedinStatus`, `xStatus`) sourced from child row `status` field
-- [ ] `reconstructPostContent` can build `StoredDraftContent` from the new response shape
-- [ ] Returns 404 if `Post` not found or doesn't belong to user
-- [ ] Works for both DRAFT and SCHEDULED children
+- [x] Response includes `linkedinPost` object: `{ id, content, status, scheduledAt }`
+- [x] Response includes `xPost` object: `{ id, content, mode, threadPosts, status, scheduledAt }`
+- [x] Status fields (`linkedinStatus`, `xStatus`) sourced from child row `status` field
+- [x] `reconstructPostContent` can build `StoredDraftContent` from the new response shape
+- [x] Returns 404 if `Post` not found or doesn't belong to user
+- [x] Works for both DRAFT and SCHEDULED children
 
 ## Blocked by
 
 `.scratch/platform-normalized-schema/issues/01-schema-migration.md`
 
-Label: ready-for-agent
+Label: completed
+
+**Completed:** 2025-05-11 - `GET /api/dashboard/drafts/[id]` now includes `linkedinPost` and `xPost` via `include`. Status derived from child rows. Works with reconstructed content.
 
 ## Agent Brief
 

@@ -146,8 +146,8 @@ export function DraftEditorWorkspace({
       if (draft.status === "DRAFT" || draft.status === "SCHEDULED") {
         setStatus(draft.status);
       }
-      setCurrentLinkedinStatus(draft.linkedinStatus ?? currentLinkedinStatus);
-      setCurrentXStatus(draft.xStatus ?? currentXStatus);
+      setCurrentLinkedinStatus(draft.linkedinPost?.status ?? currentLinkedinStatus);
+      setCurrentXStatus(draft.xPost?.status ?? currentXStatus);
 
       if (draft.content) {
         const updatedContent = parseStoredDraftContent(draft.content);
@@ -376,15 +376,13 @@ export function DraftEditorWorkspace({
         mode="draft"
         status={status}
         initialPlatform={initialPlatform}
-        linkedinStatus={currentLinkedinStatus}
-        xStatus={currentXStatus}
         readOnly={isScheduledManagementView}
-        onSaveDraft={(platform) => saveDraftMutation.mutate(platform)}
+        onSaveDraft={() => saveDraftMutation.mutate(initialPlatform || "linkedin")}
         onScheduleSuccess={(data) => {
           setDraftUpdatedAt(data.updatedAt);
           const nextLinkedinStatus =
-            data.linkedinStatus ?? currentLinkedinStatus;
-          const nextXStatus = data.xStatus ?? currentXStatus;
+            data.linkedinPost?.status ?? currentLinkedinStatus;
+          const nextXStatus = data.xPost?.status ?? currentXStatus;
 
           if (data.status === "DRAFT" || data.status === "SCHEDULED") {
             setStatus(data.status);
@@ -404,8 +402,15 @@ export function DraftEditorWorkspace({
 
             const scheduledAt =
               data.platform === "linkedin"
-                ? data.linkedinScheduledAt
-                : data.xScheduledAt;
+                ? data.linkedinPost?.scheduledAt
+                : data.xPost?.scheduledAt;
+
+            const scheduledAtDate =
+              scheduledAt instanceof Date
+                ? scheduledAt.toISOString()
+                : scheduledAt
+                  ? new Date(scheduledAt as string).toISOString()
+                  : null;
 
             const updatedPost =
               data.platform === "linkedin"
@@ -414,9 +419,7 @@ export function DraftEditorWorkspace({
                     linkedin: {
                       ...currentPost.linkedin,
                       status: "SCHEDULED" as const,
-                      scheduledAt: scheduledAt
-                        ? new Date(scheduledAt).toISOString()
-                        : null,
+                      scheduledAt: scheduledAtDate,
                     },
                   }
                 : {
@@ -424,9 +427,7 @@ export function DraftEditorWorkspace({
                     x: {
                       ...currentPost.x,
                       status: "SCHEDULED" as const,
-                      scheduledAt: scheduledAt
-                        ? new Date(scheduledAt).toISOString()
-                        : null,
+                      scheduledAt: scheduledAtDate,
                     },
                   };
 

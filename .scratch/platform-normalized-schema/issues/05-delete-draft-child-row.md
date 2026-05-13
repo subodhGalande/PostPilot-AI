@@ -8,18 +8,20 @@ Update `DELETE /api/dashboard/drafts/[id]` to physical delete the target child r
 
 ## Acceptance criteria
 
-- [ ] `DELETE /api/dashboard/drafts/[id]?platform=linkedin` physically deletes the `LinkedInPost` row for that `Post`
-- [ ] `DELETE /api/dashboard/drafts/[id]?platform=x` physically deletes the `XPost` row for that `Post`
-- [ ] If the other child row has no content, `Post` is cascade-deleted
-- [ ] If the other child row has content, `Post` is preserved
-- [ ] `DELETE /api/dashboard/drafts/[id]` (no platform) still deletes the entire `Post` (cascade deletes both children)
-- [ ] Confirmation response indicates whether the entire `Post` was deleted or just the child row
+- [x] `DELETE /api/dashboard/drafts/[id]?platform=linkedin` physically deletes the `LinkedInPost` row for that `Post`
+- [x] `DELETE /api/dashboard/drafts/[id]?platform=x` physically deletes the `XPost` row for that `Post`
+- [x] If the other child row has no content, `Post` is cascade-deleted
+- [x] If the other child row has content, `Post` is preserved
+- [x] `DELETE /api/dashboard/drafts/[id]` (no platform) still deletes the entire `Post` (cascade deletes both children)
+- [x] Confirmation response indicates whether the entire `Post` was deleted or just the child row
 
 ## Blocked by
 
 `.scratch/platform-normalized-schema/issues/02-save-draft-child-rows.md`
 
-Label: ready-for-agent
+Label: completed
+
+**Completed:** 2025-05-11 (verified 2025-05-11) - delete draft API now uses child rows. With platform param, deletes specific child row. If other child has no content, cascade deletes Post. Without platform, deletes entire Post. GET route also updated to use child rows. TypeScript compiles.
 
 ## Agent Brief
 

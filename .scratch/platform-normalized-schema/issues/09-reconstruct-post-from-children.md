@@ -8,22 +8,24 @@ Update `lib/drafts.ts` `reconstructPostContent` to build `StoredDraftContent` fr
 
 ## Acceptance criteria
 
-- [ ] `reconstructPostContent` reads `linkedin.content` from `LinkedInPost.content`
-- [ ] `reconstructPostContent` reads `linkedin.status` from `LinkedInPost.status`
-- [ ] `reconstructPostContent` reads `linkedin.scheduledAt` from `LinkedInPost.scheduledAt`
-- [ ] `reconstructPostContent` reads `x.mode` from `XPost.mode`
-- [ ] `reconstructPostContent` reads `x.posts` from `XPost.threadPosts`
-- [ ] `reconstructPostContent` reads `x.status` from `XPost.status`
-- [ ] `reconstructPostContent` reads `x.scheduledAt` from `XPost.scheduledAt`
-- [ ] `SaveDraftResponse` type includes `linkedinPost` and `xPost` fields
-- [ ] No references to `Post.linkedinContent`, `Post.xContent`, `Post.linkedinStatus`, `Post.xStatus`
-- [ ] Unit tests pass for `reconstructPostContent` with child row input
+- [x] `reconstructPostContent` reads `linkedin.content` from `LinkedInPost.content`
+- [x] `reconstructPostContent` reads `linkedin.status` from `LinkedInPost.status`
+- [x] `reconstructPostContent` reads `linkedin.scheduledAt` from `LinkedInPost.scheduledAt`
+- [x] `reconstructPostContent` reads `x.mode` from `XPost.mode`
+- [x] `reconstructPostContent` reads `x.posts` from `XPost.threadPosts`
+- [x] `reconstructPostContent` reads `x.status` from `XPost.status`
+- [x] `reconstructPostContent` reads `x.scheduledAt` from `XPost.scheduledAt`
+- [x] `SaveDraftResponse` type includes `linkedinPost` and `xPost` fields
+- [x] No references to `Post.linkedinContent`, `Post.xContent`, `Post.linkedinStatus`, `Post.xStatus`
+- [x] Unit tests pass for `reconstructPostContent` with child row input
 
 ## Blocked by
 
 `.scratch/platform-normalized-schema/issues/01-schema-migration.md`
 
-Label: ready-for-agent
+Label: completed
+
+**Completed:** 2025-05-11 - `reconstructPostContent` already reads from child rows. Has fallback for legacy data. `SaveDraftResponse` includes `linkedinPost`/`xPost` fields.
 
 ## Agent Brief
 

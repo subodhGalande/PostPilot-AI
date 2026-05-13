@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
 import { requireAuthJose } from "@/lib/auth/requireAuthJose";
-import { reconstructPostContent } from "@/lib/drafts";
 import prisma from "@/lib/prisma";
 
 export async function GET(req: Request) {
@@ -14,38 +13,28 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const fetchType = searchParams.get("fetch") as string || "drafts";
 
-  // For drafts: show posts where at least one platform is DRAFT
-  // For calendar: show posts where at least one platform is SCHEDULED
   const isScheduled = fetchType === "scheduled";
-  
+  const targetStatus = isScheduled ? "SCHEDULED" : "DRAFT";
+
   const posts = await prisma.post.findMany({
     where: {
       userId: authUser.id,
-      OR: isScheduled 
-        ? [
-            { linkedinStatus: "SCHEDULED" },
-            { xStatus: "SCHEDULED" },
-          ]
-        : [
-            { linkedinStatus: "DRAFT" },
-            { xStatus: "DRAFT" },
-          ],
+      OR: [
+        {
+          linkedinPost: {
+            status: targetStatus,
+          },
+        },
+        {
+          xPost: {
+            status: targetStatus,
+          },
+        },
+      ],
     },
-    select: {
-      id: true,
-      title: true,
-      topic: true,
-      baseIdea: true,
-      model: true,
-      linkedinContent: true,
-      xContent: true,
-      linkedinStatus: true,
-      linkedinScheduledAt: true,
-      xStatus: true,
-      xScheduledAt: true,
-      createdAt: true,
-      updatedAt: true,
-      clientDraftKey: true,
+    include: {
+      linkedinPost: true,
+      xPost: true,
     },
     orderBy: {
       updatedAt: "desc",
@@ -54,21 +43,33 @@ export async function GET(req: Request) {
 
   return NextResponse.json(
     posts.map((post) => {
-      const parsedContent = reconstructPostContent(post);
-
       return {
         id: post.id,
         title: post.title,
-        linkedinStatus: post.linkedinStatus,
-        linkedinScheduledAt: post.linkedinScheduledAt,
-        xStatus: post.xStatus,
-        xScheduledAt: post.xScheduledAt,
+        topic: post.topic || "",
+        baseIdea: post.baseIdea || "",
+        model: post.model || "",
+        clientDraftKey: post.clientDraftKey,
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
-        clientDraftKey: post.clientDraftKey,
-        content: parsedContent,
-        baseIdea: parsedContent.baseIdea,
-        topic: parsedContent.topic,
+        linkedinPost: post.linkedinPost
+          ? {
+              id: post.linkedinPost.id,
+              content: post.linkedinPost.content,
+              status: post.linkedinPost.status,
+              scheduledAt: post.linkedinPost.scheduledAt,
+            }
+          : null,
+        xPost: post.xPost
+          ? {
+              id: post.xPost.id,
+              content: post.xPost.content,
+              mode: post.xPost.mode,
+              threadPosts: post.xPost.threadPosts,
+              status: post.xPost.status,
+              scheduledAt: post.xPost.scheduledAt,
+            }
+          : null,
       };
     }),
   );

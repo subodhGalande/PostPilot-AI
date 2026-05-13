@@ -3,7 +3,6 @@ import { z } from "zod";
 
 import { requireAuthJose } from "@/lib/auth/requireAuthJose";
 import prisma from "@/lib/prisma";
-import { generatedPostItemSchema } from "@/lib/social-posts";
 
 import { schedulePostSchema } from "@/lib/schemas/post.schema";
 
@@ -15,25 +14,8 @@ function getErrorMessage(error: unknown) {
   return "Failed to schedule post";
 }
 
-function buildPostData(
-  input: z.infer<typeof schedulePostSchema>,
-  existingPost?: any,
-) {
-  const { post, model, clientDraftKey, platform, scheduledAt } = input;
-
-  const linkedinStatus =
-    platform === "linkedin"
-      ? "SCHEDULED"
-      : existingPost?.linkedinStatus || "DRAFT";
-  const linkedinScheduledAt =
-    platform === "linkedin"
-      ? new Date(scheduledAt)
-      : existingPost?.linkedinScheduledAt;
-
-  const xStatus =
-    platform === "x" ? "SCHEDULED" : existingPost?.xStatus || "DRAFT";
-  const xScheduledAt =
-    platform === "x" ? new Date(scheduledAt) : existingPost?.xScheduledAt;
+function buildPostData(input: z.infer<typeof schedulePostSchema>) {
+  const { post, model, clientDraftKey } = input;
 
   return {
     title: post.baseIdea.trim(),
@@ -41,16 +23,6 @@ function buildPostData(
     baseIdea: post.baseIdea,
     model: model,
     clientDraftKey,
-
-    // Platform Content (stripped of metadata)
-    linkedinContent: { content: post.linkedin.content },
-    xContent: { mode: post.x.mode, posts: post.x.posts },
-
-    // Single Source of Truth for Status
-    linkedinStatus: linkedinStatus as any,
-    linkedinScheduledAt,
-    xStatus: xStatus as any,
-    xScheduledAt,
   };
 }
 
@@ -80,7 +52,8 @@ export async function POST(req: Request) {
       JSON.stringify(parsedBody.data, null, 2),
     );
 
-    const { id, clientDraftKey, updatedAt, post } = parsedBody.data;
+    const { id, clientDraftKey, updatedAt, post, platform, scheduledAt } = parsedBody.data;
+    const scheduledDate = new Date(scheduledAt);
 
     // Validate at least one platform has content
     const hasLinkedInContent =
@@ -109,11 +82,8 @@ export async function POST(req: Request) {
         },
         select: {
           id: true,
+          createdAt: true,
           updatedAt: true,
-          linkedinStatus: true,
-          linkedinScheduledAt: true,
-          xStatus: true,
-          xScheduledAt: true,
         },
       });
     } else {
@@ -124,18 +94,15 @@ export async function POST(req: Request) {
         },
         select: {
           id: true,
+          createdAt: true,
           updatedAt: true,
-          linkedinStatus: true,
-          linkedinScheduledAt: true,
-          xStatus: true,
-          xScheduledAt: true,
         },
       });
     }
 
-    const postData = buildPostData(parsedBody.data, existingPost);
+    const postData = buildPostData(parsedBody.data);
 
-    // 2. If post exists, check for conflicts and update to SCHEDULED
+    // 2. If post exists, check for conflicts and update child row
     if (existingPost) {
       if (updatedAt && existingPost.updatedAt.toISOString() !== updatedAt) {
         return NextResponse.json(
@@ -149,33 +116,96 @@ export async function POST(req: Request) {
         );
       }
 
-      const updatedPost = await prisma.post.update({
-        where: {
-          id: existingPost.id,
-        },
-        data: postData,
-        select: {
-          id: true,
-          title: true,
-          topic: true,
-          baseIdea: true,
-          model: true,
-          linkedinContent: true,
-          xContent: true,
-          createdAt: true,
-          updatedAt: true,
-          clientDraftKey: true,
-          linkedinStatus: true,
-          linkedinScheduledAt: true,
-          xStatus: true,
-          xScheduledAt: true,
-        },
-      });
+      // Update post metadata and target child row in transaction
+      if (platform === "linkedin" && post.linkedin?.content?.trim()) {
+        await prisma.$transaction([
+          prisma.post.update({
+            where: { id: existingPost.id },
+            data: postData,
+          }),
+          prisma.linkedInPost.upsert({
+            where: { postId: existingPost.id },
+            update: {
+              content: post.linkedin.content,
+              status: "SCHEDULED",
+              scheduledAt: scheduledDate,
+            },
+            create: {
+              content: post.linkedin.content,
+              status: "SCHEDULED",
+              scheduledAt: scheduledDate,
+              postId: existingPost.id,
+            },
+          }),
+        ]);
 
-      return NextResponse.json({ ...updatedPost, platform: parsedBody.data.platform });
+        const [updatedPost, updatedLinkedIn] = await Promise.all([
+          prisma.post.findUnique({ where: { id: existingPost.id } }),
+          prisma.linkedInPost.findUnique({ where: { postId: existingPost.id } }),
+        ]);
+
+        return NextResponse.json({
+          ...updatedPost,
+          linkedinPost: updatedLinkedIn ? {
+            id: updatedLinkedIn.id,
+            content: updatedLinkedIn.content,
+            status: updatedLinkedIn.status,
+            scheduledAt: updatedLinkedIn.scheduledAt,
+          } : null,
+          xPost: null,
+        });
+      }
+
+      if (platform === "x" && post.x?.posts?.length > 0) {
+        const firstPost = post.x.posts[0];
+        if (firstPost?.content?.trim()) {
+          await prisma.$transaction([
+            prisma.post.update({
+              where: { id: existingPost.id },
+              data: postData,
+            }),
+            prisma.xPost.upsert({
+              where: { postId: existingPost.id },
+              update: {
+                content: firstPost.content,
+                mode: post.x.mode || "single",
+                threadPosts: post.x.posts,
+                status: "SCHEDULED",
+                scheduledAt: scheduledDate,
+              },
+              create: {
+                content: firstPost.content,
+                mode: post.x.mode || "single",
+                threadPosts: post.x.posts,
+                status: "SCHEDULED",
+                scheduledAt: scheduledDate,
+                postId: existingPost.id,
+              },
+            }),
+          ]);
+
+          const [updatedPost, updatedX] = await Promise.all([
+            prisma.post.findUnique({ where: { id: existingPost.id } }),
+            prisma.xPost.findUnique({ where: { postId: existingPost.id } }),
+          ]);
+
+          return NextResponse.json({
+            ...updatedPost,
+            linkedinPost: null,
+            xPost: updatedX ? {
+              id: updatedX.id,
+              content: updatedX.content,
+              mode: updatedX.mode,
+              threadPosts: updatedX.threadPosts,
+              status: updatedX.status,
+              scheduledAt: updatedX.scheduledAt,
+            } : null,
+          });
+        }
+      }
     }
 
-    // 3. If no post exists, create a new one as SCHEDULED
+    // 3. If no post exists, create new post with scheduled child rows
     const newPost = await prisma.post.create({
       data: {
         ...postData,
@@ -183,23 +213,74 @@ export async function POST(req: Request) {
       },
       select: {
         id: true,
-        title: true,
-        topic: true,
-        baseIdea: true,
-        model: true,
-        linkedinContent: true,
-        xContent: true,
         createdAt: true,
         updatedAt: true,
-        clientDraftKey: true,
-        linkedinStatus: true,
-        linkedinScheduledAt: true,
-        xStatus: true,
-        xScheduledAt: true,
       },
     });
 
-    return NextResponse.json({ ...newPost, platform: parsedBody.data.platform }, { status: 201 });
+    const childCreates: unknown[] = [];
+
+    if (platform === "linkedin" && post.linkedin?.content?.trim()) {
+      childCreates.push(
+        prisma.linkedInPost.create({
+          data: {
+            content: post.linkedin.content,
+            status: "SCHEDULED",
+            scheduledAt: scheduledDate,
+            postId: newPost.id,
+          },
+        }),
+      );
+    }
+
+    if (platform === "x" && post.x?.posts?.length > 0) {
+      const firstPost = post.x.posts[0];
+      if (firstPost?.content?.trim()) {
+        childCreates.push(
+          prisma.xPost.create({
+            data: {
+              content: firstPost.content,
+              mode: post.x.mode || "single",
+              threadPosts: post.x.posts,
+              status: "SCHEDULED",
+              scheduledAt: scheduledDate,
+              postId: newPost.id,
+            },
+          }),
+        );
+      }
+    }
+
+    await prisma.$transaction(childCreates as never[]);
+
+    const [createdLinkedIn, createdX] = await Promise.all([
+      prisma.linkedInPost.findUnique({ where: { postId: newPost.id } }),
+      prisma.xPost.findUnique({ where: { postId: newPost.id } }),
+    ]);
+
+    return NextResponse.json(
+      {
+        ...postData,
+        id: newPost.id,
+        createdAt: newPost.createdAt,
+        updatedAt: newPost.updatedAt,
+        linkedinPost: createdLinkedIn ? {
+          id: createdLinkedIn.id,
+          content: createdLinkedIn.content,
+          status: createdLinkedIn.status,
+          scheduledAt: createdLinkedIn.scheduledAt,
+        } : null,
+        xPost: createdX ? {
+          id: createdX.id,
+          content: createdX.content,
+          mode: createdX.mode,
+          threadPosts: createdX.threadPosts,
+          status: createdX.status,
+          scheduledAt: createdX.scheduledAt,
+        } : null,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("schedulePost POST route error", error);
 

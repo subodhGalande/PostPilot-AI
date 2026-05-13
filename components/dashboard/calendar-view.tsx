@@ -30,14 +30,29 @@ import {
 import { ConfirmationModal } from "@/components/dashboard/confirmation-modal";
 import { useState, useMemo, useCallback } from "react";
 
+interface LinkedInPostData {
+  id: string;
+  content: string | null;
+  status: string;
+  scheduledAt: Date | null;
+}
+
+interface XPostData {
+  id: string;
+  content: string | null;
+  mode: string | null;
+  threadPosts: unknown;
+  status: string;
+  scheduledAt: Date | null;
+}
+
 interface ScheduledPost {
   id: string;
   title: string;
-  linkedinStatus: string;
-  linkedinScheduledAt: string | null;
-  xStatus: string;
-  xScheduledAt: string | null;
-  content: any;
+  linkedinPost: LinkedInPostData | null;
+  xPost: XPostData | null;
+  topic: string;
+  baseIdea: string;
   clientDraftKey: string;
   updatedAt: string;
 }
@@ -167,10 +182,11 @@ export function CalendarView() {
       const post = scheduledPosts?.find((p) => p.id === id);
       if (!post) throw new Error("Post not found");
 
-      const storedContent = post.content as any;
-      if (!storedContent) throw new Error("Post content not found");
+      const linkedin = post.linkedinPost;
+      const xPost = post.xPost;
 
-      const { model, ...postData } = storedContent;
+      const linkedinContent = linkedin?.content || "";
+      const xContent = xPost?.threadPosts as { id: string; content: string }[] | null;
 
       const response = await fetch("/api/dashboard/schedulePost", {
         method: "POST",
@@ -178,8 +194,22 @@ export function CalendarView() {
         body: JSON.stringify({
           id,
           clientDraftKey: post.clientDraftKey,
-          post: postData,
-          model: model || "gemini-2.0-flash",
+          post: {
+            topic: post.topic || "",
+            baseIdea: post.baseIdea || "",
+            linkedin: {
+              content: linkedinContent,
+              status: linkedin?.status || "DRAFT",
+              scheduledAt: null,
+            },
+            x: {
+              posts: xContent || [],
+              mode: xPost?.mode || "single",
+              status: xPost?.status || "DRAFT",
+              scheduledAt: null,
+            },
+          },
+          model: post.baseIdea ? "gemini-2.0-flash" : "gemini-2.0-flash",
           scheduledAt: newDate,
           platform,
           updatedAt: post.updatedAt,
@@ -218,41 +248,46 @@ export function CalendarView() {
     const calendarEvents: CalendarEvent[] = [];
 
     (scheduledPosts || []).forEach((post) => {
-      // Add LinkedIn event if scheduled
-      if (post.linkedinStatus === "SCHEDULED" && post.linkedinScheduledAt) {
+      const linkedin = post.linkedinPost;
+      const xPost = post.xPost;
+
+      if (linkedin?.status === "SCHEDULED" && linkedin.scheduledAt) {
+        const scheduledAtISO = linkedin.scheduledAt instanceof Date
+          ? linkedin.scheduledAt.toISOString()
+          : String(linkedin.scheduledAt);
+
         calendarEvents.push({
           id: `${post.id}-linkedin`,
           title: post.title,
-          start: post.linkedinScheduledAt,
-          end: new Date(
-            new Date(post.linkedinScheduledAt).getTime() + 30 * 60000,
-          ).toISOString(),
+          start: scheduledAtISO,
+          end: new Date(new Date(scheduledAtISO).getTime() + 30 * 60000).toISOString(),
           classNames: ["scheduled-post-event", "platform-linkedin"],
           extendedProps: {
-            status: post.linkedinStatus,
+            status: linkedin.status,
             type: "scheduled",
-            platform: "linkedin",
-            content: post.content,
+            platform: "linkedin" as const,
+            content: linkedin.content,
             postId: post.id,
           },
         });
       }
 
-      // Add X event if scheduled
-      if (post.xStatus === "SCHEDULED" && post.xScheduledAt) {
+      if (xPost?.status === "SCHEDULED" && xPost.scheduledAt) {
+        const scheduledAtISO = xPost.scheduledAt instanceof Date
+          ? xPost.scheduledAt.toISOString()
+          : String(xPost.scheduledAt);
+
         calendarEvents.push({
           id: `${post.id}-x`,
           title: post.title,
-          start: post.xScheduledAt,
-          end: new Date(
-            new Date(post.xScheduledAt).getTime() + 30 * 60000,
-          ).toISOString(),
+          start: scheduledAtISO,
+          end: new Date(new Date(scheduledAtISO).getTime() + 30 * 60000).toISOString(),
           classNames: ["scheduled-post-event", "platform-x"],
           extendedProps: {
-            status: post.xStatus,
+            status: xPost.status,
             type: "scheduled",
-            platform: "x",
-            content: post.content,
+            platform: "x" as const,
+            content: xPost.content,
             postId: post.id,
           },
         });

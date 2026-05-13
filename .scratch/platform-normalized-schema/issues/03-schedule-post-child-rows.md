@@ -8,19 +8,21 @@ Update `POST /api/dashboard/schedulePost` to flip the target child row `status` 
 
 ## Acceptance criteria
 
-- [ ] `POST /api/dashboard/schedulePost` sets `LinkedInPost.status = SCHEDULED` and `LinkedInPost.scheduledAt` when `platform = linkedin`
-- [ ] `POST /api/dashboard/schedulePost` sets `XPost.status = SCHEDULED` and `XPost.scheduledAt` when `platform = x`
-- [ ] Non-target child row is left untouched (preserves its status/scheduledAt)
-- [ ] If target child row does not exist (legacy post), it is created with SCHEDULED status
-- [ ] All writes to `Post.linkedinStatus`/`Post.xStatus`/`Post.linkedinScheduledAt`/`Post.xScheduledAt` removed
-- [ ] Conflict detection (`updatedAt` check) still works
-- [ ] Response includes updated child row data
+- [x] `POST /api/dashboard/schedulePost` sets `LinkedInPost.status = SCHEDULED` and `LinkedInPost.scheduledAt` when `platform = linkedin`
+- [x] `POST /api/dashboard/schedulePost` sets `XPost.status = SCHEDULED` and `XPost.scheduledAt` when `platform = x`
+- [x] Non-target child row is left untouched (preserves its status/scheduledAt)
+- [x] If target child row does not exist (legacy post), it is created with SCHEDULED status
+- [x] All writes to `Post.linkedinStatus`/`Post.xStatus`/`Post.linkedinScheduledAt`/`Post.xScheduledAt` removed
+- [x] Conflict detection (`updatedAt` check) still works
+- [x] Response includes updated child row data
 
 ## Blocked by
 
 `.scratch/platform-normalized-schema/issues/02-save-draft-child-rows.md`
 
-Label: ready-for-agent
+Label: completed
+
+**Completed:** 2025-05-11 (verified 2025-05-11) - schedulePost now targets child rows. Sets status=SCHEDULED and scheduledAt on LinkedInPost/XPost. Creates child rows if missing (legacy). Returns child data in response. TypeScript compiles.
 
 ## Agent Brief
 

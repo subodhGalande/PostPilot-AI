@@ -36,8 +36,6 @@ export async function POST(req: Request) {
       },
       select: {
         id: true,
-        linkedinStatus: true,
-        xStatus: true,
       },
     });
 
@@ -49,31 +47,61 @@ export async function POST(req: Request) {
     const doUnscheduleLinkedin = !platform || platform === "linkedin";
     const doUnscheduleX = !platform || platform === "x";
 
-    const updateData: any = {};
+    // 3. Update child rows - set status to DRAFT and scheduledAt to null
+    // Child rows persist (not deleted)
+    const updates: unknown[] = [];
+
     if (doUnscheduleLinkedin) {
-      updateData.linkedinStatus = "DRAFT";
-      updateData.linkedinScheduledAt = null;
+      updates.push(
+        prisma.linkedInPost.update({
+          where: { postId: id },
+          data: {
+            status: "DRAFT",
+            scheduledAt: null,
+          },
+        }),
+      );
     }
+
     if (doUnscheduleX) {
-      updateData.xStatus = "DRAFT";
-      updateData.xScheduledAt = null;
+      updates.push(
+        prisma.xPost.update({
+          where: { postId: id },
+          data: {
+            status: "DRAFT",
+            scheduledAt: null,
+          },
+        }),
+      );
     }
 
-    // 3. Update post - platform statuses only
-    const updatedPost = await prisma.post.update({
-      where: { id },
-      data: updateData,
-      select: {
-        id: true,
-        updatedAt: true,
-        linkedinStatus: true,
-        linkedinScheduledAt: true,
-        xStatus: true,
-        xScheduledAt: true,
-      },
-    });
+    if (updates.length > 0) {
+      await prisma.$transaction(updates as never[]);
+    }
 
-    return NextResponse.json(updatedPost);
+    // 4. Fetch updated child rows for response
+    const [linkedInPost, xPost] = await Promise.all([
+      doUnscheduleLinkedin ? prisma.linkedInPost.findUnique({ where: { postId: id } }) : null,
+      doUnscheduleX ? prisma.xPost.findUnique({ where: { postId: id } }) : null,
+    ]);
+
+    return NextResponse.json({
+      id: post.id,
+      linkedinPost: linkedInPost ? {
+        id: linkedInPost.id,
+        content: linkedInPost.content,
+        status: linkedInPost.status,
+        scheduledAt: linkedInPost.scheduledAt,
+      } : null,
+      xPost: xPost ? {
+        id: xPost.id,
+        content: xPost.content,
+        mode: xPost.mode,
+        threadPosts: xPost.threadPosts,
+        status: xPost.status,
+        scheduledAt: xPost.scheduledAt,
+      } : null,
+    });
   } catch (error) {
     console.error("unschedulePost POST route error", error);
     return NextResponse.json(

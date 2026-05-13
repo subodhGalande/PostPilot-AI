@@ -8,16 +8,18 @@ Update `components/dashboard/drafts-grid.tsx` to derive platform badges from chi
 
 ## Acceptance criteria
 
-- [ ] Platform badges (LinkedIn, X) shown based on presence and status of child rows
-- [ ] Badge state (draft/scheduled) derived from `LinkedInPost.status` and `XPost.status`
-- [ ] Grid renders correctly when one platform is scheduled and one is draft
-- [ ] No references to `Post.linkedinStatus` or `Post.xStatus`
+- [x] Platform badges (LinkedIn, X) shown based on presence and status of child rows
+- [x] Badge state (draft/scheduled) derived from `LinkedInPost.status` and `XPost.status`
+- [x] Grid renders correctly when one platform is scheduled and one is draft
+- [x] No references to `Post.linkedinStatus` or `Post.xStatus`
 
 ## Blocked by
 
 `.scratch/platform-normalized-schema/issues/07-draft-detail-from-children.md`
 
-Label: ready-for-agent
+Label: completed
+
+**Completed:** 2025-05-11 - `DraftListItem` now uses `linkedinPost`/`xPost` from child rows. Badges derived from `linkedinPost.status`/`xPost.status`. No Post column refs.
 
 ## Agent Brief
 

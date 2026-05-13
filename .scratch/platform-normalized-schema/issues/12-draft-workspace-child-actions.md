@@ -8,18 +8,20 @@ Update `components/dashboard/draft-editor-workspace.tsx` to target child row mut
 
 ## Acceptance criteria
 
-- [ ] Save mutation sends `post.linkedin.content` and `post.x.posts` to child row upsert
-- [ ] Schedule mutation targets child row `status` = SCHEDULED
-- [ ] Unschedule mutation targets child row `status` = DRAFT (row persists)
-- [ ] Delete mutation targets specific child row for deletion
-- [ ] Platform action menu (unschedule/delete) targets correct child row
-- [ ] `currentLinkedinStatus` and `currentXStatus` sourced from child row response
-- [ ] `onScheduleSuccess` handler updates child row derived state
-- [ ] Redirect logic after schedule/unschedule works with child row response
-- [ ] Confirmation modal text reflects child row deletion
+- [x] Save mutation sends `post.linkedin.content` and `post.x.posts` to child row upsert
+- [x] Schedule mutation targets child row `status` = SCHEDULED
+- [x] Unschedule mutation targets child row `status` = DRAFT (row persists)
+- [x] Delete mutation targets specific child row for deletion
+- [x] Platform action menu (unschedule/delete) targets correct child row
+- [x] `currentLinkedinStatus` and `currentXStatus` sourced from child row response
+- [x] `onScheduleSuccess` handler updates child row derived state
+- [x] Redirect logic after schedule/unschedule works with child row response
+- [x] Confirmation modal text reflects child row deletion
 
 ## Blocked by
 
 `.scratch/platform-normalized-schema/issues/02-save-draft-child-rows.md`, `.scratch/platform-normalized-schema/issues/03-schedule-post-child-rows.md`, `.scratch/platform-normalized-schema/issues/04-unschedule-post-child-rows.md`, `.scratch/platform-normalized-schema/issues/05-delete-draft-child-row.md`
 
-Label: needs-triage
+Label: completed
+
+**Completed:** 2025-05-11 - All API responses now use `linkedinPost`/`xPost` keys. `draft-editor-workspace.tsx` reads status from child row response. `PostPreview` no longer receives `linkedinStatus`/`xStatus` props. Tests updated.

@@ -8,19 +8,21 @@ Update Zod schemas to reflect that content maps directly to child row fields. Up
 
 ## Acceptance criteria
 
-- [ ] `saveDraftSchema` — `post.linkedin.content` and `post.x.posts` map to child row fields, not `Post` columns
-- [ ] `schedulePostSchema` — `scheduledAt` maps to child row `scheduledAt`, not `Post` column
-- [ ] `unscheduleSchema` — `id` and `platform` still valid, no column references
-- [ ] `generatedPostItemSchema` — `linkedin.content` and `x.posts` are the source of truth for child row content
-- [ ] `platformLifecycleSchema` — `status` and `scheduledAt` map to child row fields
-- [ ] TypeScript types reflect new child row structure (`LinkedInPost`, `XPost`)
-- [ ] No references to removed `linkedinContent`/`xContent`/`linkedinStatus`/`xStatus` columns
+- [x] `saveDraftSchema` — `post.linkedin.content` and `post.x.posts` map to child row fields, not `Post` columns
+- [x] `schedulePostSchema` — `scheduledAt` maps to child row `scheduledAt`, not `Post` column
+- [x] `unscheduleSchema` — `id` and `platform` still valid, no column references
+- [x] `generatedPostItemSchema` — `linkedin.content` and `x.posts` are the source of truth for child row content
+- [x] `platformLifecycleSchema` — `status` and `scheduledAt` map to child row fields
+- [x] TypeScript types reflect new child row structure (`LinkedInPost`, `XPost`)
+- [x] No references to removed `linkedinContent`/`xContent`/`linkedinStatus`/`xStatus` columns
 
 ## Blocked by
 
 `.scratch/platform-normalized-schema/issues/01-schema-migration.md`
 
-Label: ready-for-agent
+Label: completed
+
+**Completed:** 2025-05-11 - Schemas already use child-row structure. `generatedPostItemSchema` has linkedin.content/x.posts. `platformLifecycleSchema` has status/scheduledAt. No Post column references.
 
 ## Agent Brief
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeft, Calendar, FileText, Loader2, Save } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 import { LinkedInPostPreview } from "@/components/dashboard/linkedin-post-preview";
 import { XPostPreview } from "@/components/dashboard/x-post-preview";
@@ -14,6 +14,7 @@ import type { SaveDraftResponse } from "@/lib/drafts";
 import type { GeneratedPostItem, GeneratedPostPack } from "@/lib/social-posts";
 import { cn } from "@/lib/utils";
 
+type Platform = "linkedin" | "x";
 type PlatformTab = "linkedin" | "x";
 type PostPreviewMode = "generated" | "draft";
 
@@ -34,11 +35,12 @@ interface PostPreviewProps {
   clientDraftKey?: string;
   initialPlatform?: PlatformTab;
   saveDraftLabel?: string;
-  onSaveDraft?: () => void;
+  onSaveDraft?: (platform: Platform) => void;
   onScheduleSuccess?: (data: SaveDraftResponse) => void;
   onReset?: () => void;
   hideStatusBadge?: boolean;
   readOnly?: boolean;
+  clearedPlatforms?: Set<Platform>;
 }
 
 export function PostPreview({
@@ -63,8 +65,11 @@ export function PostPreview({
   onReset,
   hideStatusBadge = false,
   readOnly = false,
+  clearedPlatforms = new Set(),
 }: PostPreviewProps) {
-  const [activePlatform, setActivePlatform] = useState<PlatformTab>(initialPlatform);
+  const [activePlatform, setActivePlatform] =
+    useState<PlatformTab>(initialPlatform);
+  const isDebouncingRef = useRef(false);
 
   useEffect(() => {
     if (initialPlatform) {
@@ -72,20 +77,61 @@ export function PostPreview({
     }
   }, [initialPlatform]);
 
-  const activePost: GeneratedPostItem | null = generatedPostPack?.posts[0] ?? null;
+  useEffect(() => {
+    if (clearedPlatforms.has(activePlatform)) {
+      const otherPlatform = activePlatform === "linkedin" ? "x" : "linkedin";
+      if (!clearedPlatforms.has(otherPlatform)) {
+        setActivePlatform(otherPlatform);
+      }
+    }
+  }, [clearedPlatforms, activePlatform]);
+
+  const handleSaveDraft = useCallback(
+    (platform: Platform) => {
+      if (isDebouncingRef.current || isSavingDraft || isGenerating) return;
+      isDebouncingRef.current = true;
+      onSaveDraft?.(platform);
+      setTimeout(() => {
+        isDebouncingRef.current = false;
+      }, 500);
+    },
+    [isSavingDraft, isGenerating, onSaveDraft],
+  );
+
+  const activePost: GeneratedPostItem | null =
+    generatedPostPack?.posts[0] ?? null;
+
+  const availablePlatforms = activePost
+    ? (["linkedin", "x"] as const).filter(
+        (p) => activePost[p].status === "DRAFT" && !clearedPlatforms.has(p),
+      )
+    : [];
 
   // A post is considered "thinking" only if we are generating AND have no content at all yet
-  const isThinking = isGenerating && (!activePost || (!activePost.linkedin.content && !activePost.x.posts.length));
+  const isThinking =
+    isGenerating &&
+    (!activePost ||
+      (!activePost.linkedin.content && !activePost.x.posts.length));
 
   const title = mode === "draft" ? "Editor" : "Generated Preview";
   const description = mode === "draft" ? "" : "Edit for LinkedIn or X";
   const activePlatformLabel = activePlatform === "linkedin" ? "LinkedIn" : "X";
 
   return (
-    <div className={cn("flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm", className)}>
+    <div
+      className={cn(
+        "flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm",
+        className,
+      )}
+    >
       <div className="flex shrink-0 items-center gap-2 border-b p-4 md:p-6">
         {isGenerated ? (
-          <Button variant="ghost" size="icon" className="-ml-2 shrink-0 lg:hidden" onClick={onReset}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="-ml-2 shrink-0 lg:hidden"
+            onClick={onReset}
+          >
             <ArrowLeft className="size-5" />
           </Button>
         ) : null}
@@ -104,7 +150,9 @@ export function PostPreview({
               {activePost[activePlatform].status === "SCHEDULED" ? (
                 <span className="flex items-center gap-1">
                   <span className="size-1.5 rounded-full bg-emerald-500" />
-                  {activePlatform === "linkedin" ? "LinkedIn Scheduled" : "X Scheduled"}
+                  {activePlatform === "linkedin"
+                    ? "LinkedIn Scheduled"
+                    : "X Scheduled"}
                 </span>
               ) : (
                 <span className="flex items-center gap-1">
@@ -115,9 +163,15 @@ export function PostPreview({
             </Badge>
           )}
         </div>
-        {description ? <p className="text-sm text-muted-foreground pr-2">{description}</p> : null}
-        {activePost && (
-          <Tabs value={activePlatform} onValueChange={(value) => setActivePlatform(value as PlatformTab)} className="hidden md:flex">
+        {description ? (
+          <p className="text-sm text-muted-foreground pr-2">{description}</p>
+        ) : null}
+        {activePost && availablePlatforms.length > 1 && (
+          <Tabs
+            value={activePlatform}
+            onValueChange={(value) => setActivePlatform(value as PlatformTab)}
+            className="hidden md:flex"
+          >
             <TabsList className="bg-muted/80 border">
               <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
               <TabsTrigger value="x">X</TabsTrigger>
@@ -133,7 +187,8 @@ export function PostPreview({
           </div>
           <h4 className="mb-2 text-xl font-bold">Ready to Write</h4>
           <p className="max-w-sm text-sm text-muted-foreground">
-            Fill out the configuration on the left and hit generate to create your first draft.
+            Fill out the configuration on the left and hit generate to create
+            your first draft.
           </p>
         </div>
       ) : null}
@@ -145,7 +200,9 @@ export function PostPreview({
               <Loader2 className="size-4 animate-spin text-primary" />
               Thinking...
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">Analyzing your request and preparing the post structure...</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Analyzing your request and preparing the post structure...
+            </p>
           </div>
           <div className="rounded-xl border bg-muted/20 p-4">
             <Skeleton className="h-4 w-32" />
@@ -163,41 +220,76 @@ export function PostPreview({
 
       {isGenerated && !isThinking && activePost && generatedPostPack ? (
         <>
-          <div className="border-b px-4 py-3 md:hidden">
-            <Tabs value={activePlatform} onValueChange={(value) => setActivePlatform(value as PlatformTab)}>
-              <TabsList className="w-full bg-muted/80 border">
-                <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-                <TabsTrigger value="x">X</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
+          {availablePlatforms.length > 1 && (
+            <div className="border-b px-4 py-3 md:hidden">
+              <Tabs
+                value={activePlatform}
+                onValueChange={(value) =>
+                  setActivePlatform(value as PlatformTab)
+                }
+              >
+                <TabsList className="w-full bg-muted/80 border">
+                  <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
+                  <TabsTrigger value="x">X</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+          )}
 
           {activePlatform === "linkedin" ? (
-            <LinkedInPostPreview postStyle={postStyle} targetAudience={targetAudience} post={activePost} onChange={onLinkedInChange} readOnly={readOnly} />
+            <LinkedInPostPreview
+              postStyle={postStyle}
+              targetAudience={targetAudience}
+              post={activePost}
+              onChange={onLinkedInChange}
+              readOnly={readOnly}
+            />
           ) : (
-            <XPostPreview postStyle={postStyle} targetAudience={targetAudience} post={activePost} onPostChange={onXPostChange} readOnly={readOnly} />
+            <XPostPreview
+              postStyle={postStyle}
+              targetAudience={targetAudience}
+              post={activePost}
+              onPostChange={onXPostChange}
+              readOnly={readOnly}
+            />
           )}
 
           <div className="border-t px-4 py-4 md:px-6 md:py-5">
             <div className="flex flex-col gap-3 sm:flex-row">
-              <SchedulePostModal
-                post={activePost}
-                model={generatedPostPack.model}
-                clientDraftKey={clientDraftKey || ""}
-                id={id}
-                updatedAt={updatedAt}
-                platform={activePlatform}
-                onSuccess={onScheduleSuccess}
-              >
-                <Button className="w-full flex-1 rounded-xl font-semibold shadow-md transition-all" disabled={isGenerating}>
-                  <Calendar className="mr-2 size-4" />
-                  {activePost[activePlatform].status === "SCHEDULED" ? `Reschedule ${activePlatformLabel}` : `Schedule ${activePlatformLabel}`}
-                </Button>
-              </SchedulePostModal>
+              {activePost[activePlatform].status === "DRAFT" && (
+                <SchedulePostModal
+                  post={activePost}
+                  model={generatedPostPack.model}
+                  clientDraftKey={clientDraftKey || ""}
+                  id={id}
+                  updatedAt={updatedAt}
+                  platform={activePlatform}
+                  onSuccess={onScheduleSuccess}
+                >
+                  <Button
+                    className="w-full flex-1 rounded-xl font-semibold shadow-md transition-all"
+                    disabled={isGenerating}
+                  >
+                    <Calendar className="mr-2 size-4" />
+                    Schedule {activePlatformLabel}
+                  </Button>
+                </SchedulePostModal>
+              )}
               {!readOnly ? (
-                <Button variant="secondary" className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold hover:bg-muted" onClick={onSaveDraft} disabled={isSavingDraft || isGenerating}>
-                  {isSavingDraft ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Save className="mr-2 size-4" />}
-                  {isSavingDraft ? "Saving..." : saveDraftLabel || "Save as Draft"}
+                <Button
+                  variant="secondary"
+                  className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold hover:bg-muted"
+                  onClick={() => handleSaveDraft(activePlatform as Platform)}
+                  disabled={isSavingDraft || isGenerating || !onSaveDraft}
+                >
+                  {isSavingDraft ? (
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 size-4" />
+                  )}
+                  {isSavingDraft
+                    ? "Saving..."
+                    : saveDraftLabel || "Save as Draft"}
                 </Button>
               ) : null}
             </div>

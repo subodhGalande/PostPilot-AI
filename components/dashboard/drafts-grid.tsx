@@ -25,16 +25,30 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+type LinkedInPostData = {
+  id: string;
+  content: string | null;
+  status: string;
+  scheduledAt: Date | null;
+} | null;
+
+type XPostData = {
+  id: string;
+  content: string | null;
+  mode: string | null;
+  threadPosts: unknown;
+  status: string;
+  scheduledAt: Date | null;
+} | null;
+
 type DraftListItem = {
   id: string;
   title: string;
   topic: string;
   createdAt: string;
   updatedAt: string;
-  linkedinStatus?: string;
-  linkedinScheduledAt?: string | null;
-  xStatus?: string;
-  xScheduledAt?: string | null;
+  linkedinPost?: LinkedInPostData;
+  xPost?: XPostData;
 };
 
 interface DraftsGridProps {
@@ -109,15 +123,14 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
                 <FileText className="size-5" />
               </div>
               <div className="flex items-center gap-2">
-                {/* Platform badges for draft platforms */}
-                {(draft.linkedinStatus === "DRAFT" || draft.xStatus === "DRAFT") && (
+                {(draft.linkedinPost?.status === "DRAFT" || draft.xPost?.status === "DRAFT") && (
                   <div className="flex gap-1">
-                    {draft.linkedinStatus === "DRAFT" && (
+                    {draft.linkedinPost?.status === "DRAFT" && (
                       <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-600 border border-blue-200">
                         LinkedIn
                       </span>
                     )}
-                    {draft.xStatus === "DRAFT" && (
+                    {draft.xPost?.status === "DRAFT" && (
                       <span className="rounded-full bg-slate-900/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                         X
                       </span>

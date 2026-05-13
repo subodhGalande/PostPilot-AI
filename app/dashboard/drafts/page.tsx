@@ -19,24 +19,29 @@ export default async function DraftsPage() {
     where: {
       userId: authUser.id,
       OR: [
-        { linkedinStatus: "DRAFT" },
-        { xStatus: "DRAFT" },
+        { linkedinPost: { status: "DRAFT" } },
+        { xPost: { status: "DRAFT" } },
       ],
     },
-    select: {
-      id: true,
-      title: true,
-      topic: true,
-      baseIdea: true,
-      model: true,
-      linkedinContent: true,
-      xContent: true,
-      linkedinStatus: true,
-      linkedinScheduledAt: true,
-      xStatus: true,
-      xScheduledAt: true,
-      createdAt: true,
-      updatedAt: true,
+    include: {
+      linkedinPost: {
+        select: {
+          id: true,
+          content: true,
+          status: true,
+          scheduledAt: true,
+        },
+      },
+      xPost: {
+        select: {
+          id: true,
+          content: true,
+          mode: true,
+          threadPosts: true,
+          status: true,
+          scheduledAt: true,
+        },
+      },
     },
     orderBy: {
       updatedAt: "desc",
@@ -93,10 +98,24 @@ export default async function DraftsPage() {
               topic: parsedContent.topic,
               createdAt: draft.createdAt.toISOString(),
               updatedAt: draft.updatedAt.toISOString(),
-              linkedinStatus: draft.linkedinStatus,
-              linkedinScheduledAt: draft.linkedinScheduledAt?.toISOString() || null,
-              xStatus: draft.xStatus,
-              xScheduledAt: draft.xScheduledAt?.toISOString() || null,
+              linkedinPost: draft.linkedinPost
+                ? {
+                    id: draft.linkedinPost.id,
+                    content: draft.linkedinPost.content,
+                    status: draft.linkedinPost.status,
+                    scheduledAt: draft.linkedinPost.scheduledAt,
+                  }
+                : null,
+              xPost: draft.xPost
+                ? {
+                    id: draft.xPost.id,
+                    content: draft.xPost.content,
+                    mode: draft.xPost.mode,
+                    threadPosts: draft.xPost.threadPosts,
+                    status: draft.xPost.status,
+                    scheduledAt: draft.xPost.scheduledAt,
+                  }
+                : null,
             };
           })}
         />

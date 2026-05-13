@@ -20,10 +20,20 @@ export type SaveDraftResponse = {
   updatedAt: string;
   platform?: "linkedin" | "x";
   content?: any;
-  linkedinStatus?: string;
-  linkedinScheduledAt?: string | Date | null;
-  xStatus?: string;
-  xScheduledAt?: string | Date | null;
+  linkedinPost?: {
+    id: string;
+    content: string | null;
+    status: string;
+    scheduledAt: Date | null;
+  } | null;
+  xPost?: {
+    id: string;
+    content: string | null;
+    mode: string | null;
+    threadPosts: unknown;
+    status: string;
+    scheduledAt: Date | null;
+  } | null;
 };
 
 type SaveDraftPayload = {
@@ -56,6 +66,37 @@ export function parseStoredDraftContent(content: unknown) {
 }
 
 export function reconstructPostContent(post: any): StoredDraftContent {
+  const hasLinkedinPost = post.linkedinPost != null;
+  const hasXPost = post.xPost != null;
+
+  if (hasLinkedinPost || hasXPost) {
+    const linkedin = post.linkedinPost || { content: null, status: "DRAFT", scheduledAt: null };
+    const xPost = post.xPost || { mode: "single", threadPosts: [], status: "DRAFT", scheduledAt: null };
+
+    return storedDraftContentSchema.parse({
+      topic: post.topic || "",
+      baseIdea: post.baseIdea || "",
+      model: post.model || "",
+      linkedin: {
+        content: linkedin.content || "",
+        status: linkedin.status,
+        scheduledAt:
+          linkedin.scheduledAt instanceof Date
+            ? linkedin.scheduledAt.toISOString()
+            : linkedin.scheduledAt || null,
+      },
+      x: {
+        mode: xPost.mode || "single",
+        posts: xPost.threadPosts || [],
+        status: xPost.status,
+        scheduledAt:
+          xPost.scheduledAt instanceof Date
+            ? xPost.scheduledAt.toISOString()
+            : xPost.scheduledAt || null,
+      },
+    });
+  }
+
   const linkedin = (post.linkedinContent as any) || { content: "" };
   const x = (post.xContent as any) || { mode: "single", posts: [] };
 

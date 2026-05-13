@@ -182,11 +182,11 @@ export async function POST(req: Request) {
       return NextResponse.json({
         id: existingDraft.id,
         ...postData,
-        linkedin: updatedLinkedIn
-          ? { content: updatedLinkedIn.content, status: updatedLinkedIn.status, scheduledAt: updatedLinkedIn.scheduledAt }
+        linkedinPost: updatedLinkedIn
+          ? { id: updatedLinkedIn.id, content: updatedLinkedIn.content, status: updatedLinkedIn.status, scheduledAt: updatedLinkedIn.scheduledAt }
           : null,
-        x: updatedX
-          ? { posts: updatedX.threadPosts || [], mode: updatedX.mode, status: updatedX.status, scheduledAt: updatedX.scheduledAt }
+        xPost: updatedX
+          ? { id: updatedX.id, content: updatedX.content, mode: updatedX.mode, threadPosts: updatedX.threadPosts, status: updatedX.status, scheduledAt: updatedX.scheduledAt }
           : null,
         createdAt: existingDraft.createdAt,
         updatedAt: new Date().toISOString(),
@@ -218,11 +218,11 @@ export async function POST(req: Request) {
       {
         id: newDraft.id,
         ...postData,
-        linkedin: createdLinkedIn
-          ? { content: createdLinkedIn.content, status: createdLinkedIn.status, scheduledAt: createdLinkedIn.scheduledAt }
+        linkedinPost: createdLinkedIn
+          ? { id: createdLinkedIn.id, content: createdLinkedIn.content, status: createdLinkedIn.status, scheduledAt: createdLinkedIn.scheduledAt }
           : null,
-        x: createdX
-          ? { posts: createdX.threadPosts || [], mode: createdX.mode, status: createdX.status, scheduledAt: createdX.scheduledAt }
+        xPost: createdX
+          ? { id: createdX.id, content: createdX.content, mode: createdX.mode, threadPosts: createdX.threadPosts, status: createdX.status, scheduledAt: createdX.scheduledAt }
           : null,
         createdAt: newDraft.createdAt,
         updatedAt: newDraft.updatedAt,

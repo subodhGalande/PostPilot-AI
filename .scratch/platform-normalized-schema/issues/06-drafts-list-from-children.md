@@ -8,17 +8,19 @@ Update `GET /api/dashboard/drafts` to derive platform status from child rows ins
 
 ## Acceptance criteria
 
-- [ ] Drafts view: `WHERE EXISTS(LinkedInPost WHERE status = DRAFT) OR EXISTS(XPost WHERE status = DRAFT)` — same as current OR logic
-- [ ] Calendar view: `WHERE EXISTS(LinkedInPost WHERE status = SCHEDULED) OR EXISTS(XPost WHERE status = SCHEDULED)` — same as current OR logic
-- [ ] Response includes `linkedinPost` and `xPost` objects (id, content, status, scheduledAt, mode, threadPosts)
-- [ ] `reconstructPostContent` compatible — UI receives same shape as before
-- [ ] Works with both old data (from migration) and new data
+- [x] Drafts view: `WHERE EXISTS(LinkedInPost WHERE status = DRAFT) OR EXISTS(XPost WHERE status = DRAFT)` — same as current OR logic
+- [x] Calendar view: `WHERE EXISTS(LinkedInPost WHERE status = SCHEDULED) OR EXISTS(XPost WHERE status = SCHEDULED)` — same as current OR logic
+- [x] Response includes `linkedinPost` and `xPost` objects (id, content, status, scheduledAt, mode, threadPosts)
+- [x] `reconstructPostContent` compatible — UI receives same shape as before
+- [x] Works with both old data (from migration) and new data
 
 ## Blocked by
 
 `.scratch/platform-normalized-schema/issues/01-schema-migration.md`
 
-Label: ready-for-agent
+Label: completed
+
+**Completed:** 2025-05-11 - `GET /api/dashboard/drafts` now queries child rows for status filtering. Includes `linkedinPost` and `xPost` objects in response. `reconstructPostContent` handles both new child-row format and legacy data.
 
 ## Agent Brief
 

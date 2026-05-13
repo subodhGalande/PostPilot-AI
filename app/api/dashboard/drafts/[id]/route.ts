@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
 import { requireAuthJose } from "@/lib/auth/requireAuthJose";
-import { reconstructPostContent } from "@/lib/drafts";
 import prisma from "@/lib/prisma";
 
 export async function GET(
@@ -20,26 +19,10 @@ export async function GET(
     where: {
       id,
       userId: authUser.id,
-      OR: [
-        { linkedinStatus: { in: ["DRAFT", "SCHEDULED"] } },
-        { xStatus: { in: ["DRAFT", "SCHEDULED"] } },
-      ],
     },
-    select: {
-      id: true,
-      title: true,
-      topic: true,
-      baseIdea: true,
-      model: true,
-      linkedinContent: true,
-      xContent: true,
-      linkedinStatus: true,
-      linkedinScheduledAt: true,
-      xStatus: true,
-      xScheduledAt: true,
-      createdAt: true,
-      updatedAt: true,
-      clientDraftKey: true,
+    include: {
+      linkedinPost: true,
+      xPost: true,
     },
   });
 
@@ -47,10 +30,39 @@ export async function GET(
     return NextResponse.json({ error: "Draft not found" }, { status: 404 });
   }
 
-  return NextResponse.json({
-    ...draft,
-    content: reconstructPostContent(draft),
-  });
+  // Check if either child has DRAFT or SCHEDULED status
+  const linkedInActive = draft.linkedinPost && 
+    ["DRAFT", "SCHEDULED"].includes(draft.linkedinPost.status);
+  const xActive = draft.xPost && 
+    ["DRAFT", "SCHEDULED"].includes(draft.xPost.status);
+
+  if (!linkedInActive && !xActive) {
+    return NextResponse.json({ error: "Draft not found" }, { status: 404 });
+  }
+
+  const reconstructed = {
+    id: draft.id,
+    title: draft.title,
+    topic: draft.topic || "",
+    baseIdea: draft.baseIdea || "",
+    model: draft.model || "",
+    clientDraftKey: draft.clientDraftKey,
+    createdAt: draft.createdAt,
+    updatedAt: draft.updatedAt,
+    linkedin: draft.linkedinPost ? {
+      content: draft.linkedinPost.content || "",
+      status: draft.linkedinPost.status,
+      scheduledAt: draft.linkedinPost.scheduledAt,
+    } : null,
+    x: draft.xPost ? {
+      posts: draft.xPost.threadPosts || [],
+      mode: draft.xPost.mode,
+      status: draft.xPost.status,
+      scheduledAt: draft.xPost.scheduledAt,
+    } : null,
+  };
+
+  return NextResponse.json(reconstructed);
 }
 
 export async function DELETE(
@@ -67,17 +79,15 @@ export async function DELETE(
   const { searchParams } = new URL(req.url);
   const platform = searchParams.get("platform") as "linkedin" | "x" | null;
 
+  // Find post and its child rows
   const post = await prisma.post.findFirst({
     where: {
       id,
       userId: authUser.id,
     },
-    select: {
-      id: true,
-      linkedinContent: true,
-      linkedinStatus: true,
-      xContent: true,
-      xStatus: true,
+    include: {
+      linkedinPost: true,
+      xPost: true,
     },
   });
 
@@ -85,50 +95,34 @@ export async function DELETE(
     return NextResponse.json({ error: "Draft not found" }, { status: 404 });
   }
 
+  // If platform specified, delete specific child row
   if (platform) {
     const isLinkedIn = platform === "linkedin";
-    const otherPlatformContent = isLinkedIn
-      ? post.xContent
-      : post.linkedinContent;
-    const otherPlatformStatus = isLinkedIn ? post.xStatus : post.linkedinStatus;
+    const otherChild = isLinkedIn ? post.xPost : post.linkedinPost;
+    const otherHasContent = otherChild?.content && otherChild.content.trim().length > 0;
 
-    const hasOtherPlatformContent = otherPlatformContent !== null;
-    const isOtherPlatformActive =
-      otherPlatformStatus &&
-      ["DRAFT", "SCHEDULED", "PUBLISHED"].includes(otherPlatformStatus);
-    const isOtherPlatformDeleted =
-      otherPlatformStatus === "DELETED" && otherPlatformContent === null;
-
-    const updateData: Record<string, unknown> = {};
-
+    // Delete the target child row
     if (isLinkedIn) {
-      updateData.linkedinContent = null;
-      updateData.linkedinStatus = "DELETED";
+      if (post.linkedinPost) {
+        await prisma.linkedInPost.delete({ where: { postId: id } });
+      }
     } else {
-      updateData.xContent = null;
-      updateData.xStatus = "DELETED";
+      if (post.xPost) {
+        await prisma.xPost.delete({ where: { postId: id } });
+      }
     }
 
-    if (hasOtherPlatformContent || isOtherPlatformActive) {
-      await prisma.post.update({
-        where: { id },
-        data: updateData,
-      });
-      return NextResponse.json({ success: true, deletedEntirePost: false });
-    } else if (isOtherPlatformDeleted) {
+    // If other child has no content, cascade delete Post
+    if (!otherHasContent) {
       await prisma.post.delete({ where: { id } });
       return NextResponse.json({ success: true, deletedEntirePost: true });
-    } else {
-      await prisma.post.update({
-        where: { id },
-        data: updateData,
-      });
-      return NextResponse.json({ success: true, deletedEntirePost: false });
     }
-  } else {
-    await prisma.post.delete({
-      where: { id },
-    });
-    return NextResponse.json({ success: true });
+
+    // Otherwise, Post is preserved
+    return NextResponse.json({ success: true, deletedEntirePost: false });
   }
+
+  // No platform - delete entire Post (cascade deletes both children)
+  await prisma.post.delete({ where: { id } });
+  return NextResponse.json({ success: true });
 }
