@@ -59,6 +59,19 @@ export function DraftEditorWorkspace({
   const [currentLinkedinStatus, setCurrentLinkedinStatus] =
     useState(linkedinStatus);
   const [currentXStatus, setCurrentXStatus] = useState(xStatus);
+  const [clearedPlatforms, setClearedPlatforms] = useState<
+    Set<"linkedin" | "x">
+  >(() => {
+    const initialCleared = new Set<"linkedin" | "x">();
+    // Only hide other scheduled platforms if we're in the standard draft editor
+    // If we're in the scheduled management view, we want to see the scheduled platform
+    if (!isScheduledManagementView) {
+      if (linkedinStatus && linkedinStatus !== "DRAFT")
+        initialCleared.add("linkedin");
+      if (xStatus && xStatus !== "DRAFT") initialCleared.add("x");
+    }
+    return initialCleared;
+  });
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [status, setStatus] = useState<"DRAFT" | "SCHEDULED">(
     initialStatus as "DRAFT" | "SCHEDULED",
@@ -380,6 +393,7 @@ export function DraftEditorWorkspace({
         initialPlatform={initialPlatform}
         readOnly={isScheduledManagementView}
         onSaveDraft={() => saveDraftMutation.mutate(initialPlatform || "linkedin")}
+        clearedPlatforms={clearedPlatforms}
         onScheduleSuccess={(data) => {
           setDraftUpdatedAt(data.updatedAt);
           const nextLinkedinStatus =
@@ -391,6 +405,16 @@ export function DraftEditorWorkspace({
           }
           setCurrentLinkedinStatus(nextLinkedinStatus);
           setCurrentXStatus(nextXStatus);
+
+          // Track which platforms are scheduled so they can be hidden from the editor view
+          const scheduledPlatform = data.platform;
+          if (scheduledPlatform) {
+            setClearedPlatforms((prev) => {
+              const next = new Set(prev);
+              next.add(scheduledPlatform);
+              return next;
+            });
+          }
 
           if (nextLinkedinStatus !== "DRAFT" && nextXStatus !== "DRAFT") {
             setHasUnsavedChanges(false);

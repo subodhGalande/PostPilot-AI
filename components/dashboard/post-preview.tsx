@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeft, Calendar, FileText, Loader2, Save } from "lucide-react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 import { LinkedInPostPreview } from "@/components/dashboard/linkedin-post-preview";
 import { XPostPreview } from "@/components/dashboard/x-post-preview";
@@ -77,15 +77,6 @@ export function PostPreview({
     }
   }, [initialPlatform]);
 
-  useEffect(() => {
-    if (clearedPlatforms.has(activePlatform)) {
-      const otherPlatform = activePlatform === "linkedin" ? "x" : "linkedin";
-      if (!clearedPlatforms.has(otherPlatform)) {
-        setActivePlatform(otherPlatform);
-      }
-    }
-  }, [clearedPlatforms, activePlatform]);
-
   const handleSaveDraft = useCallback(
     (platform: Platform) => {
       if (isDebouncingRef.current || isSavingDraft || isGenerating) return;
@@ -101,11 +92,30 @@ export function PostPreview({
   const activePost: GeneratedPostItem | null =
     generatedPostPack?.posts[0] ?? null;
 
-  const availablePlatforms = activePost
-    ? (["linkedin", "x"] as const).filter(
-        (p) => activePost[p].status === "DRAFT" && !clearedPlatforms.has(p),
-      )
-    : [];
+  const availablePlatforms = useMemo(() => {
+    if (!activePost) return [];
+    return (["linkedin", "x"] as const).filter((p) => {
+      const hasContent =
+        p === "linkedin"
+          ? !!activePost.linkedin.content
+          : activePost.x.posts.length > 0;
+
+      const isValidStatus = ["DRAFT", "SCHEDULED"].includes(activePost[p].status);
+      const isNotCleared = !clearedPlatforms.has(p);
+
+      return hasContent && isValidStatus && isNotCleared;
+    });
+  }, [activePost, clearedPlatforms]);
+
+  // Ensure activePlatform is always one of the available platforms
+  useEffect(() => {
+    if (
+      availablePlatforms.length > 0 &&
+      !availablePlatforms.includes(activePlatform)
+    ) {
+      setActivePlatform(availablePlatforms[0]);
+    }
+  }, [availablePlatforms, activePlatform]);
 
   // A post is considered "thinking" only if we are generating AND have no content at all yet
   const isThinking =
