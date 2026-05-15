@@ -1,5 +1,4 @@
-import { hashPassword } from "@/lib/auth/auth";
-import { signTokenJose } from "@/lib/auth/jwtjose";
+import { hashPassword, signToken } from "@/lib/auth/auth";
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import prisma from "@/lib/prisma";
@@ -26,7 +25,7 @@ export async function POST(req: Request) {
 
     const passwordHash = await hashPassword(password);
 
-    const token = await signTokenJose({ email, name });
+    const token = await signToken({ email, name });
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes from now
 
     await prisma.verificationToken.create({

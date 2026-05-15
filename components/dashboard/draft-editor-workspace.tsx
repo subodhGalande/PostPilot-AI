@@ -100,13 +100,13 @@ export function DraftEditorWorkspace({
     updater: (currentPost: GeneratedPostItem) => GeneratedPostItem,
   ) => {
     setGeneratedPostPack((currentPack) => {
-      if (currentPack.posts.length === 0) {
+      if (!currentPack.post) {
         return currentPack;
       }
 
       return {
         ...currentPack,
-        posts: [updater(currentPack.posts[0]), ...currentPack.posts.slice(1)],
+        post: updater(currentPack.post),
       };
     });
     setHasUnsavedChanges(true);
@@ -149,7 +149,7 @@ export function DraftEditorWorkspace({
         id: initialDraftId,
         updatedAt: draftUpdatedAt,
         clientDraftKey: initialClientDraftKey,
-        post: generatedPostPack.posts[0],
+        post: generatedPostPack.post,
         model: generatedPostPack.model,
         platform,
       });
@@ -167,7 +167,7 @@ export function DraftEditorWorkspace({
       if (draft.content) {
         const updatedContent = parseStoredDraftContent(draft.content);
         setGeneratedPostPack({
-          posts: [updatedContent],
+          post: updatedContent,
           model: updatedContent.model,
         });
       }
@@ -328,22 +328,6 @@ export function DraftEditorWorkspace({
                     ? "LinkedIn"
                     : "X"}
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                  onClick={() =>
-                    handleOpenConfirmation(
-                      "delete",
-                      scheduledManagementPlatform,
-                    )
-                  }
-                  disabled={deleteMutation.isPending}
-                >
-                  <Trash2 className="mr-2 size-4" />
-                  Delete{" "}
-                  {scheduledManagementPlatform === "linkedin"
-                    ? "LinkedIn"
-                    : "X"}
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : status === "SCHEDULED" ? (
@@ -361,14 +345,6 @@ export function DraftEditorWorkspace({
                 >
                   <RotateCcw className="mr-2 size-4" />
                   Move to Draft
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                  onClick={() => handleOpenConfirmation("delete")}
-                  disabled={deleteMutation.isPending}
-                >
-                  <Trash2 className="mr-2 size-4" />
-                  Delete Post
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -392,7 +368,10 @@ export function DraftEditorWorkspace({
         status={status}
         initialPlatform={initialPlatform}
         readOnly={isScheduledManagementView}
-        onSaveDraft={() => saveDraftMutation.mutate(initialPlatform || "linkedin")}
+        onSaveDraft={() =>
+          saveDraftMutation.mutate(initialPlatform || "linkedin")
+        }
+        onDeleteDraft={(platform) => handleOpenConfirmation("delete", platform)}
         clearedPlatforms={clearedPlatforms}
         onScheduleSuccess={(data) => {
           setDraftUpdatedAt(data.updatedAt);
@@ -423,7 +402,7 @@ export function DraftEditorWorkspace({
           }
 
           setGeneratedPostPack((currentPack) => {
-            const currentPost = currentPack.posts[0];
+            const currentPost = currentPack.post;
             if (!currentPost || !data.platform) return currentPack;
 
             const scheduledAt =
@@ -459,7 +438,7 @@ export function DraftEditorWorkspace({
 
             return {
               ...currentPack,
-              posts: [updatedPost, ...currentPack.posts.slice(1)],
+              post: updatedPost,
             };
           });
 
@@ -473,15 +452,15 @@ export function DraftEditorWorkspace({
         onConfirm={handleConfirmAction}
         title={
           confirmationState.type === "delete"
-            ? "Delete Post"
+            ? `Delete ${confirmationState.platform ? (confirmationState.platform === "x" ? "X" : "LinkedIn") : "Post"}`
             : "Unschedule Post"
         }
         description={
           confirmationState.type === "delete"
-            ? "Are you sure you want to delete this post? This action cannot be undone."
+            ? `Are you sure you want to delete this ${confirmationState.platform ? (confirmationState.platform === "x" ? "X" : "LinkedIn") : "post"}? This action cannot be undone.`
             : "Are you sure you want to move this post back to drafts? It will be unscheduled."
         }
-        postTitle={generatedPostPack.posts[0]?.baseIdea}
+        postTitle={generatedPostPack.post?.baseIdea}
         confirmText={
           confirmationState.type === "delete" ? "Delete" : "Unschedule"
         }

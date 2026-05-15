@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
-import { requireAuthJose } from "@/lib/auth/requireAuthJose";
+import { requireAuthJose } from "@/lib/auth/auth";
 import { CalendarView } from "@/components/dashboard/calendar-view";
 import { Skeleton } from "@/components/ui/skeleton";
 

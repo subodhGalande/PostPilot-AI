@@ -1,6 +1,13 @@
 "use client";
 
-import { ArrowLeft, Calendar, FileText, Loader2, Save } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  FileText,
+  Loader2,
+  Save,
+  Trash2,
+} from "lucide-react";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 import { LinkedInPostPreview } from "@/components/dashboard/linkedin-post-preview";
@@ -36,6 +43,7 @@ interface PostPreviewProps {
   initialPlatform?: PlatformTab;
   saveDraftLabel?: string;
   onSaveDraft?: (platform: Platform) => void;
+  onDeleteDraft?: (platform: Platform) => void;
   onScheduleSuccess?: (data: SaveDraftResponse) => void;
   onReset?: () => void;
   hideStatusBadge?: boolean;
@@ -61,6 +69,7 @@ export function PostPreview({
   initialPlatform = "linkedin",
   saveDraftLabel,
   onSaveDraft,
+  onDeleteDraft,
   onScheduleSuccess,
   onReset,
   hideStatusBadge = false,
@@ -89,8 +98,7 @@ export function PostPreview({
     [isSavingDraft, isGenerating, onSaveDraft],
   );
 
-  const activePost: GeneratedPostItem | null =
-    generatedPostPack?.posts[0] ?? null;
+  const activePost: GeneratedPostItem | null = generatedPostPack?.post ?? null;
 
   const availablePlatforms = useMemo(() => {
     if (!activePost) return [];
@@ -100,7 +108,9 @@ export function PostPreview({
           ? !!activePost.linkedin.content
           : activePost.x.posts.length > 0;
 
-      const isValidStatus = ["DRAFT", "SCHEDULED"].includes(activePost[p].status);
+      const isValidStatus = ["DRAFT", "SCHEDULED"].includes(
+        activePost[p].status,
+      );
       const isNotCleared = !clearedPlatforms.has(p);
 
       return hasContent && isValidStatus && isNotCleared;
@@ -286,21 +296,37 @@ export function PostPreview({
                 </SchedulePostModal>
               )}
               {!readOnly ? (
-                <Button
-                  variant="secondary"
-                  className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold hover:bg-muted"
-                  onClick={() => handleSaveDraft(activePlatform as Platform)}
-                  disabled={isSavingDraft || isGenerating || !onSaveDraft}
-                >
-                  {isSavingDraft ? (
-                    <Loader2 className="mr-2 size-4 animate-spin" />
-                  ) : (
-                    <Save className="mr-2 size-4" />
-                  )}
-                  {isSavingDraft
-                    ? "Saving..."
-                    : saveDraftLabel || "Save as Draft"}
-                </Button>
+                <>
+                  <Button
+                    variant="secondary"
+                    className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold hover:bg-muted"
+                    onClick={() => handleSaveDraft(activePlatform as Platform)}
+                    disabled={isSavingDraft || isGenerating || !onSaveDraft}
+                  >
+                    {isSavingDraft ? (
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                    ) : (
+                      <Save className="mr-2 size-4" />
+                    )}
+                    {isSavingDraft
+                      ? "Saving..."
+                      : saveDraftLabel || "Save as Draft"}
+                  </Button>
+                  {mode === "draft" &&
+                    activePost[activePlatform].status === "DRAFT" && (
+                      <Button
+                        variant="outline"
+                        className="w-full flex-1 rounded-xl border-destructive bg-transparent font-semibold text-destructive transition-all hover:bg-destructive hover:text-white"
+                        onClick={() =>
+                          onDeleteDraft?.(activePlatform as Platform)
+                        }
+                        disabled={isSavingDraft || isGenerating}
+                      >
+                        <Trash2 className="mr-2 size-4" />
+                        Delete {activePlatformLabel} Draft
+                      </Button>
+                    )}
+                </>
               ) : null}
             </div>
           </div>

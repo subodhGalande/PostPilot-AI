@@ -95,21 +95,19 @@ export default function DashboardPage() {
     onFinish: ({ object }: { object: GeneratedPostItem | undefined }) => {
       if (object) {
         setGeneratedPostPack({
-          posts: [
-            {
-              ...object,
-              linkedin: {
-                ...object.linkedin,
-                status: "DRAFT",
-                scheduledAt: null,
-              },
-              x: {
-                ...object.x,
-                status: "DRAFT",
-                scheduledAt: null,
-              },
-            } as GeneratedPostItem,
-          ],
+          post: {
+            ...object,
+            linkedin: {
+              ...object.linkedin,
+              status: "DRAFT",
+              scheduledAt: null,
+            },
+            x: {
+              ...object.x,
+              status: "DRAFT",
+              scheduledAt: null,
+            },
+          } as GeneratedPostItem,
           model: DEFAULT_MODEL.id,
         });
         setDraftId(null);
@@ -196,7 +194,7 @@ export default function DashboardPage() {
       };
 
       setGeneratedPostPack({
-        posts: [partialPost],
+        post: partialPost,
         model: DEFAULT_MODEL.id,
       });
 
@@ -237,13 +235,13 @@ export default function DashboardPage() {
     updater: (currentPost: GeneratedPostItem) => GeneratedPostItem,
   ) => {
     setGeneratedPostPack((currentPack) => {
-      if (!currentPack || currentPack.posts.length === 0) {
+      if (!currentPack || !currentPack.post) {
         return currentPack;
       }
 
       return {
         ...currentPack,
-        posts: [updater(currentPack.posts[0]), ...currentPack.posts.slice(1)],
+        post: updater(currentPack.post),
       };
     });
   };
@@ -275,7 +273,7 @@ export default function DashboardPage() {
     mutationFn: async (
       platform: "linkedin" | "x",
     ): Promise<SaveDraftResponse> => {
-      if (!generatedPostPack || generatedPostPack.posts.length === 0) {
+      if (!generatedPostPack || !generatedPostPack.post) {
         throw new Error("Generate a post before saving a draft.");
       }
 
@@ -290,7 +288,7 @@ export default function DashboardPage() {
           ? { id: draftId, updatedAt: draftUpdatedAt }
           : {}),
         clientDraftKey,
-        post: generatedPostPack.posts[0],
+        post: generatedPostPack.post,
         model: generatedPostPack.model,
         platform,
       });
@@ -314,9 +312,9 @@ export default function DashboardPage() {
       setClearedPlatforms(newClearedPlatforms);
 
       setGeneratedPostPack((currentPack) => {
-        if (!currentPack || currentPack.posts.length === 0) return currentPack;
+        if (!currentPack || !currentPack.post) return currentPack;
 
-        const currentPost = currentPack.posts[0];
+        const currentPost = currentPack.post;
         const clearedPost: GeneratedPostItem =
           platform === "linkedin"
             ? {
@@ -334,7 +332,7 @@ export default function DashboardPage() {
           postStyle,
           targetAudience,
           keywords,
-          generatedPostPack: { posts: [clearedPost], model: currentPack.model },
+          generatedPostPack: { post: clearedPost, model: currentPack.model },
           isGenerated: true,
           clientDraftKey,
           draftId: draft.id,
@@ -342,7 +340,7 @@ export default function DashboardPage() {
           clearedPlatforms: Array.from(newClearedPlatforms),
         });
 
-        return { posts: [clearedPost], model: currentPack.model };
+        return { post: clearedPost, model: currentPack.model };
       });
     },
     onError: (error) => {
@@ -421,10 +419,9 @@ export default function DashboardPage() {
             setClearedPlatforms(newClearedPlatforms);
 
             setGeneratedPostPack((currentPack) => {
-              if (!currentPack || currentPack.posts.length === 0)
-                return currentPack;
+              if (!currentPack || !currentPack.post) return currentPack;
 
-              const currentPost = currentPack.posts[0];
+              const currentPost = currentPack.post;
               const clearedPost: GeneratedPostItem =
                 scheduledPlatform === "linkedin"
                   ? {
@@ -447,7 +444,7 @@ export default function DashboardPage() {
                 targetAudience,
                 keywords,
                 generatedPostPack: {
-                  posts: [clearedPost],
+                  post: clearedPost,
                   model: currentPack.model,
                 },
                 isGenerated: true,
@@ -457,7 +454,7 @@ export default function DashboardPage() {
                 clearedPlatforms: Array.from(newClearedPlatforms),
               });
 
-              return { posts: [clearedPost], model: currentPack.model };
+              return { post: clearedPost, model: currentPack.model };
             });
           }}
           onReset={handleReset}

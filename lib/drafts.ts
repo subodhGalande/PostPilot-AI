@@ -66,77 +66,52 @@ export function parseStoredDraftContent(content: unknown) {
 }
 
 export function reconstructPostContent(post: any): StoredDraftContent {
-  const hasLinkedinPost = post.linkedinPost != null;
-  const hasXPost = post.xPost != null;
+  const linkedin = post.linkedinPost || {
+    content: null,
+    status: "DRAFT",
+    scheduledAt: null,
+  };
+  const xPost = post.xPost || {
+    mode: "single",
+    threadPosts: [],
+    status: "DRAFT",
+    scheduledAt: null,
+  };
 
-  if (hasLinkedinPost || hasXPost) {
-    const linkedin = post.linkedinPost || { content: null, status: "DRAFT", scheduledAt: null };
-    const xPost = post.xPost || { mode: "single", threadPosts: [], status: "DRAFT", scheduledAt: null };
-
-    return storedDraftContentSchema.parse({
-      topic: post.topic || "",
-      baseIdea: post.baseIdea || "",
-      model: post.model || "",
-      linkedin: {
-        content: linkedin.content || "",
-        status: linkedin.status,
-        scheduledAt:
-          linkedin.scheduledAt instanceof Date
-            ? linkedin.scheduledAt.toISOString()
-            : linkedin.scheduledAt || null,
-      },
-      x: {
-        mode: xPost.mode || "single",
-        posts: xPost.threadPosts || [],
-        status: xPost.status,
-        scheduledAt:
-          xPost.scheduledAt instanceof Date
-            ? xPost.scheduledAt.toISOString()
-            : xPost.scheduledAt || null,
-      },
-    });
-  }
-
-  const linkedin = (post.linkedinContent as any) || { content: "" };
-  const x = (post.xContent as any) || { mode: "single", posts: [] };
-
-  const reconstructed = {
+  return storedDraftContentSchema.parse({
     topic: post.topic || "",
     baseIdea: post.baseIdea || "",
     model: post.model || "",
     linkedin: {
-      ...linkedin,
-      status: post.linkedinStatus,
+      content: linkedin.content || "",
+      status: linkedin.status,
       scheduledAt:
-        post.linkedinScheduledAt instanceof Date
-          ? post.linkedinScheduledAt.toISOString()
-          : post.linkedinScheduledAt || null,
+        linkedin.scheduledAt instanceof Date
+          ? linkedin.scheduledAt.toISOString()
+          : linkedin.scheduledAt || null,
     },
     x: {
-      ...x,
-      status: post.xStatus,
+      mode: xPost.mode || "single",
+      posts: xPost.threadPosts || [],
+      status: xPost.status,
       scheduledAt:
-        post.xScheduledAt instanceof Date
-          ? post.xScheduledAt.toISOString()
-          : post.xScheduledAt || null,
+        xPost.scheduledAt instanceof Date
+          ? xPost.scheduledAt.toISOString()
+          : xPost.scheduledAt || null,
     },
-  };
-
-  return storedDraftContentSchema.parse(reconstructed);
+  });
 }
 
 export function mapStoredDraftToGeneratedPostPack(
   content: StoredDraftContent,
 ): GeneratedPostPack {
   return {
-    posts: [
-      generatedPostItemSchema.parse({
-        topic: content.topic,
-        baseIdea: content.baseIdea,
-        linkedin: content.linkedin,
-        x: content.x,
-      }),
-    ],
+    post: generatedPostItemSchema.parse({
+      topic: content.topic,
+      baseIdea: content.baseIdea,
+      linkedin: content.linkedin,
+      x: content.x,
+    }),
     model: content.model,
   };
 }

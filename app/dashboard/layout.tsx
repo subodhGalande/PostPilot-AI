@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { requireAuthJose } from "@/lib/auth/requireAuthJose";
+import { requireAuthJose } from "@/lib/auth/auth";
 import DashboardShell from "./dashboard-shell";
 import prisma from "@/lib/prisma";
 import { UserContextProvider } from "@/app/context/userDetailsContext";

@@ -3,13 +3,13 @@ import { ChevronRight } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 
 import { DraftEditorWorkspace } from "@/components/dashboard/draft-editor-workspace";
-import { requireAuthJose } from "@/lib/auth/requireAuthJose";
+import { requireAuthJose } from "@/lib/auth/auth";
 import {
   createClientDraftKey,
   mapStoredDraftToGeneratedPostPack,
   reconstructPostContent,
 } from "@/lib/drafts";
-import prisma from "@/lib/prisma";
+import { draftStore } from "@/lib/server/draft-store";
 
 export default async function DraftDetailPage({
   params,
@@ -27,49 +27,26 @@ export default async function DraftDetailPage({
   const { id } = await params;
   const { platform, from } = await searchParams;
 
-  const draft = await prisma.post.findFirst({
-    where: {
-      id,
-      userId: authUser.id,
-      OR: [
-        { linkedinPost: { status: { in: ["DRAFT", "SCHEDULED"] } } },
-        { xPost: { status: { in: ["DRAFT", "SCHEDULED"] } } },
-      ],
-    },
-    include: {
-      linkedinPost: {
-        select: {
-          id: true,
-          content: true,
-          status: true,
-          scheduledAt: true,
-        },
-      },
-      xPost: {
-        select: {
-          id: true,
-          content: true,
-          mode: true,
-          threadPosts: true,
-          status: true,
-          scheduledAt: true,
-        },
-      },
-    },
-  });
+  const draft = await draftStore.getDraft(authUser.id, id);
 
   if (!draft) {
     notFound();
   }
 
-  const parsedContent = reconstructPostContent(draft);
+  const parsedContent = reconstructPostContent({
+    topic: draft.topic,
+    baseIdea: draft.baseIdea,
+    model: draft.model,
+    linkedinPost: draft.linkedinPost,
+    xPost: draft.xPost,
+    title: draft.title,
+  });
 
   const breadcrumbHref =
     from === "calendar" ? "/dashboard/calendar" : "/dashboard/drafts";
   const breadcrumbLabel = from === "calendar" ? "Calendar" : "Drafts";
 
   // Determine initial platform based on draft status
-  // If URL has platform param, use it; otherwise auto-select draft platform
   const linkedinIsDraft = draft.linkedinPost?.status === "DRAFT";
   const xIsDraft = draft.xPost?.status === "DRAFT";
 
@@ -106,7 +83,7 @@ export default async function DraftDetailPage({
 
       <DraftEditorWorkspace
         initialDraftId={draft.id}
-        initialDraftUpdatedAt={draft.updatedAt.toISOString()}
+        initialDraftUpdatedAt={draft.updatedAt}
         initialCreatedAt={draft.createdAt.toISOString()}
         initialClientDraftKey={draft.clientDraftKey ?? createClientDraftKey()}
         initialPostPack={mapStoredDraftToGeneratedPostPack(parsedContent)}

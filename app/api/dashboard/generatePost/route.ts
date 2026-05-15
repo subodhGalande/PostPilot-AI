@@ -3,7 +3,7 @@ import { streamObject } from "ai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { requireAuthJose } from "@/lib/auth/requireAuthJose";
+import { requireAuthJose } from "@/lib/auth/auth";
 import prisma from "@/lib/prisma";
 import { generatePostSchema } from "@/lib/schemas/post.schema";
 import { getModelById } from "@/lib/ai/models";

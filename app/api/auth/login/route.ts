@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyPassword } from "@/lib/auth/auth";
-import { signTokenJose } from "@/lib/auth/jwtjose";
+import { verifyPassword, signToken } from "@/lib/auth/auth";
 import prisma from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -30,7 +29,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const token = await signTokenJose({
+    const token = await signToken({
       id: user.id,
       name: user.name,
       email: user.email,

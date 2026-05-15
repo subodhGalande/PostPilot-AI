@@ -35,7 +35,7 @@ export const generatedPostItemSchema = z.object({
 });
 
 export const generatedPostPackSchema = z.object({
-  posts: z.array(generatedPostItemSchema).min(1),
+  post: generatedPostItemSchema,
   model: z.string().min(1),
 });
 

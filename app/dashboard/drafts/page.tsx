@@ -4,9 +4,8 @@ import { redirect } from "next/navigation";
 
 import { DraftsGrid } from "@/components/dashboard/drafts-grid";
 import { Button } from "@/components/ui/button";
-import { requireAuthJose } from "@/lib/auth/requireAuthJose";
-import { reconstructPostContent } from "@/lib/drafts";
-import prisma from "@/lib/prisma";
+import { requireAuthJose } from "@/lib/auth/auth";
+import { draftStore } from "@/lib/server/draft-store";
 
 export default async function DraftsPage() {
   const authUser = await requireAuthJose();
@@ -15,38 +14,7 @@ export default async function DraftsPage() {
     redirect("/login");
   }
 
-  const drafts = await prisma.post.findMany({
-    where: {
-      userId: authUser.id,
-      OR: [
-        { linkedinPost: { status: "DRAFT" } },
-        { xPost: { status: "DRAFT" } },
-      ],
-    },
-    include: {
-      linkedinPost: {
-        select: {
-          id: true,
-          content: true,
-          status: true,
-          scheduledAt: true,
-        },
-      },
-      xPost: {
-        select: {
-          id: true,
-          content: true,
-          mode: true,
-          threadPosts: true,
-          status: true,
-          scheduledAt: true,
-        },
-      },
-    },
-    orderBy: {
-      updatedAt: "desc",
-    },
-  });
+  const drafts = await draftStore.listDrafts(authUser.id, "drafts");
 
   return (
     <div className="flex flex-1 flex-col gap-6 bg-slate-50/50 p-4 dark:bg-transparent md:p-6">
@@ -89,35 +57,15 @@ export default async function DraftsPage() {
         </div>
       ) : (
         <DraftsGrid
-          initialDrafts={drafts.map((draft) => {
-            const parsedContent = reconstructPostContent(draft);
-
-            return {
-              id: draft.id,
-              title: draft.title,
-              topic: parsedContent.topic,
-              createdAt: draft.createdAt.toISOString(),
-              updatedAt: draft.updatedAt.toISOString(),
-              linkedinPost: draft.linkedinPost
-                ? {
-                    id: draft.linkedinPost.id,
-                    content: draft.linkedinPost.content,
-                    status: draft.linkedinPost.status,
-                    scheduledAt: draft.linkedinPost.scheduledAt,
-                  }
-                : null,
-              xPost: draft.xPost
-                ? {
-                    id: draft.xPost.id,
-                    content: draft.xPost.content,
-                    mode: draft.xPost.mode,
-                    threadPosts: draft.xPost.threadPosts,
-                    status: draft.xPost.status,
-                    scheduledAt: draft.xPost.scheduledAt,
-                  }
-                : null,
-            };
-          })}
+          initialDrafts={drafts.map((draft) => ({
+            id: draft.id,
+            title: draft.title,
+            topic: draft.topic,
+            createdAt: draft.createdAt.toISOString(),
+            updatedAt: draft.updatedAt,
+            linkedinPost: draft.linkedinPost,
+            xPost: draft.xPost,
+          }))}
         />
       )}
     </div>

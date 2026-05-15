@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verifyTokenJose } from "@/lib/auth/jwtjose";
+import { verifyToken } from "@/lib/auth/auth";
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -12,7 +12,7 @@ export async function proxy(req: NextRequest) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
 
-    const payload = await verifyTokenJose(token);
+    const payload = await verifyToken(token);
     if (!payload) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
