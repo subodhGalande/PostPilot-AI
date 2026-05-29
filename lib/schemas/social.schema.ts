@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const xThreadPostSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   content: z.string().min(1),
 });
 

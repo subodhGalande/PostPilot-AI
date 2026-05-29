@@ -15,7 +15,7 @@ const aiGeneratedPostSchema = z.object({
     content: z.string().min(1),
   }),
   x: z.object({
-    mode: z.enum(["single", "thread"]),
+    mode: z.enum(["single", "thread"]).optional(),
     posts: z
       .array(
         z.object({

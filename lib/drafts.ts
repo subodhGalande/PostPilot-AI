@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { ApiError } from "./errors";
 import {
   generatedPostItemSchema,
   type GeneratedPostItem,
@@ -133,8 +134,9 @@ export async function saveDraft(
       message?: string;
     } | null;
 
-    throw new Error(
+    throw new ApiError(
       errorBody?.message ?? errorBody?.error ?? "Failed to save draft.",
+      response.status,
     );
   }
 
@@ -158,8 +160,9 @@ export async function schedulePost(
       message?: string;
     } | null;
 
-    throw new Error(
+    throw new ApiError(
       errorBody?.message ?? errorBody?.error ?? "Failed to schedule post.",
+      response.status,
     );
   }
 

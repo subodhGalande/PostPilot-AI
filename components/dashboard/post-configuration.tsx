@@ -46,6 +46,7 @@ export function PostConfiguration({
   isGenerating,
 }: PostConfigurationProps) {
   const [keywordInput, setKeywordInput] = useState("");
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const addKeywords = (rawValue: string) => {
     const nextKeywords = rawValue
@@ -91,9 +92,23 @@ export function PostConfiguration({
           <Label className="text-sm font-semibold">Topic</Label>
           <Input
             value={topic}
-            onChange={(event) => onTopicChange(event.target.value)}
+            onChange={(event) => {
+              onTopicChange(event.target.value);
+              if (validationError) {
+                setValidationError(null);
+              }
+            }}
             placeholder="e.g. Benefits of Remote Work for Software Teams"
+            className={cn(
+              validationError &&
+                "border-destructive focus-visible:ring-destructive",
+            )}
           />
+          {validationError && (
+            <p className="text-xs font-medium text-destructive mt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+              {validationError}
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -204,7 +219,14 @@ export function PostConfiguration({
         <Button
           size="lg"
           className="flex w-full items-center gap-2 rounded-xl text-base font-bold"
-          onClick={onGenerate}
+          onClick={() => {
+            if (!topic.trim()) {
+              setValidationError("Topic is required");
+              return;
+            }
+            setValidationError(null);
+            onGenerate?.();
+          }}
           disabled={isGenerating}
         >
           {isGenerating ? (

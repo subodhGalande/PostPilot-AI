@@ -23,6 +23,7 @@ import {
   type SaveDraftResponse,
   type SchedulePostPayload,
 } from "@/lib/drafts";
+import { classifyApiError } from "@/lib/errors";
 import type { GeneratedPostItem } from "@/lib/social-posts";
 
 interface SchedulePostModalProps {
@@ -191,9 +192,15 @@ export function SchedulePostModal({
       onSuccess?.({ ...data, platform });
     },
     onError: (error) => {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to schedule post",
-      );
+      console.error("Failed to schedule post:", error);
+      const classified = classifyApiError(error);
+      toast.error(classified.message);
+
+      if (classified.shouldRedirect) {
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
+      }
     },
   });
 

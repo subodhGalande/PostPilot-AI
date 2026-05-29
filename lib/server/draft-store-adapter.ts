@@ -111,7 +111,7 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
     clientDraftKey?: string,
   ): Promise<PostMeta | null> {
     if (id) {
-      return prisma.post.findFirst({
+      const res = await prisma.post.findFirst({
         where: { id, userId },
         select: {
           id: true,
@@ -125,9 +125,16 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
           updatedAt: true,
         },
       });
+      if (!res) return null;
+      return {
+        ...res,
+        topic: res.topic || "",
+        baseIdea: res.baseIdea || "",
+        model: res.model || "",
+      };
     }
     if (clientDraftKey) {
-      return prisma.post.findFirst({
+      const res = await prisma.post.findFirst({
         where: { userId, clientDraftKey },
         select: {
           id: true,
@@ -141,6 +148,13 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
           updatedAt: true,
         },
       });
+      if (!res) return null;
+      return {
+        ...res,
+        topic: res.topic || "",
+        baseIdea: res.baseIdea || "",
+        model: res.model || "",
+      };
     }
     return null;
   }
@@ -181,7 +195,13 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
         },
       },
     });
-    return result as PostWithChildren | null;
+    if (!result) return null;
+    return {
+      ...result,
+      topic: result.topic || "",
+      baseIdea: result.baseIdea || "",
+      model: result.model || "",
+    } as any;
   }
 
   async findPostsByUser(
@@ -191,7 +211,10 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
     const results = await prisma.post.findMany({
       where: {
         userId,
-        OR: [{ linkedinPost: { status } }, { xPost: { status } }],
+        OR: [
+          { linkedinPost: { status: status as any } },
+          { xPost: { status: status as any } },
+        ],
       },
       select: {
         id: true,
@@ -228,7 +251,7 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
   }
 
   async createPost(input: CreatePostInput): Promise<PostMeta> {
-    return prisma.post.create({
+    const res = await prisma.post.create({
       data: input,
       select: {
         id: true,
@@ -242,6 +265,12 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
         updatedAt: true,
       },
     });
+    return {
+      ...res,
+      topic: res.topic || "",
+      baseIdea: res.baseIdea || "",
+      model: res.model || "",
+    };
   }
 
   async updatePost(id: string, input: UpdatePostInput): Promise<void> {
@@ -261,16 +290,38 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
   ): Promise<void> {
     await prisma.linkedInPost.upsert({
       where: { postId },
-      update: input,
-      create: { ...input, postId },
+      update: {
+        content: input.content,
+        status: input.status as any,
+        scheduledAt: input.scheduledAt,
+      },
+      create: {
+        postId,
+        content: input.content,
+        status: input.status as any,
+        scheduledAt: input.scheduledAt,
+      },
     });
   }
 
   async upsertXPost(postId: string, input: UpsertXInput): Promise<void> {
     await prisma.xPost.upsert({
       where: { postId },
-      update: input,
-      create: { ...input, postId },
+      update: {
+        content: input.content,
+        mode: input.mode,
+        threadPosts: input.threadPosts as any,
+        status: input.status as any,
+        scheduledAt: input.scheduledAt,
+      },
+      create: {
+        postId,
+        content: input.content,
+        mode: input.mode,
+        threadPosts: input.threadPosts as any,
+        status: input.status as any,
+        scheduledAt: input.scheduledAt,
+      },
     });
   }
 
@@ -280,7 +331,10 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
   ): Promise<void> {
     await prisma.linkedInPost.update({
       where: { postId },
-      data: input,
+      data: {
+        status: input.status as any,
+        scheduledAt: input.scheduledAt,
+      },
     });
   }
 
@@ -290,7 +344,10 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
   ): Promise<void> {
     await prisma.xPost.update({
       where: { postId },
-      data: input,
+      data: {
+        status: input.status as any,
+        scheduledAt: input.scheduledAt,
+      },
     });
   }
 
@@ -332,7 +389,11 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
   }
 
   async batch(operations: (() => Promise<any>)[]): Promise<any[]> {
-    return prisma.$transaction(operations.map((op) => op()));
+    const results: any[] = [];
+    for (const op of operations) {
+      results.push(await op());
+    }
+    return results;
   }
 }
 

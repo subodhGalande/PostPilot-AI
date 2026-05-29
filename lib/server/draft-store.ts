@@ -132,7 +132,7 @@ function formatResult(post: any): DraftStoreResult {
         ? post.updatedAt.toISOString()
         : post.updatedAt,
     linkedinPost: formatLinkedInResult(post.linkedinPost),
-    xPost: formatXResult(post.xPost),
+    xPost: formatXResult(post.xPost) as any,
   };
 }
 
@@ -177,12 +177,13 @@ export class DraftStore {
         await ops[0]();
       }
 
+      const freshPost =
+        (await this.adapter.findPostMeta(userId, existing.id)) ?? existing;
       const children = await this.adapter.findChildren(existing.id);
       return formatResult({
-        ...existing,
+        ...freshPost,
         ...postData,
         ...children,
-        updatedAt: existing.updatedAt,
       });
     }
 
@@ -251,12 +252,13 @@ export class DraftStore {
 
       await this.adapter.batch(ops);
 
+      const freshPost =
+        (await this.adapter.findPostMeta(userId, existing.id)) ?? existing;
       const children = await this.adapter.findChildren(existing.id);
       return formatResult({
-        ...existing,
+        ...freshPost,
         ...postData,
         ...children,
-        updatedAt: existing.updatedAt,
       });
     }
 
@@ -343,7 +345,7 @@ export class DraftStore {
       let otherHasContent = false;
       if (isLinkedIn) {
         otherHasContent =
-          (post.xPost?.threadPosts &&
+          (!!post.xPost?.threadPosts &&
             (post.xPost.threadPosts as any[]).length > 0) ||
           post.xPost?.status === "SCHEDULED";
       } else {
@@ -392,9 +394,10 @@ export class DraftStore {
     const touchX = !platform || platform === "x";
 
     if (touchLinkedIn && post.linkedin?.content?.trim()) {
+      const content = post.linkedin.content;
       ops.push(() =>
         this.adapter.upsertLinkedInPost(postId, {
-          content: post.linkedin.content,
+          content,
           status,
           scheduledAt: scheduledAt ?? null,
         }),

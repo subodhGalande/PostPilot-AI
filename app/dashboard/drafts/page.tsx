@@ -63,8 +63,8 @@ export default async function DraftsPage() {
             topic: draft.topic,
             createdAt: draft.createdAt.toISOString(),
             updatedAt: draft.updatedAt,
-            linkedinPost: draft.linkedinPost,
-            xPost: draft.xPost,
+            linkedinPost: draft.linkedinPost as any,
+            xPost: draft.xPost as any,
           }))}
         />
       )}

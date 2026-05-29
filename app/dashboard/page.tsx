@@ -12,6 +12,7 @@ import {
   saveDraft,
   type SaveDraftResponse,
 } from "@/lib/drafts";
+import { classifyApiError } from "@/lib/errors";
 import type { GeneratedPostItem, GeneratedPostPack } from "@/lib/social-posts";
 import { generatedPostItemSchema } from "@/lib/schemas/social.schema";
 import { cn } from "@/lib/utils";
@@ -59,6 +60,10 @@ function clearDraftState() {
   sessionStorage.removeItem(DRAFT_STATE_KEY);
 }
 
+function getXMode(postCount: number, mode?: "single" | "thread") {
+  return mode ?? (postCount > 1 ? "thread" : "single");
+}
+
 export default function DashboardPage() {
   const [isGenerated, setIsGenerated] = useState(false);
   const [previewVersion, setPreviewVersion] = useState(0);
@@ -93,28 +98,54 @@ export default function DashboardPage() {
     api: "/api/dashboard/generatePost",
     schema: generatedPostItemSchema,
     onFinish: ({ object }: { object: GeneratedPostItem | undefined }) => {
-      if (object) {
-        setGeneratedPostPack({
-          post: {
-            ...object,
-            linkedin: {
-              ...object.linkedin,
-              status: "DRAFT",
-              scheduledAt: null,
-            },
-            x: {
-              ...object.x,
-              status: "DRAFT",
-              scheduledAt: null,
-            },
-          } as GeneratedPostItem,
-          model: DEFAULT_MODEL.id,
-        });
-        setDraftId(null);
-        setDraftUpdatedAt(null);
-        setClientDraftKey(createClientDraftKey());
-        setPreviewVersion((currentVersion) => currentVersion + 1);
-        setIsGenerated(true);
+      if (!object) {
+        toast.error(
+          "The AI returned an unexpected response. Please try again.",
+        );
+        setIsGenerated(false);
+        setGeneratedPostPack(null);
+        return;
+      }
+      setGeneratedPostPack({
+        post: {
+          ...object,
+          linkedin: {
+            ...object.linkedin,
+            status: "DRAFT",
+            scheduledAt: null,
+          },
+          x: {
+            ...object.x,
+            mode: getXMode(object.x?.posts?.length ?? 0, object.x?.mode),
+            posts: (object.x?.posts || []).map((p, i) => ({
+              id: p.id || `x-${i + 1}`,
+              content: p.content,
+            })),
+            status: "DRAFT",
+            scheduledAt: null,
+          },
+        } as GeneratedPostItem,
+        model: DEFAULT_MODEL.id,
+      });
+      setDraftId(null);
+      setDraftUpdatedAt(null);
+      setClientDraftKey(createClientDraftKey());
+      setPreviewVersion((currentVersion) => currentVersion + 1);
+      setIsGenerated(true);
+    },
+    onError: (error: Error) => {
+      console.error("AI Generation failed:", error);
+      const classified = classifyApiError(error);
+      toast.error(classified.message);
+
+      // Clean slate on generation error
+      setIsGenerated(false);
+      setGeneratedPostPack(null);
+
+      if (classified.shouldRedirect) {
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
       }
     },
   });
@@ -183,7 +214,7 @@ export default function DashboardPage() {
           scheduledAt: null,
         },
         x: {
-          mode: object.x?.mode || "single",
+          mode: getXMode(object.x?.posts?.length ?? 0, object.x?.mode),
           posts: (object.x?.posts || []).map((p, i) => ({
             id: `x-${i + 1}`,
             content: p?.content || "",
@@ -345,9 +376,14 @@ export default function DashboardPage() {
     },
     onError: (error) => {
       console.error("Failed to save draft:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to save draft.",
-      );
+      const classified = classifyApiError(error);
+      toast.error(classified.message);
+
+      if (classified.shouldRedirect) {
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
+      }
     },
   });
 

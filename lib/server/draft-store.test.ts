@@ -55,6 +55,10 @@ function makeScheduleInput(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function waitForNextTimestamp() {
+  return new Promise((resolve) => setTimeout(resolve, 1));
+}
+
 describe("DraftStore", () => {
   let adapter: InMemoryDraftStoreAdapter;
   let store: DraftStore;
@@ -194,6 +198,52 @@ describe("DraftStore", () => {
 
       expect(result.xPost?.content).toBe("Only X");
       expect(result.linkedinPost).toBeNull();
+    });
+
+    it("returns a fresh updatedAt after updating a platform draft", async () => {
+      const first = await store.saveDraft(
+        "user-1",
+        makeSaveInput({ platform: "linkedin" }),
+      );
+
+      await waitForNextTimestamp();
+
+      const second = await store.saveDraft(
+        "user-1",
+        makeSaveInput({
+          id: first.id,
+          updatedAt: first.updatedAt,
+          platform: "x",
+          post: {
+            topic: "AI",
+            baseIdea: "Saved both platforms",
+            linkedin: makeLinkedInPost("LinkedIn content"),
+            x: makeXPost("X content"),
+          },
+        }),
+      );
+
+      await waitForNextTimestamp();
+
+      await expect(
+        store.saveDraft(
+          "user-1",
+          makeSaveInput({
+            id: second.id,
+            updatedAt: second.updatedAt,
+            platform: "linkedin",
+            post: {
+              topic: "AI",
+              baseIdea: "Updated without conflict",
+              linkedin: makeLinkedInPost("Updated LinkedIn"),
+              x: makeXPost("X content"),
+            },
+          }),
+        ),
+      ).resolves.toMatchObject({
+        id: first.id,
+        title: "Updated without conflict",
+      });
     });
   });
 

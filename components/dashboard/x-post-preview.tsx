@@ -52,12 +52,13 @@ export function XPostPreview({
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden rounded-xl border bg-muted/40 p-4">
         <div className="flex max-h-[48rem] min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1">
           {post.x.posts.map((threadPost, index) => {
+            const threadPostId = threadPost.id ?? `x-${index + 1}`;
             const characterCount = threadPost.content.length;
             const isOverCharacterLimit = characterCount > X_CHARACTER_LIMIT;
 
             return (
               <div
-                key={threadPost.id}
+                key={threadPostId}
                 className="rounded-xl border bg-background/80 p-4"
               >
                 <div className="flex items-center justify-between gap-3">
@@ -110,7 +111,7 @@ export function XPostPreview({
 
                 <PlainTextPostEditor
                   value={threadPost.content}
-                  onChange={(content) => onPostChange(threadPost.id, content)}
+                  onChange={(content) => onPostChange(threadPostId, content)}
                   placeholder="Write your X post..."
                   className="mt-3"
                   autoResize
