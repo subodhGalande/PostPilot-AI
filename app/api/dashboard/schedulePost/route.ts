@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
 import { requireAuthJose } from "@/lib/auth/auth";
+import {
+  databaseConnectionErrorResponse,
+  isDatabaseConnectionError,
+} from "@/lib/server/database-errors";
 
 import {
   draftStore,
@@ -24,6 +28,10 @@ export async function POST(req: Request) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("schedulePost POST route error", error);
+
+    if (isDatabaseConnectionError(error)) {
+      return databaseConnectionErrorResponse();
+    }
 
     if (error instanceof ValidationError || error instanceof ZodError) {
       return NextResponse.json(

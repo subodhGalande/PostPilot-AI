@@ -4,6 +4,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireAuthJose } from "@/lib/auth/auth";
+import {
+  databaseConnectionErrorResponse,
+  isDatabaseConnectionError,
+} from "@/lib/server/database-errors";
 import prisma from "@/lib/prisma";
 import { generatePostSchema } from "@/lib/schemas/post.schema";
 import { getModelById } from "@/lib/ai/models";
@@ -242,6 +246,11 @@ export async function POST(req: Request) {
     return result.toTextStreamResponse();
   } catch (error) {
     console.error("generatePost route error", error);
+
+    if (isDatabaseConnectionError(error)) {
+      return databaseConnectionErrorResponse();
+    }
+
     return NextResponse.json(
       {
         error: "Failed to generate post",

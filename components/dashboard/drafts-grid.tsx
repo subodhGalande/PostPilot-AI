@@ -51,6 +51,44 @@ type DraftListItem = {
   xPost?: XPostData;
 };
 
+function getDeleteImpactItems(draft: DraftListItem) {
+  const items: {
+    key: "linkedin" | "x";
+    label: string;
+    status: string;
+    Icon: typeof Linkedin;
+    className: string;
+  }[] = [];
+
+  if (draft.linkedinPost) {
+    items.push({
+      key: "linkedin",
+      label: "LinkedIn",
+      status: draft.linkedinPost.status,
+      Icon: Linkedin,
+      className:
+        "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-200",
+    });
+  }
+
+  if (draft.xPost) {
+    items.push({
+      key: "x",
+      label: "X",
+      status: draft.xPost.status,
+      Icon: Twitter,
+      className:
+        "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-200",
+    });
+  }
+
+  return items;
+}
+
+function formatPlatformStatus(status: string) {
+  return status === "SCHEDULED" ? "Scheduled" : "Draft";
+}
+
 interface DraftsGridProps {
   initialDrafts: DraftListItem[];
 }
@@ -67,6 +105,12 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
   const [drafts, setDrafts] = useState(initialDrafts);
   const [pendingDeleteDraft, setPendingDeleteDraft] =
     useState<DraftListItem | null>(null);
+  const pendingDeleteImpact = pendingDeleteDraft
+    ? getDeleteImpactItems(pendingDeleteDraft)
+    : [];
+  const pendingDeleteIncludesScheduled = pendingDeleteImpact.some(
+    (item) => item.status === "SCHEDULED",
+  );
 
   const deleteDraftMutation = useMutation({
     mutationFn: async (draftId: string) => {
@@ -80,9 +124,11 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
           message?: string;
         } | null;
 
-        throw new Error(
+        const error = new Error(
           errorBody?.message ?? errorBody?.error ?? "Failed to delete draft.",
         );
+        (error as any).status = response.status;
+        throw error;
       }
     },
     onMutate: async (draftId) => {
@@ -98,7 +144,7 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
       toast.success("Draft deleted.");
     },
     onError: (error, _draftId, context) => {
-      if (context?.previousDrafts) {
+      if ((error as any).status !== 404 && context?.previousDrafts) {
         setDrafts(context.previousDrafts);
       }
 
@@ -113,17 +159,27 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
     <>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {drafts.map((draft) => (
-          <article
+          // biome-ignore lint/a11y/useSemanticElements: The card contains its own delete button, so a native button wrapper would be invalid nested interactive markup.
+          <div
             key={draft.id}
+            tabIndex={0}
+            role="button"
             className="group flex h-full cursor-pointer flex-col rounded-2xl border border-border/70 bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-primary/20 hover:bg-card dark:border-transparent dark:bg-card/80 dark:hover:bg-card"
             onClick={() => router.push(`/dashboard/drafts/${draft.id}`)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                router.push(`/dashboard/drafts/${draft.id}`);
+              }
+            }}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex size-11 items-center justify-center rounded-xl bg-primary/8 text-primary">
                 <FileText className="size-5" />
               </div>
               <div className="flex items-center gap-2">
-                {(draft.linkedinPost?.status === "DRAFT" || draft.xPost?.status === "DRAFT") && (
+                {(draft.linkedinPost?.status === "DRAFT" ||
+                  draft.xPost?.status === "DRAFT") && (
                   <div className="flex gap-1">
                     {draft.linkedinPost?.status === "DRAFT" && (
                       <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-600 border border-blue-200">
@@ -146,10 +202,11 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
                     e.stopPropagation();
                     setPendingDeleteDraft(draft);
                   }}
-                  aria-label={`Delete ${draft.title}`}
+                  onKeyDown={(event) => event.stopPropagation()}
+                  aria-label={`Delete all content for ${draft.title}`}
                 >
                   <Trash2 />
-                  Delete
+                  Delete all
                 </Button>
               </div>
             </div>
@@ -170,7 +227,7 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
                 </div>
               </div>
             </div>
-          </article>
+          </div>
         ))}
       </div>
 
@@ -191,12 +248,34 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
               <div className="min-w-0 text-left">
                 <DialogTitle className="text-left">Delete draft?</DialogTitle>
                 <DialogDescription className="mt-2 text-left leading-6">
-                  This will permanently remove the selected draft from your
-                  workspace.
+                  This will delete the base idea and every platform version
+                  attached to it.
                 </DialogDescription>
                 {pendingDeleteDraft ? (
                   <p className="mt-3 rounded-xl bg-muted/60 px-3 py-2 text-sm font-medium text-foreground">
                     {pendingDeleteDraft.title}
+                  </p>
+                ) : null}
+                {pendingDeleteImpact.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {pendingDeleteImpact.map((item) => {
+                      const Icon = item.Icon;
+                      return (
+                        <span
+                          key={item.key}
+                          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${item.className}`}
+                        >
+                          <Icon className="size-3.5" />
+                          {item.label} {formatPlatformStatus(item.status)}
+                        </span>
+                      );
+                    })}
+                  </div>
+                ) : null}
+                {pendingDeleteIncludesScheduled ? (
+                  <p className="mt-3 text-sm font-medium text-destructive">
+                    Scheduled posts for this draft will also be removed from the
+                    calendar.
                   </p>
                 ) : null}
                 <p className="mt-3 text-sm text-muted-foreground">
@@ -229,7 +308,9 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
               ) : (
                 <Trash2 />
               )}
-              {deleteDraftMutation.isPending ? "Deleting..." : "Delete draft"}
+              {deleteDraftMutation.isPending
+                ? "Deleting..."
+                : "Delete everything"}
             </Button>
           </DialogFooter>
         </DialogContent>
