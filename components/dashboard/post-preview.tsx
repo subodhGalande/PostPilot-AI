@@ -103,17 +103,12 @@ export function PostPreview({
   const availablePlatforms = useMemo(() => {
     if (!activePost) return [];
     return (["linkedin", "x"] as const).filter((p) => {
-      const hasContent =
-        p === "linkedin"
-          ? !!activePost.linkedin.content
-          : activePost.x.posts.length > 0;
-
       const isValidStatus = ["DRAFT", "SCHEDULED"].includes(
         activePost[p].status,
       );
       const isNotCleared = !clearedPlatforms.has(p);
 
-      return hasContent && isValidStatus && isNotCleared;
+      return isValidStatus && isNotCleared;
     });
   }, [activePost, clearedPlatforms]);
 
