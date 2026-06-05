@@ -46,6 +46,9 @@ next-env.d.ts
 /app/generated/prisma
 
 .*/
+!/.github/
+!/.github/workflows/
+!/.github/workflows/**
 !/.scratch/
 !/.scratch/**
 
