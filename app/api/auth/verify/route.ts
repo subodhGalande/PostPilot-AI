@@ -3,19 +3,17 @@ import { verifyTokenJose } from "@/lib/auth/jwtjose";
 import prisma from "@/lib/prisma";
 
 export async function GET(req: Request) {
-  //read jwt token from query
   try {
     const url = new URL(req.url);
     const token = url.searchParams.get("token");
 
     if (!token) {
-      return NextResponse.json({ message: "missing token" }, { status: 401 });
+      return NextResponse.redirect(new URL("/verify-error", req.url));
     }
 
-    //check if token is valid
     const payload = await verifyTokenJose(token);
     if (!payload) {
-      return NextResponse.json({ error: "invalid token" }, { status: 401 });
+      return NextResponse.redirect(new URL("/verify-error", req.url));
     }
 
     const tokenRecord = await prisma.verificationToken.findUnique({
@@ -23,18 +21,14 @@ export async function GET(req: Request) {
     });
 
     if (!tokenRecord) {
-      return NextResponse.json(
-        { error: "invalid or expired token" },
-        { status: 401 }
-      );
-    }
-    // Check expiration
-    if (tokenRecord.expiresAt < new Date()) {
-      return NextResponse.json({ error: "Token expired" }, { status: 400 });
+      return NextResponse.redirect(new URL("/verify-error", req.url));
     }
 
-    //create verified user in user table
-    const user = await prisma.user.create({
+    if (tokenRecord.expiresAt < new Date()) {
+      return NextResponse.redirect(new URL("/verify-error", req.url));
+    }
+
+    await prisma.user.create({
       data: {
         email: tokenRecord.email,
         name: tokenRecord.name,
@@ -46,8 +40,12 @@ export async function GET(req: Request) {
 
     await prisma.verificationToken.delete({ where: { token } });
 
+    await prisma.verificationToken.deleteMany({
+      where: { expiresAt: { lt: new Date() } },
+    });
+
     return NextResponse.redirect(new URL("/verified", req.url));
   } catch (_err) {
-    return NextResponse.json({ error: "server error" }, { status: 500 });
+    return NextResponse.redirect(new URL("/verify-error", req.url));
   }
 }

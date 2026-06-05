@@ -15,6 +15,7 @@ export interface JoseJwtPayload {
   email: string;
   name: string;
   passwordHash?: string;
+  tokenVersion?: number;
   [key: string]: unknown;
 }
 
@@ -24,7 +25,7 @@ export const signTokenJose = async (
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setIssuedAt()
-    .setExpirationTime("15m")
+    .setExpirationTime("1h")
     .sign(secretKey);
 };
 
