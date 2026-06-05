@@ -2,12 +2,12 @@
 
 ### Issue tracker
 
-Issues and PRDs live as markdown files under `.scratch/`. See `docs/agents/issue-tracker.md`.
+Issues and PRDs live as markdown files under `.scratch/`. See `.scratch/agents/issue-tracker.md`.
 
 ### Triage labels
 
-Standard triage label vocabulary: needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix. See `docs/agents/triage-labels.md`.
+Standard triage label vocabulary: needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix. See `.scratch/agents/triage-labels.md`.
 
 ### Domain docs
 
-Single-context layout: one `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+Single-context layout: one `CONTEXT.md` at the repo root and ADRs under `.scratch/adr/`. See `.scratch/agents/domain.md`.

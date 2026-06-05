@@ -46,3 +46,8 @@ next-env.d.ts
 /app/generated/prisma
 
 .*/
+!/.scratch/
+!/.scratch/**
+
+# repo uses .scratch for planning/docs; keep docs/ out
+/docs/
