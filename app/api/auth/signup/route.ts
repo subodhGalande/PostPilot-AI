@@ -1,7 +1,15 @@
-import { hashPassword, signToken } from "@/lib/auth/auth";
+import { hashPassword } from "@/lib/auth/auth";
+import { signTokenJose } from "@/lib/auth/jwtjose";
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import prisma from "@/lib/prisma";
+import { signupSchema } from "@/lib/validations/auth";
+import {
+  buildRateLimitHeaders,
+  checkRateLimit,
+  rateLimitExceededResponse,
+} from "@/lib/rate-limit";
+import { csrfErrorResponse, validateCsrf } from "@/lib/csrf";
 
 const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
@@ -15,7 +23,28 @@ const transporter = nodemailer.createTransport({
 
 export async function POST(req: Request) {
   try {
-    const { email, name, password } = await req.json();
+    if (!validateCsrf(req).valid) return csrfErrorResponse();
+
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+
+    const ipLimit = checkRateLimit(`signup:ip:${ip}`, {
+      maxRequests: 3,
+      windowMs: 15 * 60 * 1000,
+    });
+    if (!ipLimit.success) {
+      return rateLimitExceededResponse(ipLimit.resetTime);
+    }
+
+    const body = await req.json();
+    const parsed = signupSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { message: parsed.error.issues[0].message },
+        { status: 400 }
+      );
+    }
+    const { email, name, password } = parsed.data;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
@@ -25,7 +54,11 @@ export async function POST(req: Request) {
 
     const passwordHash = await hashPassword(password);
 
-    const token = await signToken({ email, name });
+    await prisma.verificationToken.deleteMany({
+      where: { email, expiresAt: { lt: new Date() } },
+    });
+
+    const token = await signTokenJose({ email, name });
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes from now
 
     await prisma.verificationToken.create({
@@ -52,10 +85,16 @@ export async function POST(req: Request) {
       `,
     });
 
-    return NextResponse.json(
+    const successResponse = NextResponse.json(
       { message: "verification email sent" },
       { status: 200 }
     );
+
+    Object.entries(
+      buildRateLimitHeaders(3, ipLimit.remaining, ipLimit.resetTime)
+    ).forEach(([key, value]) => successResponse.headers.set(key, value));
+
+    return successResponse;
   } catch (_err) {
     console.error("signup error: ", _err);
     return NextResponse.json({ error: "signup failed", _err }, { status: 500 });
