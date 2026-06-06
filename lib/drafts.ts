@@ -20,7 +20,7 @@ export type SaveDraftResponse = {
   createdAt: string;
   updatedAt: string;
   platform?: "linkedin" | "x";
-  content?: any;
+  content?: StoredDraftContent;
   linkedinPost?: {
     id: string;
     content: string | null;
@@ -66,7 +66,26 @@ export function parseStoredDraftContent(content: unknown) {
   return storedDraftContentSchema.parse(content);
 }
 
-export function reconstructPostContent(post: any): StoredDraftContent {
+type ReconstructPostInput = {
+  linkedinPost?: {
+    content?: string | null;
+    status?: string;
+    scheduledAt?: Date | string | null;
+  } | null;
+  xPost?: {
+    mode?: string;
+    threadPosts?: unknown[];
+    status?: string;
+    scheduledAt?: Date | string | null;
+  } | null;
+  topic?: string;
+  baseIdea?: string;
+  model?: string;
+};
+
+export function reconstructPostContent(
+  post: ReconstructPostInput,
+): StoredDraftContent {
   const linkedin = post.linkedinPost || {
     content: null,
     status: "DRAFT",

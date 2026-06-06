@@ -48,33 +48,36 @@ const navItems = [
     title: "Dashboard",
     url: "/dashboard",
     icon: LayoutDashboard,
-    match: (pathname: string, from?: string | null) => pathname === "/dashboard",
+    match: (pathname: string, _from?: string | null) =>
+      pathname === "/dashboard",
   },
   {
     title: "Drafts",
     url: "/dashboard/drafts",
     icon: FileText,
-    match: (pathname: string, from?: string | null) => 
+    match: (pathname: string, from?: string | null) =>
       pathname.startsWith("/dashboard/drafts") && from !== "calendar",
   },
   {
     title: "Calendar",
     url: "/dashboard/calendar",
     icon: Calendar,
-    match: (pathname: string, from?: string | null) => 
+    match: (pathname: string, from?: string | null) =>
       pathname.startsWith("/dashboard/calendar") || from === "calendar",
   },
   {
     title: "Analytics",
     url: "/analytics",
     icon: LineChart,
-    match: (pathname: string, from?: string | null) => pathname.startsWith("/analytics"),
+    match: (pathname: string, _from?: string | null) =>
+      pathname.startsWith("/analytics"),
   },
   {
     title: "Settings",
     url: "/settings",
     icon: Settings,
-    match: (pathname: string, from?: string | null) => pathname.startsWith("/settings"),
+    match: (pathname: string, _from?: string | null) =>
+      pathname.startsWith("/settings"),
   },
 ];
 
@@ -122,7 +125,7 @@ function SidebarMenuItems() {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const pathname = usePathname();
+  const _pathname = usePathname();
   const { setTheme, resolvedTheme, theme } = useTheme();
   const { isMobile } = useSidebar();
   const activeTheme =

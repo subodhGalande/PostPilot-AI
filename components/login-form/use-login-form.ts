@@ -2,12 +2,14 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 
-import { loginFormSchema, type LoginFormValues } from "@/lib/schemas/auth.schema";
+import {
+  loginFormSchema,
+  type LoginFormValues,
+} from "@/lib/schemas/auth.schema";
 
 export function useLoginForm() {
   const form = useForm<LoginFormValues>({
@@ -22,7 +24,7 @@ export function useLoginForm() {
 
   const loginMutation = useMutation({
     mutationKey: ["login"],
-    mutationFn: async (data: LoginFormValues): Promise<any> => {
+    mutationFn: async (data: LoginFormValues): Promise<{ message: string }> => {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -37,7 +39,7 @@ export function useLoginForm() {
       switch (data.message) {
         case "invalid credentials":
           toast.error(
-            "credentials not valid. Check email/password and try again."
+            "credentials not valid. Check email/password and try again.",
           );
           break;
         case "user not verified":
@@ -52,7 +54,7 @@ export function useLoginForm() {
       }
       queryClient.invalidateQueries({ queryKey: ["login"] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error?.message || "Unexpected response from server.");
     },
   });

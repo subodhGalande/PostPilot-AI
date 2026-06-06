@@ -345,8 +345,8 @@ body {
   .fc .scheduled-post-card,
   .fc .fc-button,
   .fc .fc-event {
-    transition: none !important;
-    animation: none !important;
+    transition: none;
+    animation: none;
   }
 }
 

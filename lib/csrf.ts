@@ -11,7 +11,7 @@ export function validateCsrf(req: Request): { valid: boolean } {
 
   if (referer) {
     return {
-      valid: referer === allowed || referer.startsWith(allowed + "/"),
+      valid: referer === allowed || referer.startsWith(`${allowed}/`),
     };
   }
 

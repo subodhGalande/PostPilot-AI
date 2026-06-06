@@ -2,12 +2,14 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 
-import { onBoardingFormSchema, type OnboardingFormValues } from "@/lib/schemas/auth.schema";
+import {
+  onBoardingFormSchema,
+  type OnboardingFormValues,
+} from "@/lib/schemas/auth.schema";
 
 export function useOnboardingForm() {
   const queryClient = useQueryClient();
@@ -15,7 +17,7 @@ export function useOnboardingForm() {
 
   const onboardingMutation = useMutation({
     mutationKey: ["onboarding"],
-    mutationFn: async (data: OnboardingFormValues): Promise<any> => {
+    mutationFn: async (data: OnboardingFormValues): Promise<unknown> => {
       const res = await fetch("/api/dashboard/onboarding", {
         method: "PATCH",
         headers: {

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuthJose } from "@/lib/auth/auth";
 

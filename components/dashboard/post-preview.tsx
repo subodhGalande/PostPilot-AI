@@ -62,7 +62,7 @@ export function PostPreview({
   isGenerating = false,
   isSavingDraft = false,
   mode = "generated",
-  status,
+  _status,
   id,
   updatedAt,
   clientDraftKey,

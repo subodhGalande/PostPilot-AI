@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,7 +8,6 @@ import {
 } from "@/components/ui/card";
 
 import { CircleCheck } from "lucide-react";
-import Link from "next/link";
 
 export default function EmailVerificationCard() {
   return (

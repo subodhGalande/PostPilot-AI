@@ -99,22 +99,19 @@ export function PostConfiguration({
               }
             }}
             placeholder="e.g. Benefits of Remote Work for Software Teams"
-            className={cn(
-              validationError &&
-                "border-destructive focus-visible:ring-destructive",
-            )}
           />
-          {validationError && (
-            <p className="text-xs font-medium text-destructive mt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
-              {validationError}
-            </p>
-          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
             <Label className="text-sm font-semibold">Tone</Label>
-            <Select value={tone} onValueChange={onToneChange}>
+            <Select
+              value={tone}
+              onValueChange={(v) => {
+                onToneChange(v);
+                setValidationError(null);
+              }}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select tone" />
               </SelectTrigger>
@@ -129,7 +126,13 @@ export function PostConfiguration({
 
           <div className="flex flex-col gap-2">
             <Label className="text-sm font-semibold">Post Style</Label>
-            <Select value={postStyle} onValueChange={onPostStyleChange}>
+            <Select
+              value={postStyle}
+              onValueChange={(v) => {
+                onPostStyleChange(v);
+                setValidationError(null);
+              }}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select style" />
               </SelectTrigger>
@@ -145,7 +148,13 @@ export function PostConfiguration({
 
         <div className="flex flex-col gap-2">
           <Label className="text-sm font-semibold">Target Audience</Label>
-          <Select value={targetAudience} onValueChange={onTargetAudienceChange}>
+          <Select
+            value={targetAudience}
+            onValueChange={(v) => {
+              onTargetAudienceChange(v);
+              setValidationError(null);
+            }}
+          >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select audience" />
             </SelectTrigger>
@@ -216,12 +225,29 @@ export function PostConfiguration({
       </div>
 
       <div className="shrink-0 border-t bg-card p-6">
+        {validationError && (
+          <p className="mb-3 text-xs font-medium text-destructive animate-in fade-in slide-in-from-top-1 duration-200">
+            {validationError}
+          </p>
+        )}
         <Button
           size="lg"
           className="flex w-full items-center gap-2 rounded-xl text-base font-bold"
           onClick={() => {
             if (!topic.trim()) {
               setValidationError("Topic is required");
+              return;
+            }
+            if (!tone) {
+              setValidationError("Tone is required");
+              return;
+            }
+            if (!postStyle) {
+              setValidationError("Post style is required");
+              return;
+            }
+            if (!targetAudience) {
+              setValidationError("Target audience is required");
               return;
             }
             setValidationError(null);

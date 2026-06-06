@@ -4,6 +4,9 @@ import type { GeneratedPostItem } from "@/lib/schemas/social.schema";
 import {
   PrismaDraftStoreAdapter,
   type DraftStoreAdapter,
+  type PlatformChildData,
+  type PostWithChildren,
+  type XPostChildData,
 } from "./draft-store-adapter";
 
 export class DraftStoreError extends Error {
@@ -96,7 +99,9 @@ function detectConflict(
   }
 }
 
-function formatLinkedInResult(post: any): PlatformVariantResult | null {
+function formatLinkedInResult(
+  post: PlatformChildData | null | undefined,
+): PlatformVariantResult | null {
   if (!post) return null;
   return {
     id: post.id,
@@ -106,7 +111,9 @@ function formatLinkedInResult(post: any): PlatformVariantResult | null {
   };
 }
 
-function formatXResult(post: any): PlatformVariantResult | null {
+function formatXResult(
+  post: XPostChildData | null | undefined,
+): PlatformVariantResult | null {
   if (!post) return null;
   return {
     id: post.id,
@@ -118,7 +125,7 @@ function formatXResult(post: any): PlatformVariantResult | null {
   };
 }
 
-function formatResult(post: any): DraftStoreResult {
+function formatResult(post: PostWithChildren): DraftStoreResult {
   return {
     id: post.id,
     title: post.title ?? "",
@@ -132,7 +139,7 @@ function formatResult(post: any): DraftStoreResult {
         ? post.updatedAt.toISOString()
         : post.updatedAt,
     linkedinPost: formatLinkedInResult(post.linkedinPost),
-    xPost: formatXResult(post.xPost) as any,
+    xPost: formatXResult(post.xPost),
   };
 }
 
@@ -166,7 +173,7 @@ export class DraftStore {
         "DRAFT",
         platform,
       );
-      const ops: (() => Promise<any>)[] = [
+      const ops: (() => Promise<unknown>)[] = [
         () => this.adapter.updatePost(existing.id, postData),
         ...childOps,
       ];
@@ -245,7 +252,7 @@ export class DraftStore {
         platform,
         scheduledDate,
       );
-      const ops: (() => Promise<any>)[] = [
+      const ops: (() => Promise<unknown>)[] = [
         () => this.adapter.updatePost(existing.id, postData),
         ...childOps,
       ];
@@ -286,7 +293,7 @@ export class DraftStore {
     const existing = await this.adapter.findPostMeta(userId, id);
     if (!existing) throw new NotFoundError();
 
-    const ops: (() => Promise<any>)[] = [];
+    const ops: (() => Promise<unknown>)[] = [];
     const unscheduleLinkedIn = !platform || platform === "linkedin";
     const unscheduleX = !platform || platform === "x";
 
@@ -345,8 +352,8 @@ export class DraftStore {
       let otherHasContent = false;
       if (isLinkedIn) {
         otherHasContent =
-          (!!post.xPost?.threadPosts &&
-            (post.xPost.threadPosts as any[]).length > 0) ||
+          (Array.isArray(post.xPost?.threadPosts) &&
+            post.xPost?.threadPosts.length > 0) ||
           post.xPost?.status === "SCHEDULED";
       } else {
         otherHasContent =
@@ -388,8 +395,8 @@ export class DraftStore {
     status: string,
     platform: "linkedin" | "x" | undefined,
     scheduledAt?: Date | null,
-  ): (() => Promise<any>)[] {
-    const ops: (() => Promise<any>)[] = [];
+  ): (() => Promise<unknown>)[] {
+    const ops: (() => Promise<unknown>)[] = [];
     const touchLinkedIn = !platform || platform === "linkedin";
     const touchX = !platform || platform === "x";
 

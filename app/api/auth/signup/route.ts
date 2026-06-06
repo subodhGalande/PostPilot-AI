@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     if (!parsed.success) {
       return NextResponse.json(
         { message: parsed.error.issues[0].message },
-        { status: 400 }
+        { status: 400 },
       );
     }
     const { email, name, password } = parsed.data;
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
 
     const verifyUrl = `${process.env.APP_URL}/api/auth/verify?token=${token}`;
 
-    const mail = await transporter.sendMail({
+    await transporter.sendMail({
       from: `"PostPilot AI " ${process.env.SMTP_VERIFIED_SENDER_MAIL}`,
       to: email,
       subject: "verify your email - PostPilot AI",
@@ -87,12 +87,14 @@ export async function POST(req: Request) {
 
     const successResponse = NextResponse.json(
       { message: "verification email sent" },
-      { status: 200 }
+      { status: 200 },
     );
 
     Object.entries(
-      buildRateLimitHeaders(3, ipLimit.remaining, ipLimit.resetTime)
-    ).forEach(([key, value]) => successResponse.headers.set(key, value));
+      buildRateLimitHeaders(3, ipLimit.remaining, ipLimit.resetTime),
+    ).forEach(([key, value]) => {
+      successResponse.headers.set(key, value);
+    });
 
     return successResponse;
   } catch (_err) {

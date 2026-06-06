@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, Edit3, Loader2, Trash2, RotateCcw } from "lucide-react";
+import { CheckCircle2, Edit3, Loader2, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { PostPreview } from "@/components/dashboard/post-preview";
@@ -154,7 +154,7 @@ export function DraftEditorWorkspace({
         platform,
       });
     },
-    onSuccess: (draft: any) => {
+    onSuccess: (draft: SaveDraftResponse) => {
       setDraftUpdatedAt(draft.updatedAt);
       if (draft.status === "DRAFT" || draft.status === "SCHEDULED") {
         setStatus(draft.status);

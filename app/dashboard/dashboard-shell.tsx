@@ -78,6 +78,7 @@ function DashboardHeader() {
 
   // Simple trick to show progress bar on pathname change
   useEffect(() => {
+    void pathname; // trigger on navigation
     setIsNavigating(true);
     const timer = setTimeout(() => setIsNavigating(false), 800);
     return () => clearTimeout(timer);

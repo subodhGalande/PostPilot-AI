@@ -72,18 +72,11 @@ export default function DashboardPage() {
   const [clientDraftKey, setClientDraftKey] = useState(() =>
     createClientDraftKey(),
   );
-  const [topic, setTopic] = useState(
-    "Benefits of Remote Work for Software Teams",
-  );
-  const [tone, setTone] = useState("professional");
-  const [postStyle, setPostStyle] = useState("long-form");
-  const [targetAudience, setTargetAudience] = useState("tech-founders");
-  const [keywords, setKeywords] = useState([
-    "remote work",
-    "productivity",
-    "scaling",
-    "teams",
-  ]);
+  const [topic, setTopic] = useState("");
+  const [tone, setTone] = useState("");
+  const [postStyle, setPostStyle] = useState("");
+  const [targetAudience, setTargetAudience] = useState("");
+  const [keywords, setKeywords] = useState<string[]>([]);
   const [generatedPostPack, setGeneratedPostPack] =
     useState<GeneratedPostPack | null>(null);
   const [clearedPlatforms, setClearedPlatforms] = useState<

@@ -46,8 +46,11 @@ export function classifyApiError(error: unknown): ClassifiedError {
       };
     }
     // Inspect status property if attached to generic Error (standard pattern for some APIs/fetch clients)
-    if ("status" in error && typeof (error as any).status === "number") {
-      status = (error as any).status;
+    if (
+      "status" in error &&
+      typeof (error as Record<string, unknown>).status === "number"
+    ) {
+      status = (error as { status: number }).status;
     }
   }
 
@@ -61,7 +64,8 @@ export function classifyApiError(error: unknown): ClassifiedError {
   ) {
     return {
       category: "server-config",
-      message: "Service temporarily unavailable due to server configuration issues.",
+      message:
+        "Service temporarily unavailable due to server configuration issues.",
       shouldRedirect: false,
     };
   }
@@ -98,7 +102,8 @@ export function classifyApiError(error: unknown): ClassifiedError {
   if (status === 409 || messageLower.includes("conflict")) {
     return {
       category: "conflict",
-      message: "This draft was updated in another tab. Please refresh to get the latest version.",
+      message:
+        "This draft was updated in another tab. Please refresh to get the latest version.",
       shouldRedirect: false,
     };
   }

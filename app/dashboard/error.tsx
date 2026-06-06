@@ -24,7 +24,8 @@ export default function DashboardError({
         <div>
           <h2 className="text-2xl font-bold">Something went wrong!</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            {error.message || "An unexpected error occurred while loading your dashboard."}
+            {error.message ||
+              "An unexpected error occurred while loading your dashboard."}
           </p>
         </div>
         <div className="flex gap-4">
@@ -32,7 +33,12 @@ export default function DashboardError({
             <RefreshCcw className="h-4 w-4" />
             Try again
           </Button>
-          <Button variant="outline" onClick={() => (window.location.href = "/")}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              window.location.href = "/";
+            }}
+          >
             Back to Home
           </Button>
         </div>

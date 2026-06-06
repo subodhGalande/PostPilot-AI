@@ -30,7 +30,7 @@ export interface RateLimitResult {
 
 export function checkRateLimit(
   key: string,
-  config: RateLimitConfig
+  config: RateLimitConfig,
 ): RateLimitResult {
   cleanup();
   const now = Date.now();
@@ -54,7 +54,7 @@ export function checkRateLimit(
 export function buildRateLimitHeaders(
   limit: number,
   remaining: number,
-  resetTime: number
+  resetTime: number,
 ): Record<string, string> {
   return {
     "X-RateLimit-Limit": String(limit),

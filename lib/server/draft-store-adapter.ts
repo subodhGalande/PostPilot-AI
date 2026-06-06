@@ -1,5 +1,8 @@
 import prisma from "@/lib/prisma";
 
+type DraftPostStatus = "DRAFT" | "SCHEDULED";
+type JsonArray = Record<string, unknown>[];
+
 export interface PostMeta {
   id: string;
   title: string;
@@ -101,7 +104,7 @@ export interface DraftStoreAdapter {
     linkedinPost: PlatformChildData | null;
     xPost: XPostChildData | null;
   }>;
-  batch(operations: (() => Promise<any>)[]): Promise<any[]>;
+  batch(operations: (() => Promise<unknown>)[]): Promise<unknown[]>;
 }
 
 export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
@@ -201,7 +204,7 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
       topic: result.topic || "",
       baseIdea: result.baseIdea || "",
       model: result.model || "",
-    } as any;
+    } as PostWithChildren;
   }
 
   async findPostsByUser(
@@ -212,8 +215,8 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
       where: {
         userId,
         OR: [
-          { linkedinPost: { status: status as any } },
-          { xPost: { status: status as any } },
+          { linkedinPost: { status: status as DraftPostStatus } },
+          { xPost: { status: status as DraftPostStatus } },
         ],
       },
       select: {
@@ -292,13 +295,13 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
       where: { postId },
       update: {
         content: input.content,
-        status: input.status as any,
+        status: input.status as DraftPostStatus,
         scheduledAt: input.scheduledAt,
       },
       create: {
         postId,
         content: input.content,
-        status: input.status as any,
+        status: input.status as DraftPostStatus,
         scheduledAt: input.scheduledAt,
       },
     });
@@ -310,16 +313,16 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
       update: {
         content: input.content,
         mode: input.mode,
-        threadPosts: input.threadPosts as any,
-        status: input.status as any,
+        threadPosts: input.threadPosts as JsonArray,
+        status: input.status as DraftPostStatus,
         scheduledAt: input.scheduledAt,
       },
       create: {
         postId,
         content: input.content,
         mode: input.mode,
-        threadPosts: input.threadPosts as any,
-        status: input.status as any,
+        threadPosts: input.threadPosts as JsonArray,
+        status: input.status as DraftPostStatus,
         scheduledAt: input.scheduledAt,
       },
     });
@@ -332,7 +335,7 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
     await prisma.linkedInPost.update({
       where: { postId },
       data: {
-        status: input.status as any,
+        status: input.status as DraftPostStatus,
         scheduledAt: input.scheduledAt,
       },
     });
@@ -345,7 +348,7 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
     await prisma.xPost.update({
       where: { postId },
       data: {
-        status: input.status as any,
+        status: input.status as DraftPostStatus,
         scheduledAt: input.scheduledAt,
       },
     });
@@ -388,8 +391,8 @@ export class PrismaDraftStoreAdapter implements DraftStoreAdapter {
     return { linkedinPost, xPost };
   }
 
-  async batch(operations: (() => Promise<any>)[]): Promise<any[]> {
-    const results: any[] = [];
+  async batch(operations: (() => Promise<unknown>)[]): Promise<unknown[]> {
+    const results: unknown[] = [];
     for (const op of operations) {
       results.push(await op());
     }
@@ -598,8 +601,8 @@ export class InMemoryDraftStoreAdapter implements DraftStoreAdapter {
     };
   }
 
-  async batch(operations: (() => Promise<any>)[]): Promise<any[]> {
-    const results: any[] = [];
+  async batch(operations: (() => Promise<unknown>)[]): Promise<unknown[]> {
+    const results: unknown[] = [];
     for (const op of operations) {
       results.push(await op());
     }

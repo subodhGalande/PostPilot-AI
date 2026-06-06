@@ -2,11 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { toast } from "sonner";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 
-import { signupFormSchema, type SignupFormValues } from "@/lib/schemas/auth.schema";
+import {
+  signupFormSchema,
+  type SignupFormValues,
+} from "@/lib/schemas/auth.schema";
 
 export function useSignupForm() {
   const form = useForm<SignupFormValues>({
@@ -22,7 +24,9 @@ export function useSignupForm() {
 
   const signupMutation = useMutation({
     mutationKey: ["signup"],
-    mutationFn: async (data: SignupFormValues): Promise<any> => {
+    mutationFn: async (
+      data: SignupFormValues,
+    ): Promise<{ message: string }> => {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
@@ -47,7 +51,7 @@ export function useSignupForm() {
       }
       queryClient.invalidateQueries({ queryKey: ["signup"] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error?.message || "Unexpected response from server.");
     },
   });

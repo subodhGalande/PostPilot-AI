@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   Dialog,
   DialogContent,
@@ -50,8 +49,8 @@ export function ConfirmationModal({
           <Button variant="outline" onClick={onClose}>
             {cancelText}
           </Button>
-          <Button 
-            variant={variant === "destructive" ? "destructive" : "default"} 
+          <Button
+            variant={variant === "destructive" ? "destructive" : "default"}
             onClick={() => {
               onConfirm();
               onClose();

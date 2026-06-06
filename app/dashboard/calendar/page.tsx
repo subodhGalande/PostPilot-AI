@@ -15,12 +15,14 @@ export default async function CalendarPage() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:p-6 bg-slate-50/50 dark:bg-transparent">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Content Calendar</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          Content Calendar
+        </h1>
         <p className="text-sm text-muted-foreground">
           View and manage your scheduled social media posts.
         </p>
       </div>
-      
+
       <div className="flex-1 rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
         <Suspense fallback={<CalendarLoader />}>
           <CalendarView />

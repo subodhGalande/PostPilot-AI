@@ -67,7 +67,7 @@ interface CalendarEvent {
     status: string;
     type: "scheduled";
     platform: "linkedin" | "x";
-    content: any;
+    content: unknown;
     postId: string;
   };
 }
@@ -88,14 +88,17 @@ export function CalendarView() {
     postTitle: null,
   });
 
-  const handleOpenConfirmation = (
-    type: "unschedule" | "delete",
-    postId: string,
-    postTitle: string,
-    platform?: "linkedin" | "x",
-  ) => {
-    setConfirmationState({ isOpen: true, type, postId, postTitle, platform });
-  };
+  const handleOpenConfirmation = useCallback(
+    (
+      type: "unschedule" | "delete",
+      postId: string,
+      postTitle: string,
+      platform?: "linkedin" | "x",
+    ) => {
+      setConfirmationState({ isOpen: true, type, postId, postTitle, platform });
+    },
+    [],
+  );
 
   const handleCloseConfirmation = () => {
     setConfirmationState({
@@ -186,7 +189,9 @@ export function CalendarView() {
       const xPost = post.xPost;
 
       const linkedinContent = linkedin?.content || "";
-      const xContent = xPost?.threadPosts as { id: string; content: string }[] | null;
+      const xContent = xPost?.threadPosts as
+        | { id: string; content: string }[]
+        | null;
 
       const response = await fetch("/api/dashboard/schedulePost", {
         method: "POST",
@@ -252,15 +257,18 @@ export function CalendarView() {
       const xPost = post.xPost;
 
       if (linkedin?.status === "SCHEDULED" && linkedin.scheduledAt) {
-        const scheduledAtISO = linkedin.scheduledAt instanceof Date
-          ? linkedin.scheduledAt.toISOString()
-          : String(linkedin.scheduledAt);
+        const scheduledAtISO =
+          linkedin.scheduledAt instanceof Date
+            ? linkedin.scheduledAt.toISOString()
+            : String(linkedin.scheduledAt);
 
         calendarEvents.push({
           id: `${post.id}-linkedin`,
           title: post.title,
           start: scheduledAtISO,
-          end: new Date(new Date(scheduledAtISO).getTime() + 30 * 60000).toISOString(),
+          end: new Date(
+            new Date(scheduledAtISO).getTime() + 30 * 60000,
+          ).toISOString(),
           classNames: ["scheduled-post-event", "platform-linkedin"],
           extendedProps: {
             status: linkedin.status,
@@ -273,15 +281,18 @@ export function CalendarView() {
       }
 
       if (xPost?.status === "SCHEDULED" && xPost.scheduledAt) {
-        const scheduledAtISO = xPost.scheduledAt instanceof Date
-          ? xPost.scheduledAt.toISOString()
-          : String(xPost.scheduledAt);
+        const scheduledAtISO =
+          xPost.scheduledAt instanceof Date
+            ? xPost.scheduledAt.toISOString()
+            : String(xPost.scheduledAt);
 
         calendarEvents.push({
           id: `${post.id}-x`,
           title: post.title,
           start: scheduledAtISO,
-          end: new Date(new Date(scheduledAtISO).getTime() + 30 * 60000).toISOString(),
+          end: new Date(
+            new Date(scheduledAtISO).getTime() + 30 * 60000,
+          ).toISOString(),
           classNames: ["scheduled-post-event", "platform-x"],
           extendedProps: {
             status: xPost.status,
@@ -341,7 +352,7 @@ export function CalendarView() {
           : eventContent?.x?.posts?.[0]?.content || "";
 
       const truncatedContent =
-        content.length > 80 ? content.slice(0, 80) + "..." : content;
+        content.length > 80 ? `${content.slice(0, 80)}...` : content;
 
       const PlatformIcon = platform === "linkedin" ? Linkedin : Twitter;
       const platformColor =

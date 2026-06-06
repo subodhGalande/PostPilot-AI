@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     if (!parsed.success) {
       return NextResponse.json(
         { message: parsed.error.issues[0].message },
-        { status: 400 }
+        { status: 400 },
       );
     }
     const { email, password } = parsed.data;
@@ -39,24 +39,24 @@ export async function POST(req: Request) {
     if (!user || !user.passwordHash) {
       return NextResponse.json(
         { message: "invalid credentials" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     if (!user.verified) {
       return NextResponse.json(
         { message: "user not verified" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       const retryAfter = Math.ceil(
-        (user.lockedUntil.getTime() - Date.now()) / 1000
+        (user.lockedUntil.getTime() - Date.now()) / 1000,
       );
       return NextResponse.json(
         { message: "account locked" },
-        { status: 423, headers: { "Retry-After": String(retryAfter) } }
+        { status: 423, headers: { "Retry-After": String(retryAfter) } },
       );
     }
 
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
       await prisma.user.update({ where: { id: user.id }, data: updateData });
       return NextResponse.json(
         { message: "invalid credentials" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -102,9 +102,11 @@ export async function POST(req: Request) {
       buildRateLimitHeaders(
         ipLimit.success ? 10 : 0,
         ipLimit.remaining,
-        ipLimit.resetTime
-      )
-    ).forEach(([key, value]) => response.headers.set(key, value));
+        ipLimit.resetTime,
+      ),
+    ).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
 
     return response;
   } catch (err) {
