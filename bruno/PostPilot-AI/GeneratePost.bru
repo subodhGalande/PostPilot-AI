@@ -1,0 +1,33 @@
+meta {
+  name: GeneratePost
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:3000/api/dashboard/generatePost
+  body: json
+  auth: inherit
+}
+
+headers {
+  Cookie: jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtcDQ2N295ZjAwMDF1em44MHdja3EzaWMiLCJuYW1lIjoiU3Vib2RoIEdhbGFuZGUiLCJlbWFpbCI6Im51c3lseWJlQGRlbmlwbC5jb20iLCJpYXQiOjE3ODAwNzM5OTksImV4cCI6MTc4MDY3ODc5OX0.1qkTUdJptpzQwsxLdP8CP2nkWv2jCo8SpbiwwXDRngY
+}
+
+body:json {
+  {
+    "modelName": "gemini-2.5-flash",
+    "platform": "linkedin",
+    "topic": "",
+    "tone": "professional",
+    "postStyle": "long-form",
+    "targetAudience": "tech-founders",
+    "keywords": ["remote work", "productivity", "scaling", "teams"]
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

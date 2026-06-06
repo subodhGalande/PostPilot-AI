@@ -1,0 +1,23 @@
+meta {
+  name: onboarding
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/dashboard/onboarding
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "id": "123",
+    "mail": "123"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

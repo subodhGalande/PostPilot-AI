@@ -15,25 +15,89 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  name         String?
-  email        String   @unique
-  passwordHash String?
-  provider     Provider @default(CREDENTIALS)
-  onboarding   Json?
-  posts        Post[]
-  createdAt    DateTime @default(now())
+  id                  String       @id @default(cuid())
+  name                String
+  email               String       @unique
+  passwordHash        String?
+  provider            Provider     @default(CREDENTIALS)
+  onboarded           Boolean      @default(false)
+  accountName         String?
+  industry            String?
+  accountType         AccountType?
+  description         String?
+  verified            Boolean      @default(false)
+  tokenVersion        Int          @default(0)
+  failedLoginAttempts Int          @default(0)
+  lockedUntil         DateTime?
+  posts               Post[]
+  createdAt           DateTime     @default(now())
+
+  @@index([email])
+  @@index([id])
 }
 
 model Post {
-  id          String     @id @default(cuid())
-  title       String
-  content     Json?
+  id              String         @id @default(cuid())
+  title           String
+  topic           String?
+  baseIdea        String?
+  model           String?
+  clientDraftKey  String?
+
+  userId          String
+  user            User           @relation(fields: [userId], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  linkedinPost    LinkedInPost?
+  xPost           XPost?
+
+  @@unique([userId, clientDraftKey])
+  @@index([userId])
+}
+
+model LinkedInPost {
+  id          String      @id @default(cuid())
+  content     String?
+  status      PostStatus  @default(DRAFT)
   scheduledAt DateTime?
-  status      PostStatus @default(DRAFT)
-  userId      String
-  user        User       @relation(fields: [userId], references: [id])
-  createdAt   DateTime   @default(now())
+
+  postId      String      @unique
+  post        Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([status, scheduledAt])
+}
+
+model XPost {
+  id           String      @id @default(cuid())
+  content      String?
+  mode         String?
+  threadPosts  Json?
+  status       PostStatus  @default(DRAFT)
+  scheduledAt  DateTime?
+
+  postId       String      @unique
+  post         Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([status, scheduledAt])
+}
+
+model VerificationToken {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  token        String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  @@index([expiresAt])
 }
 
 enum Provider {
@@ -44,6 +108,9 @@ enum Provider {
 enum PostStatus {
   DRAFT
   SCHEDULED
-  PUBLISHED
-  ARCHIVED
+}
+
+enum AccountType {
+  BRAND
+  INFLUENCER
 }

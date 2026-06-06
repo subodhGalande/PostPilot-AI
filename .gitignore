@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+# copilot files
+/.github
+
 # testing
 /coverage
 
@@ -41,3 +44,13 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
+
+.*/
+!/.github/
+!/.github/workflows/
+!/.github/workflows/**
+!/.scratch/
+!/.scratch/**
+
+# repo uses .scratch for planning/docs; keep docs/ out
+/docs/

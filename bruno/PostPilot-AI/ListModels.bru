@@ -1,0 +1,16 @@
+meta {
+  name: ListModels
+  type: http
+  seq: 4
+}
+
+get {
+  url: https://ai-gateway.vercel.sh/v1/models
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
