@@ -67,7 +67,7 @@ const navItems = [
   },
   {
     title: "Analytics",
-    url: "/analytics",
+    url: "/dashboard/analytics",
     icon: LineChart,
     match: (pathname: string, _from?: string | null) =>
       pathname.startsWith("/analytics"),

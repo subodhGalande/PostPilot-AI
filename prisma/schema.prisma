@@ -54,6 +54,7 @@ model Post {
 
   @@unique([userId, clientDraftKey])
   @@index([userId])
+  @@index([userId, createdAt])
 }
 
 model LinkedInPost {
