@@ -1,3 +1,5 @@
+Status: completed
+
 ## Parent
 
 `.scratch/platform-normalized-schema/PRD.md`

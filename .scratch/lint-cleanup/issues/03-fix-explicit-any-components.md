@@ -1,3 +1,5 @@
+Status: completed
+
 ## What to build
 
 Replace ~10 `any` type annotations in `components/` — specifically `calendar-view.tsx`, `drafts-grid.tsx`, `draft-editor-workspace.tsx`, `use-login-form.ts`, `use-signup-form.ts`, and `use-onboarding-form.ts` — using the same type patterns established in the server/lib layer fix.

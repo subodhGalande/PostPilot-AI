@@ -1,3 +1,5 @@
+Status: completed
+
 ## What to build
 
 Run `biome format --write` across the entire codebase to fix formatting inconsistencies in ~113 files. Biome enforces space indentation (2 spaces), consistent quotes, trailing commas, and object formatting. No logic changes — pure style alignment.

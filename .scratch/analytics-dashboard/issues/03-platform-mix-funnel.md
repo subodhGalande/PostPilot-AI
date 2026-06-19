@@ -1,6 +1,7 @@
+Status: completed
+
 # Issue: Platform Mix + Pipeline Funnel
 
-Status: ready-for-agent
 
 ## Parent
 

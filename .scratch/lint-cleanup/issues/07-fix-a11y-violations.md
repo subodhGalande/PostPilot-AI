@@ -1,3 +1,5 @@
+Status: completed
+
 ## What to build
 
 Fix accessibility lint violations across components:

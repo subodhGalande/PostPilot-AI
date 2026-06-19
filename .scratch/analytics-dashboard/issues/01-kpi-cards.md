@@ -1,6 +1,7 @@
+Status: completed
+
 # Issue: KPI Cards + Date Range Picker
 
-Status: ready-for-agent
 
 ## Parent
 

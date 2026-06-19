@@ -1,3 +1,5 @@
+Status: completed
+
 ## What to build
 
 Fix remaining minor single-file lint violations:

@@ -1,6 +1,7 @@
+Status: completed
+
 # PRD: Analytics Dashboard
 
-Status: needs-triage
 
 ## Problem Statement
 

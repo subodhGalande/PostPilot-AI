@@ -1,6 +1,7 @@
+Status: completed
+
 # Post Preview Clearing on Platform Operation
 
-**Status:** needs-triage
 
 ## Problem Statement
 

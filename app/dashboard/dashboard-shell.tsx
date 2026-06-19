@@ -67,7 +67,15 @@ function getRouteMeta(pathname: string) {
     };
   }
 
-  if (pathname.startsWith("/settings")) {
+  if (pathname.startsWith("/dashboard/profile")) {
+    return {
+      section: "Account",
+      title: "Profile",
+      description: "View and manage your account information.",
+    };
+  }
+
+  if (pathname.startsWith("/dashboard/settings")) {
     return {
       section: "Preferences",
       title: "Settings",

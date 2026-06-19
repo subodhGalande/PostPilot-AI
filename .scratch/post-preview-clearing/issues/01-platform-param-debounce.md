@@ -1,6 +1,7 @@
+Status: completed
+
 # PostPreview: platform param + debounce
 
-**Status:** needs-triage
 
 ## Parent
 

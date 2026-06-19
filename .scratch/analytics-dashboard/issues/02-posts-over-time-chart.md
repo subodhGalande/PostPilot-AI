@@ -1,6 +1,7 @@
+Status: completed
+
 # Issue: Posts Over Time Chart
 
-Status: ready-for-agent
 
 ## Parent
 

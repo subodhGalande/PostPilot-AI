@@ -25,6 +25,8 @@ model User {
   industry            String?
   accountType         AccountType?
   description         String?
+  avatarUrl           String?
+  avatarFileKey       String?
   verified            Boolean      @default(false)
   tokenVersion        Int          @default(0)
   failedLoginAttempts Int          @default(0)

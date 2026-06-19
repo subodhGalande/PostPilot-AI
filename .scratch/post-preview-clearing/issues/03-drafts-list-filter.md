@@ -1,6 +1,7 @@
+Status: completed
+
 # Drafts list: filter by DRAFT status + indicators
 
-**Status:** needs-triage
 
 ## Parent
 

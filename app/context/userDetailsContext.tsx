@@ -12,6 +12,8 @@ type User = {
   industry: string | null;
   accountType: "BRAND" | "INFLUENCER" | null;
   description: string | null;
+  avatarUrl: string | null;
+  avatarFileKey: string | null;
   createdAt: Date;
 };
 

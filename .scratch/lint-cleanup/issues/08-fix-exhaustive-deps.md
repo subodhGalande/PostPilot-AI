@@ -1,3 +1,5 @@
+Status: completed
+
 ## What to build
 
 Fix 4 `useExhaustiveDependencies` violations in:

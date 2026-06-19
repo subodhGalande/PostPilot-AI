@@ -1,6 +1,7 @@
+Status: completed
+
 # PRD: Content Calendar Dashboard
 
-Status: ready-for-human (implemented)
 
 ## Problem Statement
 
