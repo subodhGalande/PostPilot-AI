@@ -34,6 +34,7 @@ export async function GET(req: Request) {
         name: data.name || "",
         passwordHash: await argon2.hash(Math.random().toString(36)),
         verified: true,
+        provider: "GOOGLE",
       },
     });
   }

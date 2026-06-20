@@ -39,7 +39,6 @@ export default async function DraftDetailPage({
     model: draft.model,
     linkedinPost: draft.linkedinPost,
     xPost: draft.xPost,
-    title: draft.title,
   });
 
   const breadcrumbHref =

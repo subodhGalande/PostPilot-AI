@@ -4,29 +4,15 @@ import type * as React from "react";
 import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useTheme } from "next-themes";
 import {
   Calendar,
   FileText,
-  Laptop,
   LayoutDashboard,
   LineChart,
-  Moon,
   Rocket,
   Settings,
-  Sun,
   User,
 } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -42,6 +28,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { useUserProfile } from "@/lib/hooks/use-user-profile";
+import { Avatar } from "@/components/ui/avatar";
 
 const navItems = [
   {
@@ -67,17 +55,17 @@ const navItems = [
   },
   {
     title: "Analytics",
-    url: "/analytics",
+    url: "/dashboard/analytics",
     icon: LineChart,
     match: (pathname: string, _from?: string | null) =>
       pathname.startsWith("/analytics"),
   },
   {
     title: "Settings",
-    url: "/settings",
+    url: "/dashboard/settings",
     icon: Settings,
     match: (pathname: string, _from?: string | null) =>
-      pathname.startsWith("/settings"),
+      pathname.startsWith("/dashboard/settings"),
   },
 ];
 
@@ -126,14 +114,8 @@ function SidebarMenuItems() {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const _pathname = usePathname();
-  const { setTheme, resolvedTheme, theme } = useTheme();
-  const { isMobile } = useSidebar();
-  const activeTheme =
-    theme === "system" ? "system" : (resolvedTheme ?? "system");
-  const activeThemeLabel =
-    theme === "system" ? "Auto" : activeTheme === "dark" ? "Dark" : "Light";
-  const ActiveThemeIcon =
-    theme === "system" ? Laptop : activeTheme === "dark" ? Moon : Sun;
+  useSidebar();
+  const { data: user } = useUserProfile();
 
   return (
     <Sidebar {...props}>
@@ -167,64 +149,31 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border/70 p-3 md:p-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-10 w-full justify-between rounded-xl border border-sidebar-border/60 bg-sidebar-accent/20 px-3 text-sidebar-foreground hover:bg-sidebar-accent/50"
-              aria-label={`Change theme, current theme ${activeThemeLabel}`}
+        <Link href="/dashboard/profile">
+          <div className="hidden items-center gap-3 rounded-xl border border-sidebar-border/60 bg-sidebar-accent/30 px-3 py-3 md:flex transition-colors hover:bg-sidebar-accent/60">
+            <Avatar
+              src={user?.avatarUrl ?? null}
+              alt={user?.name ?? ""}
+              className="size-10"
             >
-              <span className="flex items-center gap-2">
-                <ActiveThemeIcon className="size-4 text-sidebar-foreground/75" />
-                <span className="font-medium">Theme</span>
-              </span>
-              <span className="text-xs text-sidebar-foreground/65">
-                {activeThemeLabel}
-              </span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            side={isMobile ? "top" : "right"}
-            className="w-44"
-          >
-            <DropdownMenuLabel>Choose theme</DropdownMenuLabel>
-            <DropdownMenuRadioGroup
-              value={theme ?? "system"}
-              onValueChange={(value) =>
-                setTheme(value as "light" | "dark" | "system")
-              }
-            >
-              <DropdownMenuRadioItem value="light">
-                <Sun />
-                Light
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="dark">
-                <Moon />
-                Dark
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="system">
-                <Laptop />
-                Auto
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <div className="hidden items-center gap-3 rounded-xl border border-sidebar-border/60 bg-sidebar-accent/30 px-3 py-3 md:flex">
-          <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <User className="size-4" />
+              {user?.name ? (
+                <span className="text-sm font-semibold">
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+              ) : (
+                <User className="size-4" />
+              )}
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-sidebar-foreground">
+                {user?.name}
+              </p>
+              <p className="truncate text-xs text-sidebar-foreground/65">
+                {user?.email}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-sidebar-foreground">
-              Subodh
-            </p>
-            <p className="text-xs text-sidebar-foreground/65">
-              Creator account
-            </p>
-          </div>
-        </div>
+        </Link>
       </SidebarFooter>
 
       <SidebarRail />

@@ -1,6 +1,7 @@
+Status: completed
+
 # PRD: AI Post Engine
 
-Status: ready-for-human (implemented)
 
 ## Problem Statement
 

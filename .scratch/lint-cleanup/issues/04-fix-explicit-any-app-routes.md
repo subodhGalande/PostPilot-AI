@@ -1,3 +1,5 @@
+Status: completed
+
 ## What to build
 
 Replace 2 remaining `any` type annotations in `app/dashboard/drafts/page.tsx` with proper types, following patterns from the lib layer fix.

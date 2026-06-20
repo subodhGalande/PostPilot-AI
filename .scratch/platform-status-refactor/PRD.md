@@ -1,3 +1,5 @@
+Status: completed
+
 # PRD: Platform-Specific Status Refactor
 
 ## Problem Statement

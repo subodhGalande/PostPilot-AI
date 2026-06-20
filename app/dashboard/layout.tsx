@@ -29,6 +29,8 @@ export default async function DashboardLayout({
       industry: true,
       accountType: true,
       description: true,
+      avatarUrl: true,
+      avatarFileKey: true,
       createdAt: true,
     },
   });

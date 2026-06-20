@@ -1,7 +1,8 @@
 import prisma from "@/lib/prisma";
+import type { Prisma } from "@/app/generated/prisma";
 
 type DraftPostStatus = "DRAFT" | "SCHEDULED";
-type JsonArray = Record<string, unknown>[];
+type JsonArray = Prisma.InputJsonValue[];
 
 export interface PostMeta {
   id: string;

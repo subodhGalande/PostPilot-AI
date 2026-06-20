@@ -36,7 +36,6 @@ interface PostPreviewProps {
   isGenerating?: boolean;
   isSavingDraft?: boolean;
   mode?: PostPreviewMode;
-  status?: "DRAFT" | "SCHEDULED";
   id?: string;
   updatedAt?: string;
   clientDraftKey?: string;
@@ -62,7 +61,6 @@ export function PostPreview({
   isGenerating = false,
   isSavingDraft = false,
   mode = "generated",
-  _status,
   id,
   updatedAt,
   clientDraftKey,

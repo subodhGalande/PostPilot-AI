@@ -1,3 +1,5 @@
+Status: completed
+
 ## What to build
 
 Fix ~15+ `lint/style/useImportType` violations across shadcn UI components (`card.tsx`, `button.tsx`, `dialog.tsx`, `drawer.tsx`, `dropdown-menu.tsx`, `breadcrumb.tsx`, `label.tsx`, `popover.tsx`, `select.tsx`, `separator.tsx`, `sheet.tsx`, `switch.tsx`, `tabs.tsx`, `toggle.tsx`, `toggle-group.tsx`, `tooltip.tsx`). Change `import { X } from "..."` to `import type { X } from "..."` for type-only imports.

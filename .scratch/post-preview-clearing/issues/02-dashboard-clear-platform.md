@@ -1,6 +1,7 @@
+Status: completed
+
 # Dashboard: clear platform on save + sessionStorage
 
-**Status:** needs-triage
 
 ## Parent
 

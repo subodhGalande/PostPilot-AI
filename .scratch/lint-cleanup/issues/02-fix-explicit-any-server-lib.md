@@ -1,3 +1,5 @@
+Status: completed
+
 ## What to build
 
 Replace ~20 `any` type annotations in `lib/server/` (`draft-store.ts`, `draft-store-adapter.ts`), `lib/errors.ts`, and `lib/drafts.ts` with proper TypeScript types. This requires defining interfaces for draft store data structures, error payloads, and platform-specific post formats. Establish type patterns that subsequent issues can follow.

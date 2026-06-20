@@ -127,7 +127,7 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
         const error = new Error(
           errorBody?.message ?? errorBody?.error ?? "Failed to delete draft.",
         );
-        (error as { status: number }).status = response.status;
+        (error as unknown as { status: number }).status = response.status;
         throw error;
       }
     },
@@ -145,7 +145,7 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
     },
     onError: (error, _draftId, context) => {
       if (
-        (error as { status: number }).status !== 404 &&
+        (error as unknown as { status: number }).status !== 404 &&
         context?.previousDrafts
       ) {
         setDrafts(context.previousDrafts);

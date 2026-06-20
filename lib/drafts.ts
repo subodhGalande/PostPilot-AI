@@ -73,8 +73,8 @@ type ReconstructPostInput = {
     scheduledAt?: Date | string | null;
   } | null;
   xPost?: {
-    mode?: string;
-    threadPosts?: unknown[];
+    mode?: string | null;
+    threadPosts?: unknown;
     status?: string;
     scheduledAt?: Date | string | null;
   } | null;

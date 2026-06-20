@@ -1,3 +1,5 @@
+Status: completed
+
 ## What to build
 
 Remove unused imports, unused variables, and unused function parameters across ~10 files: `app/api/dashboard/route.ts`, `app/api/dashboard/onboarding/route.ts`, `lib/social-posts.ts`, `components/dashboard/confirmation-modal.tsx`, `components/email-verification-card.tsx`, `components/dashboard/draft-editor-workspace.tsx`, `components/app-sidebar.tsx`, `components/login-form/use-login-form.ts`, `components/signup-form/use-signup-form.ts`, `components/onboarding-dialog/use-onboarding-form.ts`.

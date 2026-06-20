@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 
 import {
   loginFormSchema,
@@ -20,7 +20,6 @@ export function useLoginForm() {
     },
   });
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   const loginMutation = useMutation({
     mutationKey: ["login"],
@@ -32,27 +31,17 @@ export function useLoginForm() {
         },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Server error. Please try again later.");
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(
+          body.message ?? "Server error. Please try again later.",
+        );
+      }
       return res.json();
     },
-    onSuccess: (data) => {
-      switch (data.message) {
-        case "invalid credentials":
-          toast.error(
-            "credentials not valid. Check email/password and try again.",
-          );
-          break;
-        case "user not verified":
-          toast.error("Verify email first");
-          break;
-        case "login successful":
-          toast.success("successfully verified");
-          router.push("/dashboard");
-          break;
-        default:
-          toast.error("Unexpected response from server.");
-      }
-      queryClient.invalidateQueries({ queryKey: ["login"] });
+    onSuccess: () => {
+      toast.success("successfully verified");
+      router.push("/dashboard");
     },
     onError: (error: Error) => {
       toast.error(error?.message || "Unexpected response from server.");

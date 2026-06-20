@@ -1,3 +1,5 @@
+Status: completed
+
 ## What to build
 
 Fix 2 `lint/suspicious/useIterableCallbackReturn` violations in auth routes:

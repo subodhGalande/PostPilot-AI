@@ -170,6 +170,16 @@
   --animate-shimmer: shimmer 2s infinite;
 }
 
+.chart-container:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+.chart-container svg:focus-visible {
+  outline: none;
+}
+
 .shimmer-effect {
   position: relative;
   overflow: hidden;

@@ -1,3 +1,5 @@
+Status: completed
+
 # PRD: Platform-Normalized Data Model
 
 ## Problem Statement

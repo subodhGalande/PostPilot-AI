@@ -1,13 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Menu, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import {
+  Calendar as CalendarIcon,
+  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  User,
+} from "lucide-react";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
+import { DateRangePicker } from "@/components/analytics/date-range-picker";
 import { AppSidebar } from "@/components/app-sidebar";
 import { OnboardingDialog } from "@/components/onboarding-dialog/onboarding-dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   SidebarInset,
   SidebarProvider,
@@ -15,6 +29,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import { useUser } from "../context/userDetailsContext";
+import type { DateRange } from "@/lib/analytics/types";
 
 function getRouteMeta(pathname: string) {
   if (pathname.startsWith("/dashboard/drafts/")) {
@@ -35,16 +50,15 @@ function getRouteMeta(pathname: string) {
     };
   }
 
-  if (pathname.startsWith("/calendar")) {
+  if (pathname.startsWith("/dashboard/calendar")) {
     return {
       section: "Planning",
-      title: "Calendar",
-      description:
-        "Review scheduled content and manage your publishing cadence.",
+      title: "Content Calendar",
+      description: "View and manage your scheduled social media posts.",
     };
   }
 
-  if (pathname.startsWith("/analytics")) {
+  if (pathname.startsWith("/dashboard/analytics")) {
     return {
       section: "Insights",
       title: "Analytics",
@@ -53,7 +67,15 @@ function getRouteMeta(pathname: string) {
     };
   }
 
-  if (pathname.startsWith("/settings")) {
+  if (pathname.startsWith("/dashboard/profile")) {
+    return {
+      section: "Account",
+      title: "Profile",
+      description: "View and manage your account information.",
+    };
+  }
+
+  if (pathname.startsWith("/dashboard/settings")) {
     return {
       section: "Preferences",
       title: "Settings",
@@ -61,12 +83,64 @@ function getRouteMeta(pathname: string) {
     };
   }
 
-  // Default fallback for /dashboard and any other routes
   return {
     section: "Workspace",
     title: "Dashboard",
     description: "Create, preview, and manage your social content drafts.",
   };
+}
+
+function AnalyticsRangePickerInner() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  if (!pathname.startsWith("/dashboard/analytics")) return null;
+
+  const currentRange = (searchParams.get("range") as DateRange) || "30d";
+
+  const handleChange = (range: DateRange) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("range", range);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  return (
+    <>
+      <div className="hidden md:block">
+        <DateRangePicker value={currentRange} onChange={handleChange} />
+      </div>
+      <div className="md:hidden">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-9 shrink-0 rounded-xl"
+            >
+              <CalendarIcon className="size-4" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="pb-8">
+            <SheetHeader>
+              <SheetTitle>Select Range</SheetTitle>
+            </SheetHeader>
+            <div className="mt-6 flex justify-center">
+              <DateRangePicker value={currentRange} onChange={handleChange} />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+    </>
+  );
+}
+
+function AnalyticsRangePicker() {
+  return (
+    <Suspense fallback={null}>
+      <AnalyticsRangePickerInner />
+    </Suspense>
+  );
 }
 
 function DashboardHeader() {
@@ -128,13 +202,16 @@ function DashboardHeader() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 rounded-full border bg-muted/40 px-2.5 py-1.5 md:hidden">
-        <div className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <User className="size-3.5" />
+      <div className="flex items-center gap-2">
+        <AnalyticsRangePicker />
+        <div className="flex items-center gap-2 rounded-full border bg-muted/40 px-2.5 py-1.5 md:hidden">
+          <div className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <User className="size-3.5" />
+          </div>
+          <span className="max-w-24 truncate text-sm font-medium text-foreground">
+            {user.name ?? "Account"}
+          </span>
         </div>
-        <span className="max-w-24 truncate text-sm font-medium text-foreground">
-          {user.name ?? "Account"}
-        </span>
       </div>
     </header>
   );

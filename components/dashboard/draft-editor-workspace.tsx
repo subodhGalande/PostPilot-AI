@@ -365,7 +365,6 @@ export function DraftEditorWorkspace({
         updatedAt={draftUpdatedAt}
         clientDraftKey={initialClientDraftKey}
         mode="draft"
-        status={status}
         initialPlatform={initialPlatform}
         readOnly={isScheduledManagementView}
         onSaveDraft={() =>
