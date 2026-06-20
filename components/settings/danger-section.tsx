@@ -83,7 +83,11 @@ export function DangerSection() {
                     </DialogDescription>
                     <div className="mt-4 space-y-2">
                       <p className="text-sm text-muted-foreground">
-                        Type <span className="font-medium text-foreground">DELETE</span> to confirm.
+                        Type{" "}
+                        <span className="font-medium text-foreground">
+                          DELETE
+                        </span>{" "}
+                        to confirm.
                       </p>
                       <Input
                         value={confirmText}
@@ -109,7 +113,9 @@ export function DangerSection() {
                 <Button
                   type="button"
                   variant="destructive"
-                  disabled={confirmText !== "DELETE" || deleteMutation.isPending}
+                  disabled={
+                    confirmText !== "DELETE" || deleteMutation.isPending
+                  }
                   onClick={() => deleteMutation.mutate()}
                 >
                   {deleteMutation.isPending ? (

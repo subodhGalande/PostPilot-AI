@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import {
-  requireAuthJose,
-  verifyPassword,
-  hashPassword,
-} from "@/lib/auth/auth";
+import { requireAuthJose, verifyPassword, hashPassword } from "@/lib/auth/auth";
 import { checkRateLimit, rateLimitExceededResponse } from "@/lib/rate-limit";
 
 export async function PATCH(req: Request) {

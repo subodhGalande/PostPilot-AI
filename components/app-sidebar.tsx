@@ -114,7 +114,7 @@ function SidebarMenuItems() {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const _pathname = usePathname();
-  const { isMobile } = useSidebar();
+  useSidebar();
   const { data: user } = useUserProfile();
 
   return (

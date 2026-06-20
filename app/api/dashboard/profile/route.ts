@@ -21,10 +21,12 @@ export async function PATCH(req: Request) {
       avatarFileKey,
     } = await req.json();
 
-    const oldFileKey = (await prisma.user.findUnique({
-      where: { id: authUser.id },
-      select: { avatarFileKey: true },
-    }))?.avatarFileKey;
+    const oldFileKey = (
+      await prisma.user.findUnique({
+        where: { id: authUser.id },
+        select: { avatarFileKey: true },
+      })
+    )?.avatarFileKey;
 
     if (oldFileKey && avatarUrl !== undefined && authUser.id) {
       await replaceOrphanedFileKey(authUser.id, oldFileKey);
@@ -36,7 +38,9 @@ export async function PATCH(req: Request) {
         ...(name !== undefined && { name }),
         ...(accountName !== undefined && { accountName }),
         ...(industry !== undefined && { industry }),
-        ...(accountType !== undefined && { accountType: accountType?.toUpperCase() }),
+        ...(accountType !== undefined && {
+          accountType: accountType?.toUpperCase(),
+        }),
         ...(description !== undefined && { description }),
         ...(avatarUrl !== undefined && { avatarUrl }),
         ...(avatarFileKey !== undefined && { avatarFileKey }),

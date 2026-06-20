@@ -20,13 +20,7 @@ export function Avatar({ src, alt, children, className }: AvatarProps) {
       )}
     >
       {src ? (
-        <Image
-          src={src}
-          alt={alt}
-          fill
-          sizes="96px"
-          className="object-cover"
-        />
+        <Image src={src} alt={alt} fill sizes="96px" className="object-cover" />
       ) : (
         <AvatarPrimitive.Fallback
           className={cn(

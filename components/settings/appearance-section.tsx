@@ -28,6 +28,7 @@ export function AppearanceSection() {
           <div className="grid gap-3 sm:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <div
+                // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton, never reorders
                 key={i}
                 className="flex flex-col items-center gap-3 rounded-xl border border-input p-4"
               >
@@ -53,7 +54,9 @@ export function AppearanceSection() {
       <div className="rounded-xl border bg-card p-4 md:p-6">
         <RadioGroup
           value={theme ?? "system"}
-          onValueChange={(value) => setTheme(value as "light" | "dark" | "system")}
+          onValueChange={(value) =>
+            setTheme(value as "light" | "dark" | "system")
+          }
           className="grid gap-3 sm:grid-cols-3"
         >
           {themeOptions.map((option) => {

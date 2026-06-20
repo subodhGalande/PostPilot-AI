@@ -31,6 +31,7 @@ function ProfilePageSkeleton() {
         <div className="rounded-xl border bg-card p-4 md:p-6">
           <div className="space-y-5">
             {Array.from({ length: 6 }).map((_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton, never reorders
               <div key={i} className="space-y-2">
                 <div className="h-3 w-20 animate-pulse rounded-xl bg-muted" />
                 <div className="h-9 w-full animate-pulse rounded-xl bg-muted" />
@@ -64,9 +65,13 @@ export default function ProfilePage() {
             <AvatarUpload avatarUrl={user.avatarUrl} name={user.name} />
             <div className="min-w-0">
               <h3 className="truncate text-lg font-semibold">{user.name}</h3>
-              <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+              <p className="truncate text-sm text-muted-foreground">
+                {user.email}
+              </p>
               {user.accountName && (
-                <p className="truncate text-sm text-muted-foreground">@{user.accountName}</p>
+                <p className="truncate text-sm text-muted-foreground">
+                  @{user.accountName}
+                </p>
               )}
             </div>
           </div>

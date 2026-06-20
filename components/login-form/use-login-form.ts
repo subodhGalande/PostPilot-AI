@@ -33,7 +33,9 @@ export function useLoginForm() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.message ?? "Server error. Please try again later.");
+        throw new Error(
+          body.message ?? "Server error. Please try again later.",
+        );
       }
       return res.json();
     },

@@ -143,82 +143,80 @@ function SecurityForm() {
       <div className="mb-6">
         <h2 className="text-lg font-semibold">Security</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Update your password. You&apos;ll be logged out of all active
-          sessions after changing it.
+          Update your password. You&apos;ll be logged out of all active sessions
+          after changing it.
         </p>
       </div>
 
       <div className="rounded-xl border bg-card p-4 md:p-6">
         <form onSubmit={form.handleSubmit(onSubmit)}>
-        <FieldGroup>
-          <Field data-invalid={!!form.formState.errors.currentPassword}>
-            <FieldLabel
-              className="text-xs text-muted-foreground font-medium"
-              htmlFor="currentPassword"
-            >
-              Current Password
-            </FieldLabel>
-            <Input
-              id="currentPassword"
-              type="password"
-              aria-invalid={!!form.formState.errors.currentPassword}
-              placeholder="Enter current password"
-              {...form.register("currentPassword")}
-            />
-            {form.formState.errors.currentPassword && (
-              <FieldError
-                errors={[form.formState.errors.currentPassword]}
+          <FieldGroup>
+            <Field data-invalid={!!form.formState.errors.currentPassword}>
+              <FieldLabel
+                className="text-xs text-muted-foreground font-medium"
+                htmlFor="currentPassword"
+              >
+                Current Password
+              </FieldLabel>
+              <Input
+                id="currentPassword"
+                type="password"
+                aria-invalid={!!form.formState.errors.currentPassword}
+                placeholder="Enter current password"
+                {...form.register("currentPassword")}
               />
-            )}
-          </Field>
+              {form.formState.errors.currentPassword && (
+                <FieldError errors={[form.formState.errors.currentPassword]} />
+              )}
+            </Field>
 
-          <Field data-invalid={!!form.formState.errors.newPassword}>
-            <FieldLabel
-              className="text-xs text-muted-foreground font-medium"
-              htmlFor="newPassword"
-            >
-              New Password
-            </FieldLabel>
-            <Input
-              id="newPassword"
-              type="password"
-              aria-invalid={!!form.formState.errors.newPassword}
-              placeholder="Enter new password"
-              {...form.register("newPassword")}
-            />
-            {form.formState.errors.newPassword && (
-              <FieldError errors={[form.formState.errors.newPassword]} />
-            )}
-          </Field>
-
-          <Field data-invalid={!!form.formState.errors.confirmNewPassword}>
-            <FieldLabel
-              className="text-xs text-muted-foreground font-medium"
-              htmlFor="confirmNewPassword"
-            >
-              Confirm New Password
-            </FieldLabel>
-            <Input
-              id="confirmNewPassword"
-              type="password"
-              aria-invalid={!!form.formState.errors.confirmNewPassword}
-              placeholder="Confirm new password"
-              {...form.register("confirmNewPassword")}
-            />
-            {form.formState.errors.confirmNewPassword && (
-              <FieldError
-                errors={[form.formState.errors.confirmNewPassword]}
+            <Field data-invalid={!!form.formState.errors.newPassword}>
+              <FieldLabel
+                className="text-xs text-muted-foreground font-medium"
+                htmlFor="newPassword"
+              >
+                New Password
+              </FieldLabel>
+              <Input
+                id="newPassword"
+                type="password"
+                aria-invalid={!!form.formState.errors.newPassword}
+                placeholder="Enter new password"
+                {...form.register("newPassword")}
               />
-            )}
-          </Field>
-        </FieldGroup>
+              {form.formState.errors.newPassword && (
+                <FieldError errors={[form.formState.errors.newPassword]} />
+              )}
+            </Field>
 
-        <div className="mt-8 flex justify-end">
-          <Button type="submit" disabled={passwordMutation.isPending}>
-            {passwordMutation.isPending ? "Updating..." : "Update password"}
-          </Button>
-        </div>
-      </form>
+            <Field data-invalid={!!form.formState.errors.confirmNewPassword}>
+              <FieldLabel
+                className="text-xs text-muted-foreground font-medium"
+                htmlFor="confirmNewPassword"
+              >
+                Confirm New Password
+              </FieldLabel>
+              <Input
+                id="confirmNewPassword"
+                type="password"
+                aria-invalid={!!form.formState.errors.confirmNewPassword}
+                placeholder="Confirm new password"
+                {...form.register("confirmNewPassword")}
+              />
+              {form.formState.errors.confirmNewPassword && (
+                <FieldError
+                  errors={[form.formState.errors.confirmNewPassword]}
+                />
+              )}
+            </Field>
+          </FieldGroup>
+
+          <div className="mt-8 flex justify-end">
+            <Button type="submit" disabled={passwordMutation.isPending}>
+              {passwordMutation.isPending ? "Updating..." : "Update password"}
+            </Button>
+          </div>
+        </form>
       </div>
     </section>
   );

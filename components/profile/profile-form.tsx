@@ -24,7 +24,10 @@ import {
   FieldError,
 } from "@/components/ui/field";
 
-import { profileFormSchema, type ProfileFormValues } from "@/lib/schemas/settings.schema";
+import {
+  profileFormSchema,
+  type ProfileFormValues,
+} from "@/lib/schemas/settings.schema";
 
 function formatAccountType(
   dbValue: string | null | undefined,
@@ -44,7 +47,15 @@ interface ProfileFormProps {
   description: string | null;
 }
 
-export function ProfileForm({ id, name, email, accountName, industry, accountType, description }: ProfileFormProps) {
+export function ProfileForm({
+  id,
+  name,
+  email,
+  accountName,
+  industry,
+  accountType,
+  description,
+}: ProfileFormProps) {
   const queryClient = useQueryClient();
 
   const form = useForm<ProfileFormValues>({
@@ -116,9 +127,7 @@ export function ProfileForm({ id, name, email, accountName, industry, accountTyp
                 aria-invalid={fieldState.invalid}
                 placeholder="Your name"
               />
-              {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
-              )}
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
@@ -141,9 +150,7 @@ export function ProfileForm({ id, name, email, accountName, industry, accountTyp
                 aria-invalid={fieldState.invalid}
                 placeholder="Your brand or influencer name"
               />
-              {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
-              )}
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
@@ -191,9 +198,7 @@ export function ProfileForm({ id, name, email, accountName, industry, accountTyp
                   <SelectItem value="Brand">Brand</SelectItem>
                 </SelectContent>
               </Select>
-              {fieldState.error && (
-                <FieldError errors={[fieldState.error]} />
-              )}
+              {fieldState.error && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
@@ -216,9 +221,7 @@ export function ProfileForm({ id, name, email, accountName, industry, accountTyp
                 aria-invalid={fieldState.invalid}
                 placeholder="e.g. Technology, Fashion, Health"
               />
-              {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
-              )}
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
@@ -244,9 +247,7 @@ export function ProfileForm({ id, name, email, accountName, industry, accountTyp
               <div className="text-xs text-muted-foreground text-right mt-1">
                 {field.value.length}/500
               </div>
-              {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
-              )}
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
