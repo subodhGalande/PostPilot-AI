@@ -63,6 +63,10 @@ export function buildRateLimitHeaders(
   };
 }
 
+export function clearRateLimitStore(): void {
+  store.clear();
+}
+
 export function rateLimitExceededResponse(resetTime: number): Response {
   const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
   return new Response(JSON.stringify({ message: "too many requests" }), {

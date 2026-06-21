@@ -28,6 +28,7 @@ interface PostConfigurationProps {
   onKeywordsChange: (keywords: string[]) => void;
   onGenerate?: () => void;
   isGenerating?: boolean;
+  isTokensExhausted?: boolean;
 }
 
 export function PostConfiguration({
@@ -44,6 +45,7 @@ export function PostConfiguration({
   onKeywordsChange,
   onGenerate,
   isGenerating,
+  isTokensExhausted,
 }: PostConfigurationProps) {
   const [keywordInput, setKeywordInput] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -253,17 +255,23 @@ export function PostConfiguration({
             setValidationError(null);
             onGenerate?.();
           }}
-          disabled={isGenerating}
+          disabled={isGenerating || isTokensExhausted}
         >
           {isGenerating ? (
             <Loader2 className="size-5 animate-spin" />
           ) : (
             <Sparkles className="size-5" />
           )}
-          {isGenerating ? "Generating..." : "Generate Post"}
+          {isGenerating
+            ? "Generating..."
+            : isTokensExhausted
+              ? "Daily Limit Reached"
+              : "Generate Post"}
         </Button>
         <p className="mt-3 text-xs text-muted-foreground">
-          Generates one shared content idea adapted for LinkedIn and X.
+          {isTokensExhausted
+            ? "You've used all 10 daily generations. Come back tomorrow!"
+            : "Generates one shared content idea adapted for LinkedIn and X."}
         </p>
       </div>
     </div>

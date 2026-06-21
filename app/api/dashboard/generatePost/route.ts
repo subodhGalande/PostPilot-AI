@@ -8,6 +8,7 @@ import {
   databaseConnectionErrorResponse,
   isDatabaseConnectionError,
 } from "@/lib/server/database-errors";
+import { tokenLedger, InsufficientTokensError } from "@/lib/server/token-ledger";
 import prisma from "@/lib/prisma";
 import { generatePostSchema } from "@/lib/schemas/post.schema";
 import { getModelById } from "@/lib/ai/models";
@@ -95,6 +96,8 @@ Requirements:
 - If hashtags are used, place them at the very end of the post after the full content, with exactly one empty lines before the hashtag line.
 - Keep all hashtags together on the final line or final hashtag block only. Do not scatter hashtags inside the main content.
 - Do not add explanations outside the schema.
+- Never repeat the same word or phrase. If you notice a word appearing twice in a row, remove the duplicate.
+- Scan your output for unintended repetition and fix it before finalizing.
 - Return an object with exactly these top-level keys only:
   - topic
   - baseIdea
@@ -180,11 +183,29 @@ x-3 = one example or takeaway
 }
 
 export async function POST(req: Request) {
+  let userId: string | undefined;
+  let tokenConsumed = false;
+
   try {
     const authUser = await requireAuthJose();
 
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    userId = authUser.id;
+
+    try {
+      await tokenLedger.consumeToken(userId!);
+      tokenConsumed = true;
+    } catch (e) {
+      if (e instanceof InsufficientTokensError) {
+        return NextResponse.json(
+          { error: "Daily generation limit reached" },
+          { status: 403 },
+        );
+      }
+      throw e;
     }
 
     const apiKey =
@@ -217,7 +238,7 @@ export async function POST(req: Request) {
     const modelConfig = getModelById(input.modelName);
 
     const user = await prisma.user.findUnique({
-      where: { id: authUser.id },
+      where: { id: userId },
       select: {
         accountName: true,
         accountType: true,
@@ -246,6 +267,14 @@ export async function POST(req: Request) {
     return result.toTextStreamResponse();
   } catch (error) {
     console.error("generatePost route error", error);
+
+    if (tokenConsumed && userId) {
+      try {
+        await tokenLedger.refundToken(userId);
+      } catch {
+        // Refund failure is non-critical — log was already emitted above
+      }
+    }
 
     if (isDatabaseConnectionError(error)) {
       return databaseConnectionErrorResponse();
