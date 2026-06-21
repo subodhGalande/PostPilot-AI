@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { useUserProfile } from "@/lib/hooks/use-user-profile";
+import { useTokens } from "@/lib/hooks/use-tokens";
 import { Avatar } from "@/components/ui/avatar";
 
 const navItems = [
@@ -116,6 +117,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const _pathname = usePathname();
   useSidebar();
   const { data: user } = useUserProfile();
+  const { data: tokens } = useTokens();
 
   return (
     <Sidebar {...props}>
@@ -135,7 +137,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2 py-2 md:py-3">
+      <SidebarContent className="px-2 py-2 md:py-3 flex flex-col">
         <SidebarGroup className="p-0">
           <SidebarGroupLabel className="px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/55">
             Workspace
@@ -146,6 +148,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </Suspense>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {tokens && (
+          <div className="mt-auto hidden md:block pt-3 px-1">
+            <div className="rounded-xl border border-sidebar-border/60 bg-sidebar-accent/25 px-3 py-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/55">
+                  Daily Tokens
+                </span>
+                <span className="text-sm font-bold text-sidebar-foreground/80">
+                  {tokens.remaining}
+                  <span className="text-xs font-normal text-sidebar-foreground/45">
+                    /{tokens.total}
+                  </span>
+                </span>
+              </div>
+              <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-sidebar-border/40">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-300"
+                  style={{
+                    width: `${(tokens.remaining / tokens.total) * 100}%`,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border/70 p-3 md:p-4">

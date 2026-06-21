@@ -32,6 +32,7 @@ model User {
   failedLoginAttempts Int          @default(0)
   lockedUntil         DateTime?
   posts               Post[]
+  tokenTransactions   TokenTransaction[]
   createdAt           DateTime     @default(now())
 
   @@index([email])
@@ -113,7 +114,25 @@ enum PostStatus {
   SCHEDULED
 }
 
+enum TokenType {
+  ALLOTMENT
+  CONSUMPTION
+  REFUND
+}
+
 enum AccountType {
   BRAND
   INFLUENCER
+}
+
+model TokenTransaction {
+  id        String    @id @default(cuid())
+  userId    String
+  amount    Int
+  type      TokenType
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
 }

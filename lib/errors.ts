@@ -9,6 +9,7 @@ export class ApiError extends Error {
 
 export type ErrorCategory =
   | "auth-expired"
+  | "daily-limit"
   | "rate-limit"
   | "validation"
   | "conflict"
@@ -84,7 +85,19 @@ export function classifyApiError(error: unknown): ClassifiedError {
     };
   }
 
-  // 3. Differentiate Rate Limits
+  // 3. Differentiate Daily Generation Limit
+  if (
+    status === 403 &&
+    messageLower.includes("daily generation limit reached")
+  ) {
+    return {
+      category: "daily-limit",
+      message: "You've used all 10 daily generations. Come back tomorrow!",
+      shouldRedirect: false,
+    };
+  }
+
+  // 4. Differentiate Rate Limits
   if (
     status === 429 ||
     messageLower.includes("too many requests") ||

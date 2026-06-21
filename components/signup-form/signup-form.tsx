@@ -2,6 +2,7 @@
 
 import { GalleryVerticalEnd } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -16,12 +17,30 @@ import {
 import { Input } from "@/components/ui/input";
 import { Controller } from "react-hook-form";
 import { useSignupForm } from "./use-signup-form";
+import { useEffect } from "react";
+import { toast } from "sonner";
+
+const GOOGLE_ERROR_MESSAGES: Record<string, string> = {
+  google_auth_failed:
+    "Google sign-in failed. Please try again or use email sign-up.",
+  missing_code: "Google sign-in failed. Please try again.",
+  no_email:
+    "Could not retrieve your email from Google. Please try a different account.",
+};
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const { form, onSubmit, isPending } = useSignupForm();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error && GOOGLE_ERROR_MESSAGES[error]) {
+      toast.error(GOOGLE_ERROR_MESSAGES[error]);
+    }
+  }, [searchParams]);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>

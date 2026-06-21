@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useState, useEffect, useRef } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { toast } from "sonner";
 
@@ -13,6 +13,7 @@ import {
   type SaveDraftResponse,
 } from "@/lib/drafts";
 import { classifyApiError } from "@/lib/errors";
+import { useTokens } from "@/lib/hooks/use-tokens";
 import type { GeneratedPostItem, GeneratedPostPack } from "@/lib/social-posts";
 import { generatedPostItemSchema } from "@/lib/schemas/social.schema";
 import { cn } from "@/lib/utils";
@@ -64,7 +65,59 @@ function getXMode(postCount: number, mode?: "single" | "thread") {
   return mode ?? (postCount > 1 ? "thread" : "single");
 }
 
+function detectStuttering(post: GeneratedPostItem): boolean {
+  const texts: (string | undefined)[] = [post.baseIdea, post.linkedin?.content];
+  if (post.x?.posts) {
+    for (const p of post.x.posts) {
+      texts.push(p.content);
+    }
+  }
+
+  for (const raw of texts) {
+    if (!raw) continue;
+    const text: string = raw;
+
+    // Repeated word: "word word word"
+    if (/(\b\w{3,}\b)(?:\s+\1){2,}/i.test(text)) return true;
+
+    // Same word >20% of total words
+    const words = text.toLowerCase().split(/\s+/).filter(Boolean);
+    if (words.length < 5) continue;
+    const freq: Record<string, number> = {};
+    for (const w of words) freq[w] = (freq[w] || 0) + 1;
+    for (const count of Object.values(freq)) {
+      if (count / words.length > 0.2) return true;
+    }
+
+    // Repeated 3-word phrase (3+ occurrences)
+    for (let i = 0; i < words.length - 5; i++) {
+      const phrase = words.slice(i, i + 3).join(" ");
+      let occurrences = 1;
+      for (let j = i + 3; j < words.length - 2; j++) {
+        if (words.slice(j, j + 3).join(" ") === phrase) {
+          occurrences++;
+          j += 2;
+        }
+      }
+      if (occurrences >= 3) return true;
+    }
+  }
+
+  return false;
+}
+
 export default function DashboardPage() {
+  const retryCount = useRef(0);
+  const lastGenerateInput = useRef<{
+    topic: string;
+    tone: string;
+    postStyle: string;
+    targetAudience: string;
+    keywords: string[];
+  } | null>(null);
+
+  const queryClient = useQueryClient();
+
   const [isGenerated, setIsGenerated] = useState(false);
   const [previewVersion, setPreviewVersion] = useState(0);
   const [draftId, setDraftId] = useState<string | null>(null);
@@ -82,6 +135,15 @@ export default function DashboardPage() {
   const [clearedPlatforms, setClearedPlatforms] = useState<
     Set<"linkedin" | "x">
   >(new Set());
+  const [tokensExhausted, setTokensExhausted] = useState(false);
+
+  const { data: tokensData } = useTokens();
+
+  useEffect(() => {
+    if (tokensData && tokensData.remaining === 0) {
+      setTokensExhausted(true);
+    }
+  }, [tokensData]);
 
   const {
     submit: submitGenerate,
@@ -99,6 +161,21 @@ export default function DashboardPage() {
         setGeneratedPostPack(null);
         return;
       }
+
+      if (detectStuttering(object) && retryCount.current < 1) {
+        retryCount.current++;
+        const input = lastGenerateInput.current;
+        if (input) {
+          setGeneratedPostPack(null);
+          setIsGenerated(true);
+          submitGenerate({
+            modelName: DEFAULT_MODEL.id,
+            ...input,
+          });
+          return;
+        }
+      }
+
       setGeneratedPostPack({
         post: {
           ...object,
@@ -125,6 +202,7 @@ export default function DashboardPage() {
       setClientDraftKey(createClientDraftKey());
       setPreviewVersion((currentVersion) => currentVersion + 1);
       setIsGenerated(true);
+      queryClient.invalidateQueries({ queryKey: ["tokens"] });
     },
     onError: (error: Error) => {
       console.error("AI Generation failed:", error);
@@ -134,6 +212,12 @@ export default function DashboardPage() {
       // Clean slate on generation error
       setIsGenerated(false);
       setGeneratedPostPack(null);
+
+      if (classified.category === "daily-limit") {
+        setTokensExhausted(true);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["tokens"] });
 
       if (classified.shouldRedirect) {
         setTimeout(() => {
@@ -229,19 +313,18 @@ export default function DashboardPage() {
   }, [object, topic, isGenerated, isGenerating]);
 
   const handleGenerate = () => {
+    retryCount.current = 0;
     setDraftId(null);
     setDraftUpdatedAt(null);
     setGeneratedPostPack(null);
     setIsGenerated(true);
     setClientDraftKey(createClientDraftKey());
     setClearedPlatforms(new Set());
+    const input = { topic, tone, postStyle, targetAudience, keywords };
+    lastGenerateInput.current = input;
     submitGenerate({
       modelName: DEFAULT_MODEL.id,
-      topic,
-      tone,
-      postStyle,
-      targetAudience,
-      keywords,
+      ...input,
     });
   };
 
@@ -402,6 +485,7 @@ export default function DashboardPage() {
           onKeywordsChange={setKeywords}
           onGenerate={handleGenerate}
           isGenerating={isGenerating}
+          isTokensExhausted={tokensExhausted}
         />
       </div>
       <div
