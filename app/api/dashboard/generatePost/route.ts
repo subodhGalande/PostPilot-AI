@@ -8,7 +8,10 @@ import {
   databaseConnectionErrorResponse,
   isDatabaseConnectionError,
 } from "@/lib/server/database-errors";
-import { tokenLedger, InsufficientTokensError } from "@/lib/server/token-ledger";
+import {
+  tokenLedger,
+  InsufficientTokensError,
+} from "@/lib/server/token-ledger";
 import prisma from "@/lib/prisma";
 import { generatePostSchema } from "@/lib/schemas/post.schema";
 import { getModelById } from "@/lib/ai/models";

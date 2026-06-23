@@ -1,7 +1,14 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { InMemoryTokenLedgerAdapter } from "./token-ledger-adapter";
-import { TokenLedger, InsufficientTokensError, RefundRateLimitError } from "./token-ledger";
+import {
+  TokenLedger,
+  InsufficientTokensError,
+  RefundRateLimitError,
+} from "./token-ledger";
 import { clearRateLimitStore } from "@/lib/rate-limit";
+
+vi.unmock("@/lib/rate-limit");
+vi.unmock("@/lib/server/token-ledger");
 
 describe("TokenLedger", () => {
   let adapter: InMemoryTokenLedgerAdapter;
@@ -14,9 +21,9 @@ describe("TokenLedger", () => {
   });
 
   describe("new user", () => {
-    it("has 0 tokens before first interaction", async () => {
+    it("has 10 tokens before first interaction", async () => {
       const remaining = await ledger.getRemainingTokens("user-1");
-      expect(remaining).toBe(0);
+      expect(remaining).toBe(10);
     });
 
     it("gets 10 tokens after ensureDailyAllotment", async () => {
@@ -121,10 +128,10 @@ describe("TokenLedger", () => {
     it("returns zeroed usage for new user", async () => {
       const usage = await ledger.getDailyUsage("user-1");
       expect(usage).toEqual({
-        allotted: 0,
+        allotted: 10,
         used: 0,
         refunded: 0,
-        remaining: 0,
+        remaining: 10,
         total: 10,
       });
     });

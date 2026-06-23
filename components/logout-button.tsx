@@ -1,9 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonProps } from "@/components/ui/button";
 
-export function LogoutButton() {
+export function LogoutButton({
+  className,
+  variant = "outline",
+  ...props
+}: ButtonProps) {
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -16,8 +20,13 @@ export function LogoutButton() {
   };
 
   return (
-    <Button className=" w-10 " variant="destructive" onClick={handleLogout}>
-      Logout
+    <Button
+      className={className}
+      variant={variant}
+      onClick={handleLogout}
+      {...props}
+    >
+      Sign Out
     </Button>
   );
 }

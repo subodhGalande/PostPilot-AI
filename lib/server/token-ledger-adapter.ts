@@ -20,11 +20,27 @@ export interface DailyUsage {
 }
 
 export interface TokenLedgerAdapter {
-  ensureAllotment(userId: string, todayStart: Date, todayEnd: Date): Promise<void>;
-  tryConsume(userId: string, todayStart: Date, todayEnd: Date): Promise<boolean>;
+  ensureAllotment(
+    userId: string,
+    todayStart: Date,
+    todayEnd: Date,
+  ): Promise<void>;
+  tryConsume(
+    userId: string,
+    todayStart: Date,
+    todayEnd: Date,
+  ): Promise<boolean>;
   insertRefund(userId: string): Promise<void>;
-  sumTransactions(userId: string, todayStart: Date, todayEnd: Date): Promise<number>;
-  getUsage(userId: string, todayStart: Date, todayEnd: Date): Promise<DailyUsage>;
+  sumTransactions(
+    userId: string,
+    todayStart: Date,
+    todayEnd: Date,
+  ): Promise<number>;
+  getUsage(
+    userId: string,
+    todayStart: Date,
+    todayEnd: Date,
+  ): Promise<DailyUsage>;
 }
 
 function getDefaultUsage(): DailyUsage {
