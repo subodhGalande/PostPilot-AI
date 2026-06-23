@@ -1,5 +1,9 @@
 import { checkRateLimit } from "@/lib/rate-limit";
-import { PrismaTokenLedgerAdapter, type DailyUsage, type TokenLedgerAdapter } from "./token-ledger-adapter";
+import {
+  PrismaTokenLedgerAdapter,
+  type DailyUsage,
+  type TokenLedgerAdapter,
+} from "./token-ledger-adapter";
 
 const REFUND_RATE_LIMIT = { maxRequests: 10, windowMs: 60_000 };
 
@@ -58,11 +62,13 @@ export class TokenLedger {
   }
 
   async getRemainingTokens(userId: string): Promise<number> {
+    await this.ensureDailyAllotment(userId);
     const { start, end } = getTodayRange();
     return this.adapter.sumTransactions(userId, start, end);
   }
 
   async getDailyUsage(userId: string): Promise<DailyUsage> {
+    await this.ensureDailyAllotment(userId);
     const { start, end } = getTodayRange();
     return this.adapter.getUsage(userId, start, end);
   }

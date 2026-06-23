@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { LogoutButton } from "@/components/logout-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -52,8 +53,18 @@ export function DangerSection() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-destructive/50 bg-card p-4 md:p-6">
-        <div className="flex items-start justify-between gap-4">
+      <div className="rounded-xl border border-destructive/50 bg-card">
+        <div className="flex items-start justify-between gap-4 border-b border-border/40 p-4 md:p-6">
+          <div>
+            <h3 className="font-medium">Sign Out</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Sign out of your account on this device.
+            </p>
+          </div>
+          <LogoutButton className="shrink-0" />
+        </div>
+
+        <div className="flex items-start justify-between gap-4 p-4 md:p-6">
           <div>
             <h3 className="font-medium text-destructive">Delete Account</h3>
             <p className="mt-1 text-sm text-muted-foreground">
