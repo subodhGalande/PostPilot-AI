@@ -303,47 +303,47 @@ body {
 }
 
 .fc .scheduled-post-card {
-  @apply flex w-full flex-col gap-1.5 rounded-r-lg rounded-l-sm pl-3 pr-2 py-2 text-card-foreground transition-all duration-300 hover:-translate-y-[1px] hover:shadow-sm;
+  @apply flex w-full flex-col gap-1 rounded-lg border border-primary/20 bg-primary/10 px-2 py-1.5 text-card-foreground transition-all hover:border-primary/40 hover:bg-primary/20 hover:shadow-sm;
 }
 
 .fc .platform-linkedin .scheduled-post-card {
-  @apply border-l-[3px] border-l-blue-500 hover:border-l-blue-600 bg-blue-50/50 hover:bg-blue-50 dark:bg-blue-950/30 dark:hover:bg-blue-900/40;
+  @apply border-blue-400/30 bg-blue-500/10 hover:bg-blue-500/20 hover:border-blue-400/50;
 }
 
 .dark .fc .platform-linkedin .scheduled-post-card {
-  @apply border-l-blue-500 hover:border-l-blue-400;
+  @apply border-blue-400/40 bg-blue-600/20 hover:bg-blue-600/30 hover:border-blue-400/60;
 }
 
 .fc .platform-x .scheduled-post-card {
-  @apply border-l-[3px] border-l-slate-800 hover:border-l-slate-900 bg-slate-50/80 hover:bg-slate-100 dark:bg-slate-800/40 dark:hover:bg-slate-800/60;
+  @apply border-slate-400/30 bg-slate-500/10 hover:bg-slate-500/20 hover:border-slate-400/50;
 }
 
 .dark .fc .platform-x .scheduled-post-card {
-  @apply border-l-slate-400 hover:border-l-slate-300;
+  @apply border-slate-300/40 bg-slate-400/15 hover:bg-slate-400/25 hover:border-slate-300/60;
 }
 
 .fc .scheduled-post-time {
-  @apply text-xs font-medium text-muted-foreground;
+  @apply bg-primary/15 px-1.5 py-0.5 rounded text-[10px] font-bold text-primary;
 }
 
 .dark .fc .scheduled-post-time {
-  @apply text-muted-foreground;
+  @apply bg-primary/30 text-primary-foreground;
 }
 
 .fc .scheduled-post-title {
-  @apply line-clamp-1 min-w-0 text-sm font-bold leading-tight text-foreground mt-0.5;
+  @apply line-clamp-2 min-w-0 text-[13px] font-bold leading-tight text-foreground;
 }
 
 .dark .fc .scheduled-post-title {
-  @apply text-foreground font-bold;
+  @apply text-foreground font-extrabold;
 }
 
 .fc .scheduled-post-preview {
-  @apply line-clamp-2 text-xs leading-relaxed text-muted-foreground/70;
+  @apply line-clamp-1 text-[11px] leading-snug text-muted-foreground;
 }
 
 .dark .fc .scheduled-post-preview {
-  @apply text-muted-foreground/70;
+  @apply text-muted-foreground/80;
 }
 
 .fc .scheduled-post-more-link {
@@ -382,33 +382,4 @@ body {
 
 .dark .fc .fc-timegrid-slot-label {
   @apply text-foreground/60;
-}
-
-/* Custom Scrollbar Styles */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 8px;
-  border: 1px solid transparent;
-  background-clip: padding-box;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
-  border: 1px solid transparent;
-  background-clip: padding-box;
-}
-
-/* Firefox fallback */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
 }

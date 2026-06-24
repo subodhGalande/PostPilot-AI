@@ -31,20 +31,8 @@ import {
 import { useUser } from "../context/userDetailsContext";
 import type { DateRange } from "@/lib/analytics/types";
 
-import { ReadonlyURLSearchParams } from "next/navigation";
-
-function getRouteMeta(pathname: string, searchParams?: ReadonlyURLSearchParams) {
+function getRouteMeta(pathname: string) {
   if (pathname.startsWith("/dashboard/drafts/")) {
-    const isFromCalendar = searchParams?.get("from") === "calendar";
-    
-    if (isFromCalendar) {
-      return {
-        section: "Workspace",
-        title: "Scheduled Post",
-        description: "Review your scheduled post. Unschedule it to move it back to drafts and make edits.",
-      };
-    }
-
     return {
       section: "Workspace",
       title: "Post Editor",
@@ -157,9 +145,8 @@ function AnalyticsRangePicker() {
 
 function DashboardHeader() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { isMobile, state, toggleSidebar } = useSidebar();
-  const routeMeta = getRouteMeta(pathname, searchParams);
+  const routeMeta = getRouteMeta(pathname);
   const { user } = useUser();
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -172,7 +159,7 @@ function DashboardHeader() {
   }, [pathname]);
 
   return (
-    <header className="sticky top-0 z-40 flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-border/50 bg-background/80 px-4 py-4 backdrop-blur-xl md:gap-4 md:px-6">
+    <header className="relative flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3 md:gap-4 md:px-6">
       {/* Global Progress Bar */}
       {isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-50 h-[2px] w-full overflow-hidden bg-primary/10">

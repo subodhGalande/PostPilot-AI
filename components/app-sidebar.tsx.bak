@@ -88,9 +88,9 @@ function SidebarMenuItems() {
               isActive={isActive}
               tooltip={item.title}
               className={cn(
-                "h-11 rounded-xl border border-transparent px-3 text-sidebar-foreground/72 transition-all duration-300 md:h-10",
-                "hover:-translate-y-0.5 hover:border-sidebar-border/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:shadow-sm",
-                "data-[active=true]:border-primary/20 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:shadow-sm",
+                "h-11 rounded-xl border border-transparent px-3 text-sidebar-foreground/72 transition-all duration-200 md:h-10",
+                "hover:border-sidebar-border/60 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground",
+                "data-[active=true]:border-primary/15 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:shadow-sm",
                 "[&_svg]:text-sidebar-foreground/65 hover:[&_svg]:text-sidebar-foreground data-[active=true]:[&_svg]:text-primary",
               )}
             >
@@ -121,18 +121,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar {...props}>
-      <SidebarHeader className="flex h-[72px] shrink-0 justify-center border-b border-border/50 px-3 py-4 md:px-4">
-        <div className="flex items-center gap-3 px-2 py-1.5">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/20">
-            <Rocket className="size-4" />
+      <SidebarHeader className="border-b border-sidebar-border/70 p-3 md:p-4">
+        <div className="flex items-center gap-3 rounded-xl border border-sidebar-border/60 bg-sidebar-accent/35 px-3 py-3">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <Rocket className="size-4.5" />
           </div>
-          <div className="min-w-0 flex-1">
-            <span className="block truncate text-[15px] font-bold tracking-tight text-sidebar-foreground">
+          <div className="min-w-0">
+            <p className="truncate font-semibold tracking-tight text-sidebar-foreground">
               PostPilot AI
-            </span>
-            <span className="block truncate text-xs text-sidebar-foreground/60">
-              Workspace
-            </span>
+            </p>
+            <p className="text-xs text-sidebar-foreground/70">
+              Content workspace
+            </p>
           </div>
         </div>
       </SidebarHeader>
@@ -151,7 +151,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
         {tokens && (
           <div className="mt-auto hidden md:block pt-3 px-1">
-            <div className="rounded-xl border border-sidebar-border/40 bg-sidebar-accent/20 px-3 py-2.5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+            <div className="rounded-xl border border-sidebar-border/60 bg-sidebar-accent/25 px-3 py-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/55">
                   Daily Tokens
@@ -176,16 +176,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/50 p-3 md:p-4">
+      <SidebarFooter className="border-t border-sidebar-border/70 p-3 md:p-4">
         <Link href="/dashboard/profile">
-          <div className="hidden items-center gap-3 rounded-xl border border-sidebar-border/40 bg-sidebar-accent/20 px-3 py-3 shadow-sm transition-all duration-300 md:flex hover:-translate-y-0.5 hover:bg-sidebar-accent/40 hover:shadow-md">
+          <div className="hidden items-center gap-3 rounded-xl border border-sidebar-border/60 bg-sidebar-accent/30 px-3 py-3 md:flex transition-colors hover:bg-sidebar-accent/60">
             <Avatar
               src={user?.avatarUrl ?? null}
               alt={user?.name ?? ""}
-              className="size-10 shrink-0 shadow-sm ring-2 ring-sidebar-accent ring-offset-1 ring-offset-sidebar transition-all"
+              className="size-10"
             >
               {user?.name ? (
-                <span className="text-sm font-bold">
+                <span className="text-sm font-semibold">
                   {user.name.charAt(0).toUpperCase()}
                 </span>
               ) : (
@@ -193,10 +193,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               )}
             </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-sidebar-foreground">
+              <p className="truncate text-sm font-medium text-sidebar-foreground">
                 {user?.name}
               </p>
-              <p className="truncate text-[13px] font-medium text-sidebar-foreground/60">
+              <p className="truncate text-xs text-sidebar-foreground/65">
                 {user?.email}
               </p>
             </div>

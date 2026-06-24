@@ -7,6 +7,8 @@ import {
   Loader2,
   Save,
   Trash2,
+  Linkedin,
+  Twitter,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
@@ -106,9 +108,19 @@ export function PostPreview({
       );
       const isNotCleared = !clearedPlatforms.has(p);
 
-      return isValidStatus && isNotCleared;
+      // Check if the platform actually has draft content. 
+      // If it's empty, it shouldn't show up in the switcher.
+      let hasContent = false;
+      if (p === "linkedin") {
+        hasContent = activePost.linkedin.content !== null && activePost.linkedin.content.length > 0;
+      } else {
+        hasContent = activePost.x.posts !== null && activePost.x.posts.length > 0;
+      }
+
+      // If we are currently generating, we keep both platforms visible so they can populate.
+      return isValidStatus && isNotCleared && (hasContent || isGenerating);
     });
-  }, [activePost, clearedPlatforms]);
+  }, [activePost, clearedPlatforms, isGenerating]);
 
   // Ensure activePlatform is always one of the available platforms
   useEffect(() => {
@@ -133,11 +145,11 @@ export function PostPreview({
   return (
     <div
       className={cn(
-        "flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm",
+        "flex flex-col overflow-hidden rounded-xl border border-border/50 bg-card/60 text-card-foreground shadow-sm backdrop-blur-xl transition-all duration-300 hover:shadow-md dark:bg-card/40",
         className,
       )}
     >
-      <div className="flex shrink-0 items-center gap-2 border-b p-4 md:p-6">
+      <div className="flex shrink-0 items-center gap-3 border-b border-border/50 p-4 md:p-6">
         {isGenerated ? (
           <Button
             variant="ghost"
@@ -148,28 +160,28 @@ export function PostPreview({
             <ArrowLeft className="size-5" />
           </Button>
         ) : null}
-        <div className="min-w-0 flex-1 flex items-center gap-2">
-          <h3 className="text-lg font-bold">{title}</h3>
+        <div className="min-w-0 flex-1 flex flex-wrap items-center gap-3">
+          <h3 className="text-base font-bold tracking-tight">{title}</h3>
           {!hideStatusBadge && activePost && (
             <Badge
               variant="outline"
               className={cn(
-                "text-[10px] uppercase tracking-wider font-medium",
+                "px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold shadow-sm",
                 activePost[activePlatform].status === "SCHEDULED"
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                  : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100",
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400"
+                  : "bg-amber-50 text-amber-700 border-amber-200 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400",
               )}
             >
               {activePost[activePlatform].status === "SCHEDULED" ? (
-                <span className="flex items-center gap-1">
-                  <span className="size-1.5 rounded-full bg-emerald-500" />
+                <span className="flex items-center gap-1.5">
+                  <span className="size-1.5 rounded-full bg-emerald-500 shadow-sm" />
                   {activePlatform === "linkedin"
                     ? "LinkedIn Scheduled"
                     : "X Scheduled"}
                 </span>
               ) : (
-                <span className="flex items-center gap-1">
-                  <span className="size-1.5 rounded-full bg-amber-500" />
+                <span className="flex items-center gap-1.5">
+                  <span className="size-1.5 rounded-full bg-amber-500 shadow-sm" />
                   {activePlatform === "linkedin" ? "LinkedIn Draft" : "X Draft"}
                 </span>
               )}
@@ -177,7 +189,7 @@ export function PostPreview({
           )}
         </div>
         {description ? (
-          <p className="text-sm text-muted-foreground pr-2">{description}</p>
+          <p className="text-[13px] font-medium text-muted-foreground/80 pr-2 hidden md:block">{description}</p>
         ) : null}
         {activePost && availablePlatforms.length > 1 && (
           <Tabs
@@ -185,9 +197,15 @@ export function PostPreview({
             onValueChange={(value) => setActivePlatform(value as PlatformTab)}
             className="hidden md:flex"
           >
-            <TabsList className="bg-muted/80 border">
-              <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-              <TabsTrigger value="x">X</TabsTrigger>
+            <TabsList className="h-10 bg-background/50 backdrop-blur-md p-1 border border-border/50 shadow-inner rounded-xl">
+              <TabsTrigger value="linkedin" className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm">
+                <Linkedin className="size-3.5" />
+                LinkedIn
+              </TabsTrigger>
+              <TabsTrigger value="x" className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm">
+                <Twitter className="size-3.5" />
+                X
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         )}
@@ -241,9 +259,15 @@ export function PostPreview({
                   setActivePlatform(value as PlatformTab)
                 }
               >
-                <TabsList className="w-full bg-muted/80 border">
-                  <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-                  <TabsTrigger value="x">X</TabsTrigger>
+                <TabsList className="w-full h-10 bg-background/50 backdrop-blur-md p-1 border border-border/50 shadow-inner rounded-xl">
+                  <TabsTrigger value="linkedin" className="w-full gap-2 rounded-lg text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm">
+                    <Linkedin className="size-3.5" />
+                    LinkedIn
+                  </TabsTrigger>
+                  <TabsTrigger value="x" className="w-full gap-2 rounded-lg text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm">
+                    <Twitter className="size-3.5" />
+                    X
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>

@@ -9,6 +9,7 @@ import {
 import { LoaderIcon, SearchIcon } from "lucide-react";
 import type * as React from "react";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 function EmojiPicker({
@@ -60,16 +61,18 @@ function EmojiPickerEmoji({
   ...props
 }: EmojiPickerListEmojiProps) {
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="icon"
       {...props}
       className={cn(
-        "data-[active]:bg-accent flex size-7 items-center justify-center rounded-sm text-base",
+        "data-[active]:bg-accent size-7 rounded-sm text-base hover:bg-accent",
         className,
       )}
       data-slot="emoji-picker-emoji"
     >
       {emoji.emoji}
-    </button>
+    </Button>
   );
 }
 

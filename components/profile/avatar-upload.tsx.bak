@@ -111,7 +111,7 @@ export function AvatarUpload({ avatarUrl, name }: AvatarUploadProps) {
               Uploading...
             </span>
           ) : (
-            <Avatar src={avatarUrl} alt={name} className="size-20 md:size-24 shadow-sm transition-shadow group-hover:shadow-md ring-1 ring-border/50">
+            <Avatar src={avatarUrl} alt={name} className="size-20 md:size-24">
               <span className="text-lg font-semibold md:text-xl">
                 {name.charAt(0).toUpperCase()}
               </span>
@@ -126,14 +126,14 @@ export function AvatarUpload({ avatarUrl, name }: AvatarUploadProps) {
         {avatarUrl && (
           <Button
             type="button"
-            variant="secondary"
+            variant="outline"
             size="icon"
             onClick={handleRemove}
             disabled={isUploading}
-            className="absolute -bottom-1 -right-1 z-10 size-8 rounded-full shadow-md ring-2 ring-background transition-all hover:bg-destructive hover:text-destructive-foreground hover:ring-destructive/20 md:size-9"
+            className="absolute bottom-0 right-0 size-7 rounded-full text-muted-foreground transition-colors hover:text-destructive md:size-8"
             aria-label="Remove avatar"
           >
-            <Trash2 className="size-4 md:size-4.5" />
+            <Trash2 className="size-3.5 md:size-4" />
           </Button>
         )}
       </div>

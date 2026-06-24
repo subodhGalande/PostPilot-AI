@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Inter, Noto_Serif, Fira_Code } from "next/font/google";
+import { Outfit, Noto_Serif, Fira_Code } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/lib/providers/queryProvider";
 import ThemeProvider from "@/lib/providers/themeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { AppTooltipProvider } from "@/lib/providers/tooltipProvider";
 
-const fontSans = Inter({
+const fontSans = Outfit({
   subsets: ["latin"],
   variable: "--font-sans",
 });
@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${fontSans.variable} ${fontSerif.variable}  ${fontMono.variable} antialiased`}
+        className={`${fontSans.variable} ${fontSerif.variable}  ${fontMono.variable} antialiased tabular-nums`}
       >
         <AppTooltipProvider>
           <ThemeProvider>

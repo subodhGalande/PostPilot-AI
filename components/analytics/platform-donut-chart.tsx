@@ -20,9 +20,9 @@ interface PlatformDonutChartProps {
 export function PlatformDonutChart({ data, loading }: PlatformDonutChartProps) {
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Platform Mix</CardTitle>
+      <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Platform Mix</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[250px] shimmer-effect rounded-md" />
@@ -33,9 +33,9 @@ export function PlatformDonutChart({ data, loading }: PlatformDonutChartProps) {
 
   if (data.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Platform Mix</CardTitle>
+      <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Platform Mix</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex h-[250px] items-center justify-center text-sm text-muted-foreground">
@@ -49,9 +49,9 @@ export function PlatformDonutChart({ data, loading }: PlatformDonutChartProps) {
   const total = data.reduce((sum, d) => sum + d.count, 0);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Platform Mix</CardTitle>
+    <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">Platform Mix</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col items-center gap-4">
@@ -76,6 +76,16 @@ export function PlatformDonutChart({ data, loading }: PlatformDonutChartProps) {
                   ))}
                 </Pie>
                 <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--card)',
+                    borderRadius: '0.5rem',
+                    border: '1px solid var(--border)',
+                    boxShadow: 'var(--shadow-sm)',
+                    color: 'var(--foreground)',
+                    padding: '8px 12px'
+                  }}
+                  itemStyle={{ color: 'var(--foreground)', fontSize: '13px', fontWeight: 600 }}
+                  labelStyle={{ color: 'var(--muted-foreground)', fontSize: '12px', fontWeight: 500, marginBottom: '4px' }}
                   formatter={(value: unknown, name: unknown) => {
                     const num = typeof value === "number" ? value : 0;
                     const nameStr = typeof name === "string" ? name : "";
