@@ -164,6 +164,8 @@
   --tracking-widest: calc(var(--tracking-normal) + 0.1em);
 
   --animate-shimmer: shimmer 2s infinite;
+  --animate-blob: blob 15s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  --animate-scan: scan 8s linear infinite;
 }
 
 .chart-container:focus-visible {
@@ -212,6 +214,18 @@
   to {
     transform: translateX(100%);
   }
+}
+
+@keyframes blob {
+  0% { transform: translate(0%, 0%) scale(1) rotate(0deg); }
+  33% { transform: translate(15%, -25%) scale(1.2) rotate(10deg); }
+  66% { transform: translate(-15%, 20%) scale(0.8) rotate(-10deg); }
+  100% { transform: translate(0%, 0%) scale(1) rotate(0deg); }
+}
+
+@keyframes scan {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 0 100vh, 0 0; }
 }
 
 body {

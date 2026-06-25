@@ -1,6 +1,6 @@
 "use client";
 
-import { GalleryVerticalEnd } from "lucide-react";
+import { GalleryVerticalEnd, Mail, Lock } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -48,14 +48,14 @@ export function LoginForm({
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
             <span className="flex flex-col items-center gap-2 font-medium">
-              <div className="flex size-8 items-center justify-center rounded-md">
-                <GalleryVerticalEnd className="size-6" />
+              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <GalleryVerticalEnd className="size-5" />
               </div>
-              <span className="sr-only">Acme Inc.</span>
+              <span className="sr-only">PostPilot AI</span>
             </span>
-            <h1 className="text-xl font-bold">Welcome to Postpilot AI</h1>
-            <FieldDescription>
-              Don't have an account? <Link href="/signup">Sign up</Link>
+            <h1 className="text-3xl font-medium tracking-tight">Welcome to Postpilot AI</h1>
+            <FieldDescription className="text-base">
+              Don't have an account? <Link href="/signup" className="text-primary hover:underline">Sign up</Link>
             </FieldDescription>
           </div>
           <Field className="gap-4">
@@ -63,8 +63,7 @@ export function LoginForm({
               onClick={() => {
                 window.location.href = "/api/auth/google";
               }}
-              className=""
-              variant="outline"
+              className="w-full h-11 active:scale-[0.98] transition-transform bg-secondary hover:bg-secondary/80 text-secondary-foreground"
               type="button"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -86,14 +85,18 @@ export function LoginForm({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  {...field}
-                  id="email"
-                  type="email"
-                  aria-invalid={fieldState.invalid}
-                  placeholder="Enter email"
-                  required
-                />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    {...field}
+                    id="email"
+                    type="email"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Enter email"
+                    className="h-11 bg-muted/50 border-transparent shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)] pl-9 focus-visible:ring-primary"
+                    required
+                  />
+                </div>
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
@@ -106,14 +109,18 @@ export function LoginForm({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="password">Password</FieldLabel>
-                <Input
-                  {...field}
-                  id="password"
-                  type="password"
-                  aria-invalid={fieldState.invalid}
-                  placeholder="Enter password"
-                  required
-                />
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    {...field}
+                    id="password"
+                    type="password"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Enter password"
+                    className="h-11 bg-muted/50 border-transparent shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)] pl-9 focus-visible:ring-primary"
+                    required
+                  />
+                </div>
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
@@ -121,7 +128,7 @@ export function LoginForm({
             )}
           />
           <Field>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending} className="w-full h-11 active:scale-[0.98] transition-transform">
               {isPending ? (
                 <svg
                   className="animate-spin -ml-1 mr-2 h-4 w-4"
@@ -147,6 +154,7 @@ export function LoginForm({
               ) : null}
               {isPending ? "logging in..." : "Login"}
             </Button>
+            <p className="text-center text-xs text-muted-foreground mt-4">Secure, encrypted login.</p>
           </Field>
         </FieldGroup>
       </form>
