@@ -65,6 +65,12 @@ function getXMode(postCount: number, mode?: "single" | "thread") {
   return mode ?? (postCount > 1 ? "thread" : "single");
 }
 
+function stripMarkdown(text: string): string {
+  if (!text) return text;
+  // Strip bold/italic markdown (** and __)
+  return text.replace(/(\*\*|__)/g, "");
+}
+
 function detectStuttering(post: GeneratedPostItem): boolean {
   const texts: (string | undefined)[] = [post.baseIdea, post.linkedin?.content];
   if (post.x?.posts) {
@@ -80,13 +86,13 @@ function detectStuttering(post: GeneratedPostItem): boolean {
     // Repeated word: "word word word"
     if (/(\b\w{3,}\b)(?:\s+\1){2,}/i.test(text)) return true;
 
-    // Same word >20% of total words
+    // Same word >20% of total words (only if there are enough words)
     const words = text.toLowerCase().split(/\s+/).filter(Boolean);
-    if (words.length < 5) continue;
+    if (words.length < 30) continue;
     const freq: Record<string, number> = {};
     for (const w of words) freq[w] = (freq[w] || 0) + 1;
     for (const count of Object.values(freq)) {
-      if (count / words.length > 0.2) return true;
+      if (count > 5 && count / words.length > 0.2) return true;
     }
 
     // Repeated 3-word phrase (3+ occurrences)
@@ -108,6 +114,7 @@ function detectStuttering(post: GeneratedPostItem): boolean {
 
 export default function DashboardPage() {
   const retryCount = useRef(0);
+  const stopReason = useRef<'user' | 'stutter' | null>(null);
   const lastGenerateInput = useRef<{
     topic: string;
     tone: string;
@@ -140,8 +147,8 @@ export default function DashboardPage() {
   const { data: tokensData } = useTokens();
 
   useEffect(() => {
-    if (tokensData && tokensData.remaining === 0) {
-      setTokensExhausted(true);
+    if (tokensData) {
+      setTokensExhausted(tokensData.remaining === 0);
     }
   }, [tokensData]);
 
@@ -149,10 +156,15 @@ export default function DashboardPage() {
     submit: submitGenerate,
     isLoading: isGenerating,
     object,
+    stop,
   } = useObject({
     api: "/api/dashboard/generatePost",
     schema: generatedPostItemSchema,
-    onFinish: ({ object }: { object: GeneratedPostItem | undefined }) => {
+    onFinish: ({ object, error }: { object: GeneratedPostItem | undefined; error?: Error }) => {
+      if (error) {
+        return; // onError will handle this
+      }
+
       if (!object) {
         toast.error(
           "The AI returned an unexpected response. Please try again.",
@@ -162,25 +174,12 @@ export default function DashboardPage() {
         return;
       }
 
-      if (detectStuttering(object) && retryCount.current < 1) {
-        retryCount.current++;
-        const input = lastGenerateInput.current;
-        if (input) {
-          setGeneratedPostPack(null);
-          setIsGenerated(true);
-          submitGenerate({
-            modelName: DEFAULT_MODEL.id,
-            ...input,
-          });
-          return;
-        }
-      }
-
       setGeneratedPostPack({
         post: {
           ...object,
           linkedin: {
             ...object.linkedin,
+            content: stripMarkdown(object.linkedin?.content || ""),
             status: "DRAFT",
             scheduledAt: null,
           },
@@ -189,7 +188,7 @@ export default function DashboardPage() {
             mode: getXMode(object.x?.posts?.length ?? 0, object.x?.mode),
             posts: (object.x?.posts || []).map((p, i) => ({
               id: p.id || `x-${i + 1}`,
-              content: p.content,
+              content: stripMarkdown(p.content || ""),
             })),
             status: "DRAFT",
             scheduledAt: null,
@@ -205,6 +204,38 @@ export default function DashboardPage() {
       queryClient.invalidateQueries({ queryKey: ["tokens"] });
     },
     onError: (error: Error) => {
+      const reason = stopReason.current;
+      stopReason.current = null;
+
+      if (reason === "user") {
+        setIsGenerated(false);
+        setGeneratedPostPack(null);
+        return;
+      }
+
+      if (reason === "stutter") {
+        if (retryCount.current < 1) {
+          retryCount.current++;
+          const input = lastGenerateInput.current;
+          if (input) {
+            setGeneratedPostPack(null);
+            setIsGenerated(true);
+            setTimeout(() => {
+              submitGenerate({
+                modelName: DEFAULT_MODEL.id,
+                ...input,
+              });
+            }, 10);
+            return;
+          }
+        }
+        
+        toast.error("The AI got stuck in a loop. Please try a different topic or keywords.");
+        setIsGenerated(false);
+        setGeneratedPostPack(null);
+        return;
+      }
+
       console.error("AI Generation failed:", error);
       const classified = classifyApiError(error);
       toast.error(classified.message);
@@ -231,6 +262,15 @@ export default function DashboardPage() {
   useEffect(() => {
     const saved = loadDraftState();
     if (saved?.isGenerated && saved.generatedPostPack) {
+      // Validate that the draft actually has content. If it's an empty corrupted draft, purge it.
+      const hasLiContent = !!saved.generatedPostPack.post?.linkedin?.content?.trim();
+      const hasXContent = !!saved.generatedPostPack.post?.x?.posts?.length;
+      
+      if (!hasLiContent && !hasXContent) {
+        clearDraftState();
+        return;
+      }
+
       setTopic(saved.topic);
       setTone(saved.tone);
       setPostStyle(saved.postStyle);
@@ -250,7 +290,7 @@ export default function DashboardPage() {
 
   // Persist to sessionStorage on changes
   useEffect(() => {
-    if (isGenerated && generatedPostPack) {
+    if (isGenerated && generatedPostPack && !isGenerating) {
       saveDraftState({
         topic,
         tone,
@@ -277,6 +317,7 @@ export default function DashboardPage() {
     draftId,
     draftUpdatedAt,
     clearedPlatforms,
+    isGenerating,
   ]);
 
   // Effect to update the preview in real-time as it streams
@@ -286,7 +327,7 @@ export default function DashboardPage() {
         topic: object.topic || topic,
         baseIdea: object.baseIdea || "",
         linkedin: {
-          content: object.linkedin?.content || "",
+          content: stripMarkdown(object.linkedin?.content || ""),
           status: "DRAFT",
           scheduledAt: null,
         },
@@ -294,7 +335,7 @@ export default function DashboardPage() {
           mode: getXMode(object.x?.posts?.length ?? 0, object.x?.mode),
           posts: (object.x?.posts || []).map((p, i) => ({
             id: `x-${i + 1}`,
-            content: p?.content || "",
+            content: stripMarkdown(p?.content || ""),
           })),
           status: "DRAFT",
           scheduledAt: null,
@@ -309,8 +350,14 @@ export default function DashboardPage() {
       if (!isGenerated) {
         setIsGenerated(true);
       }
+
+      if (detectStuttering(partialPost)) {
+        console.warn("Stuttering detected mid-stream! Stopping generation.");
+        stopReason.current = "stutter";
+        stop();
+      }
     }
-  }, [object, topic, isGenerated, isGenerating]);
+  }, [object, topic, isGenerated, isGenerating, stop]);
 
   const handleGenerate = () => {
     retryCount.current = 0;
@@ -484,6 +531,13 @@ export default function DashboardPage() {
           onTargetAudienceChange={setTargetAudience}
           onKeywordsChange={setKeywords}
           onGenerate={handleGenerate}
+          onStop={() => {
+            stopReason.current = "user";
+            stop();
+            setIsGenerated(false);
+            setGeneratedPostPack(null);
+            clearDraftState();
+          }}
           isGenerating={isGenerating}
           isTokensExhausted={tokensExhausted}
         />

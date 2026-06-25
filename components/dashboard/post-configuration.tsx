@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Sparkles, X } from "lucide-react";
+import { Loader2, Sparkles, X, Square } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ interface PostConfigurationProps {
   onTargetAudienceChange: (value: string) => void;
   onKeywordsChange: (keywords: string[]) => void;
   onGenerate?: () => void;
+  onStop?: () => void;
   isGenerating?: boolean;
   isTokensExhausted?: boolean;
 }
@@ -44,6 +45,7 @@ export function PostConfiguration({
   onTargetAudienceChange,
   onKeywordsChange,
   onGenerate,
+  onStop,
   isGenerating,
   isTokensExhausted,
 }: PostConfigurationProps) {
@@ -232,42 +234,46 @@ export function PostConfiguration({
             {validationError}
           </p>
         )}
-        <Button
-          size="lg"
-          className="flex w-full items-center gap-2 rounded-xl text-base font-bold"
-          onClick={() => {
-            if (!topic.trim()) {
-              setValidationError("Topic is required");
-              return;
-            }
-            if (!tone) {
-              setValidationError("Tone is required");
-              return;
-            }
-            if (!postStyle) {
-              setValidationError("Post style is required");
-              return;
-            }
-            if (!targetAudience) {
-              setValidationError("Target audience is required");
-              return;
-            }
-            setValidationError(null);
-            onGenerate?.();
-          }}
-          disabled={isGenerating || isTokensExhausted}
-        >
-          {isGenerating ? (
-            <Loader2 className="size-5 animate-spin" />
-          ) : (
+        {isGenerating ? (
+          <Button
+            size="lg"
+            variant="destructive"
+            className="flex w-full items-center gap-2 rounded-xl text-base font-bold"
+            onClick={() => onStop?.()}
+          >
+            <Square className="size-5 fill-current" />
+            Stop Generating
+          </Button>
+        ) : (
+          <Button
+            size="lg"
+            className="flex w-full items-center gap-2 rounded-xl text-base font-bold"
+            onClick={() => {
+              if (!topic.trim()) {
+                setValidationError("Topic is required");
+                return;
+              }
+              if (!tone) {
+                setValidationError("Tone is required");
+                return;
+              }
+              if (!postStyle) {
+                setValidationError("Post style is required");
+                return;
+              }
+              if (!targetAudience) {
+                setValidationError("Target audience is required");
+                return;
+              }
+              setValidationError(null);
+              onGenerate?.();
+            }}
+            disabled={isTokensExhausted}
+          >
             <Sparkles className="size-5" />
-          )}
-          {isGenerating
-            ? "Generating..."
-            : isTokensExhausted
-              ? "Daily Limit Reached"
-              : "Generate Post"}
-        </Button>
+            {isTokensExhausted ? "Daily Limit Reached" : "Generate Post"}
+          </Button>
+        )}
         <p className="mt-3 text-xs text-muted-foreground">
           {isTokensExhausted
             ? "You've used all 10 daily generations. Come back tomorrow!"

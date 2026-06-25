@@ -16,6 +16,8 @@ import prisma from "@/lib/prisma";
 import { generatePostSchema } from "@/lib/schemas/post.schema";
 import { getModelById } from "@/lib/ai/models";
 
+export const maxDuration = 60;
+
 const aiGeneratedPostSchema = z.object({
   topic: z.string().min(1),
   baseIdea: z.string().min(1),
@@ -265,6 +267,19 @@ export async function POST(req: Request) {
         industry: user.industry,
         description: user.description,
       }),
+      abortSignal: req.signal,
+      onFinish: async ({ error, object }) => {
+        if (error || !object) {
+          console.error("generatePost stream error", error);
+          if (tokenConsumed && userId) {
+            try {
+              await tokenLedger.refundToken(userId);
+            } catch (e) {
+              console.error("Failed to refund token on stream failure", e);
+            }
+          }
+        }
+      },
     });
 
     return result.toTextStreamResponse();
