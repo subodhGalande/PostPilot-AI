@@ -234,12 +234,15 @@ function DashboardHeader() {
   );
 }
 
+import { motion } from "framer-motion";
+
 export default function DashboardShell({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const { user } = useUser();
+  const pathname = usePathname();
 
   if (!user.onboarded) {
     return <OnboardingDialog isOpen={true} />;
@@ -250,7 +253,19 @@ export default function DashboardShell({
       <AppSidebar />
       <SidebarInset>
         <DashboardHeader />
-        {children}
+        <motion.main
+          key={pathname}
+          initial={{ opacity: 0, transform: "translateY(12px)" }}
+          animate={{
+            opacity: 1,
+            transform: "translateY(0px)",
+            transitionEnd: { transform: "none" },
+          }}
+          transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+          className="flex min-w-0 flex-1 flex-col min-h-0"
+        >
+          {children}
+        </motion.main>
       </SidebarInset>
     </SidebarProvider>
   );

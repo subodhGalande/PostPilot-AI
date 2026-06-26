@@ -3,6 +3,7 @@
 import type * as React from "react";
 import { Suspense } from "react";
 import Link from "next/link";
+import { motion, LayoutGroup } from "framer-motion";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   Calendar,
@@ -59,7 +60,7 @@ const navItems = [
     url: "/dashboard/analytics",
     icon: LineChart,
     match: (pathname: string, _from?: string | null) =>
-      pathname.startsWith("/analytics"),
+      pathname.startsWith("/dashboard/analytics"),
   },
   {
     title: "Settings",
@@ -78,37 +79,49 @@ function SidebarMenuItems() {
 
   return (
     <SidebarMenu className="gap-1.5">
-      {navItems.map((item) => {
-        const isActive = item.match(pathname, from);
+      <LayoutGroup>
+        {navItems.map((item) => {
+          const isActive = item.match(pathname, from);
 
-        return (
-          <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton
-              asChild
-              isActive={isActive}
-              tooltip={item.title}
-              className={cn(
-                "h-11 rounded-xl border border-transparent px-3 text-sidebar-foreground/72 transition-all duration-300 md:h-10",
-                "hover:-translate-y-0.5 hover:border-sidebar-border/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:shadow-sm",
-                "data-[active=true]:border-primary/20 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:shadow-sm",
-                "[&_svg]:text-sidebar-foreground/65 hover:[&_svg]:text-sidebar-foreground data-[active=true]:[&_svg]:text-primary",
+          return (
+            <SidebarMenuItem key={item.title} className="relative">
+              {isActive && (
+                <motion.div
+                  layoutId="sidebar-active-tab"
+                  className="absolute inset-0 z-0 rounded-xl border border-primary/20 bg-primary/10 shadow-sm"
+                  initial={false}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                />
               )}
-            >
-              <Link
-                href={item.url}
-                onClick={() => {
-                  if (isMobile) {
-                    setOpenMobile(false);
-                  }
-                }}
+              <SidebarMenuButton
+                asChild
+                isActive={isActive}
+                tooltip={item.title}
+                className={cn(
+                  "relative z-10 h-11 overflow-hidden rounded-xl border border-transparent px-3 text-sidebar-foreground/72 transition-[color,transform] duration-150 ease-out-ui md:h-10",
+                  "hover:-translate-y-0.5 hover:bg-transparent hover:text-sidebar-foreground",
+                  "data-[active=true]:bg-transparent data-[active=true]:text-primary",
+                  "[&_svg]:text-sidebar-foreground/65 hover:[&_svg]:text-sidebar-foreground data-[active=true]:[&_svg]:text-primary",
+                )}
               >
-                <item.icon />
-                <span className="font-medium">{item.title}</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        );
-      })}
+                <Link
+                  href={item.url}
+                  onClick={() => {
+                    if (isMobile) {
+                      setOpenMobile(false);
+                    }
+                  }}
+                >
+                  <div className="relative z-10 flex items-center gap-2">
+                    <item.icon className="size-4" />
+                    <span className="font-medium">{item.title}</span>
+                  </div>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
+      </LayoutGroup>
     </SidebarMenu>
   );
 }
@@ -151,7 +164,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
         {tokens && (
           <div className="mt-auto hidden md:block pt-3 px-1">
-            <div className="rounded-xl border border-sidebar-border/40 bg-sidebar-accent/20 px-3 py-2.5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+            <div className="rounded-xl border border-sidebar-border/40 bg-sidebar-accent/20 px-3 py-2.5 shadow-sm transition-[transform,box-shadow,background-color] duration-150 ease-out-ui hover:-translate-y-0.5 hover:shadow-md">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/55">
                   Daily Tokens
@@ -165,7 +178,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </div>
               <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-sidebar-border/40">
                 <div
-                  className="h-full rounded-full bg-primary transition-all duration-300"
+                  className="h-full rounded-full bg-primary transition-[width] duration-300 ease-out-ui"
                   style={{
                     width: `${(tokens.remaining / tokens.total) * 100}%`,
                   }}
@@ -178,11 +191,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       <SidebarFooter className="border-t border-border/50 p-3 md:p-4">
         <Link href="/dashboard/profile">
-          <div className="hidden items-center gap-3 rounded-xl border border-sidebar-border/40 bg-sidebar-accent/20 px-3 py-3 shadow-sm transition-all duration-300 md:flex hover:-translate-y-0.5 hover:bg-sidebar-accent/40 hover:shadow-md">
+          <div className="hidden items-center gap-3 rounded-xl border border-sidebar-border/40 bg-sidebar-accent/20 px-3 py-3 shadow-sm transition-[transform,box-shadow,background-color] duration-150 ease-out-ui md:flex hover:-translate-y-0.5 hover:bg-sidebar-accent/40 hover:shadow-md">
             <Avatar
               src={user?.avatarUrl ?? null}
               alt={user?.name ?? ""}
-              className="size-10 shrink-0 shadow-sm ring-2 ring-sidebar-accent ring-offset-1 ring-offset-sidebar transition-all"
+              className="size-10 shrink-0 shadow-sm ring-2 ring-sidebar-accent ring-offset-1 ring-offset-sidebar transition duration-150 ease-out-ui"
             >
               {user?.name ? (
                 <span className="text-sm font-bold">

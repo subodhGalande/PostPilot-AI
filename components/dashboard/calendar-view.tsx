@@ -389,7 +389,7 @@ export function CalendarView() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-44 p-1 shadow-lg rounded-xl"
+                  className="z-[9999] w-44 p-1 shadow-lg rounded-xl"
                 >
                   <DropdownMenuItem
                     className="cursor-pointer gap-2 py-2 rounded-lg focus:bg-accent focus:text-accent-foreground"
