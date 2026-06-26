@@ -18,8 +18,6 @@ export default async function DraftsPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 bg-slate-50/50 p-4 dark:bg-transparent md:p-6">
-
-
       {drafts.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed bg-card/80 p-10 text-center shadow-sm">
           <div className="flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">

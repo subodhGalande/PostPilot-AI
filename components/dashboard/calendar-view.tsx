@@ -387,7 +387,10 @@ export function CalendarView() {
                     <MoreVertical className="size-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44 p-1 shadow-lg rounded-xl">
+                <DropdownMenuContent
+                  align="end"
+                  className="w-44 p-1 shadow-lg rounded-xl"
+                >
                   <DropdownMenuItem
                     className="cursor-pointer gap-2 py-2 rounded-lg focus:bg-accent focus:text-accent-foreground"
                     onClick={(e) => {
@@ -427,17 +430,12 @@ export function CalendarView() {
             </div>
           </div>
 
-          <span
-            className="scheduled-post-title"
-            title={eventInfo.event.title}
-          >
+          <span className="scheduled-post-title" title={eventInfo.event.title}>
             {eventInfo.event.title}
           </span>
 
           {truncatedContent && (
-            <p className="scheduled-post-preview">
-              {truncatedContent}
-            </p>
+            <p className="scheduled-post-preview">{truncatedContent}</p>
           )}
         </div>
       );

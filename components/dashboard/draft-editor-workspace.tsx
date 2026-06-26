@@ -3,7 +3,14 @@
 import { useState, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, ChevronDown, Edit3, Loader2, RotateCcw, Trash2 } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronDown,
+  Edit3,
+  Loader2,
+  RotateCcw,
+  Trash2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { PostPreview } from "@/components/dashboard/post-preview";
@@ -299,7 +306,9 @@ export function DraftEditorWorkspace({
             <SaveStatusIcon
               className={`size-4 ${saveDraftMutation.isPending ? "animate-spin text-primary" : hasUnsavedChanges ? "text-amber-500" : "text-emerald-500"}`}
             />
-            <span className="font-semibold tracking-tight">{saveStatusLabel}</span>
+            <span className="font-semibold tracking-tight">
+              {saveStatusLabel}
+            </span>
           </div>
           <span className="rounded-full border border-border/50 bg-muted/50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 shadow-sm">
             Created {createdLabel}
@@ -310,12 +319,19 @@ export function DraftEditorWorkspace({
           {isScheduledManagementView ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-3 font-semibold shadow-sm transition-all hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-3 font-semibold shadow-sm transition-all hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring"
+                >
                   Post Actions
                   <ChevronDown className="size-3.5 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44 p-1 shadow-lg rounded-xl">
+              <DropdownMenuContent
+                align="end"
+                className="w-44 p-1 shadow-lg rounded-xl"
+              >
                 <DropdownMenuItem
                   className="cursor-pointer gap-2 py-2 rounded-lg focus:bg-accent focus:text-accent-foreground"
                   onClick={() =>
@@ -357,7 +373,11 @@ export function DraftEditorWorkspace({
           ) : status === "SCHEDULED" ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-3 font-semibold shadow-sm transition-all hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-3 font-semibold shadow-sm transition-all hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring"
+                >
                   Post Actions
                   <ChevronDown className="size-3.5 text-muted-foreground" />
                 </Button>

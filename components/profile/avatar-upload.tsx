@@ -111,7 +111,11 @@ export function AvatarUpload({ avatarUrl, name }: AvatarUploadProps) {
               Uploading...
             </span>
           ) : (
-            <Avatar src={avatarUrl} alt={name} className="size-20 md:size-24 shadow-sm transition-shadow group-hover:shadow-md ring-1 ring-border/50">
+            <Avatar
+              src={avatarUrl}
+              alt={name}
+              className="size-20 md:size-24 shadow-sm transition-shadow group-hover:shadow-md ring-1 ring-border/50"
+            >
               <span className="text-lg font-semibold md:text-xl">
                 {name.charAt(0).toUpperCase()}
               </span>

@@ -78,7 +78,10 @@ describe("POST /api/dashboard/generatePost", () => {
     aiMock.streamObject.mockImplementationOnce((args: any) => {
       Promise.resolve().then(() => {
         if (args.onFinish) {
-          args.onFinish({ error: new Error("Stream failed midway"), object: undefined });
+          args.onFinish({
+            error: new Error("Stream failed midway"),
+            object: undefined,
+          });
         }
       });
       return {

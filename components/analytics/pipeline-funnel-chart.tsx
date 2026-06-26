@@ -29,7 +29,9 @@ export function PipelineFunnelChart({
     return (
       <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Pipeline Funnel</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Pipeline Funnel
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[250px] shimmer-effect rounded-md" />
@@ -42,7 +44,9 @@ export function PipelineFunnelChart({
     return (
       <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Pipeline Funnel</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Pipeline Funnel
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex h-[250px] items-center justify-center text-sm text-muted-foreground">
@@ -61,7 +65,9 @@ export function PipelineFunnelChart({
   return (
     <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">Pipeline Funnel</CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          Pipeline Funnel
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="chart-container h-[250px]">
@@ -112,7 +118,11 @@ export function PipelineFunnelChart({
                   />
                 </pattern>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" strokeOpacity={0.4} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                className="stroke-border"
+                strokeOpacity={0.4}
+              />
               <XAxis
                 type="number"
                 tick={{ fontSize: 12 }}
@@ -128,17 +138,26 @@ export function PipelineFunnelChart({
                 width={90}
               />
               <Tooltip
-                cursor={{ fill: 'var(--muted)', opacity: 0.5 }}
+                cursor={{ fill: "var(--muted)", opacity: 0.5 }}
                 contentStyle={{
-                  backgroundColor: 'var(--card)',
-                  borderRadius: '0.5rem',
-                  border: '1px solid var(--border)',
-                  boxShadow: 'var(--shadow-sm)',
-                  color: 'var(--foreground)',
-                  padding: '8px 12px'
+                  backgroundColor: "var(--card)",
+                  borderRadius: "0.5rem",
+                  border: "1px solid var(--border)",
+                  boxShadow: "var(--shadow-sm)",
+                  color: "var(--foreground)",
+                  padding: "8px 12px",
                 }}
-                itemStyle={{ color: 'var(--foreground)', fontSize: '13px', fontWeight: 600 }}
-                labelStyle={{ color: 'var(--muted-foreground)', fontSize: '12px', fontWeight: 500, marginBottom: '4px' }}
+                itemStyle={{
+                  color: "var(--foreground)",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                }}
+                labelStyle={{
+                  color: "var(--muted-foreground)",
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  marginBottom: "4px",
+                }}
                 formatter={(value: unknown) => {
                   const count = typeof value === "number" ? value : 0;
                   return `${numberFormat.format(count)} posts`;

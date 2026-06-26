@@ -30,7 +30,9 @@ export function SecuritySection() {
     return (
       <section>
         <div className="mb-6">
-          <h2 className="text-base font-semibold tracking-tight text-foreground">Security</h2>
+          <h2 className="text-base font-semibold tracking-tight text-foreground">
+            Security
+          </h2>
           <p className="mt-1 text-[13px] text-muted-foreground/80">
             Update your password. You&apos;ll be logged out of all active
             sessions after changing it.
@@ -65,7 +67,9 @@ export function SecuritySection() {
     return (
       <section>
         <div className="mb-6">
-          <h2 className="text-base font-semibold tracking-tight text-foreground">Security</h2>
+          <h2 className="text-base font-semibold tracking-tight text-foreground">
+            Security
+          </h2>
           <p className="mt-1 text-[13px] text-muted-foreground/80">
             Manage your account security.
           </p>
@@ -141,7 +145,9 @@ function SecurityForm() {
   return (
     <section>
       <div className="mb-6">
-        <h2 className="text-base font-semibold tracking-tight text-foreground">Security</h2>
+        <h2 className="text-base font-semibold tracking-tight text-foreground">
+          Security
+        </h2>
         <p className="mt-1 text-[13px] text-muted-foreground/80">
           Update your password. You&apos;ll be logged out of all active sessions
           after changing it.

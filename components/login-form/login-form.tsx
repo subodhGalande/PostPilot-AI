@@ -53,9 +53,14 @@ export function LoginForm({
               </div>
               <span className="sr-only">PostPilot AI</span>
             </span>
-            <h1 className="text-3xl font-medium tracking-tight">Welcome to Postpilot AI</h1>
+            <h1 className="text-3xl font-medium tracking-tight">
+              Welcome to Postpilot AI
+            </h1>
             <FieldDescription className="text-base">
-              Don't have an account? <Link href="/signup" className="text-primary hover:underline">Sign up</Link>
+              Don't have an account?{" "}
+              <Link href="/signup" className="text-primary hover:underline">
+                Sign up
+              </Link>
             </FieldDescription>
           </div>
           <Field className="gap-4">
@@ -128,7 +133,11 @@ export function LoginForm({
             )}
           />
           <Field>
-            <Button type="submit" disabled={isPending} className="w-full h-11 active:scale-[0.98] transition-transform">
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="w-full h-11 active:scale-[0.98] transition-transform"
+            >
               {isPending ? (
                 <svg
                   className="animate-spin -ml-1 mr-2 h-4 w-4"
@@ -154,7 +163,9 @@ export function LoginForm({
               ) : null}
               {isPending ? "logging in..." : "Login"}
             </Button>
-            <p className="text-center text-xs text-muted-foreground mt-4">Secure, encrypted login.</p>
+            <p className="text-center text-xs text-muted-foreground mt-4">
+              Secure, encrypted login.
+            </p>
           </Field>
         </FieldGroup>
       </form>

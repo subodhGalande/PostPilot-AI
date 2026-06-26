@@ -5,9 +5,9 @@ import {
   InsufficientTokensError,
   RefundRateLimitError,
 } from "./token-ledger";
-import { clearRateLimitStore } from "@/lib/rate-limit";
+import { clearRateLimitStore } from "@/lib/internal-rate-limit";
 
-vi.unmock("@/lib/rate-limit");
+vi.unmock("@/lib/internal-rate-limit");
 vi.unmock("@/lib/server/token-ledger");
 
 describe("TokenLedger", () => {

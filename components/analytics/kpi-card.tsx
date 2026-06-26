@@ -32,12 +32,7 @@ export function KpiCard({
             {label}
           </span>
           <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary transition-colors group-hover:bg-primary/15 dark:bg-primary/10 dark:group-hover:bg-primary/20">
-            <Icon
-              className={cn(
-                "size-4",
-                loading && "animate-pulse"
-              )}
-            />
+            <Icon className={cn("size-4", loading && "animate-pulse")} />
           </div>
         </div>
 
@@ -57,7 +52,7 @@ export function KpiCard({
                   "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium transition-colors",
                   isPositive
                     ? "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20"
-                    : "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20"
+                    : "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20",
                 )}
               >
                 {isPositive ? (

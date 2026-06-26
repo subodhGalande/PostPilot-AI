@@ -114,7 +114,6 @@ function detectStuttering(post: GeneratedPostItem): boolean {
 
 export default function DashboardPage() {
   const retryCount = useRef(0);
-  const stopReason = useRef<'user' | 'stutter' | null>(null);
   const lastGenerateInput = useRef<{
     topic: string;
     tone: string;
@@ -160,9 +159,23 @@ export default function DashboardPage() {
   } = useObject({
     api: "/api/dashboard/generatePost",
     schema: generatedPostItemSchema,
-    onFinish: ({ object, error }: { object: GeneratedPostItem | undefined; error?: Error }) => {
+    onFinish: ({
+      object,
+      error,
+    }: {
+      object: GeneratedPostItem | undefined;
+      error?: Error;
+    }) => {
       if (error) {
-        return; // onError will handle this
+        // onFinish fires with an error when schema validation fails.
+        // Show a toast and reset to "Ready to Write".
+        toast.error(
+          "The AI returned an unexpected response. Please try again.",
+        );
+        setIsGenerated(false);
+        setGeneratedPostPack(null);
+        clearDraftState();
+        return;
       }
 
       if (!object) {
@@ -171,6 +184,25 @@ export default function DashboardPage() {
         );
         setIsGenerated(false);
         setGeneratedPostPack(null);
+        clearDraftState();
+        return;
+      }
+
+      const finalLinkedinContent = stripMarkdown(object.linkedin?.content || "");
+      const finalXPosts = (object.x?.posts || [])
+        .filter((p) => p && p.content)
+        .map((p, i) => ({
+          id: p.id || `x-${i + 1}`,
+          content: stripMarkdown(p.content || ""),
+        }));
+
+      if (!finalLinkedinContent.trim() && finalXPosts.length === 0) {
+        toast.error(
+          "The AI failed to complete the post. It may have timed out or hit a limit. Please try again.",
+        );
+        setIsGenerated(false);
+        setGeneratedPostPack(null);
+        clearDraftState();
         return;
       }
 
@@ -179,17 +211,14 @@ export default function DashboardPage() {
           ...object,
           linkedin: {
             ...object.linkedin,
-            content: stripMarkdown(object.linkedin?.content || ""),
+            content: finalLinkedinContent,
             status: "DRAFT",
             scheduledAt: null,
           },
           x: {
             ...object.x,
-            mode: getXMode(object.x?.posts?.length ?? 0, object.x?.mode),
-            posts: (object.x?.posts || []).map((p, i) => ({
-              id: p.id || `x-${i + 1}`,
-              content: stripMarkdown(p.content || ""),
-            })),
+            mode: getXMode(finalXPosts.length, object.x?.mode),
+            posts: finalXPosts,
             status: "DRAFT",
             scheduledAt: null,
           },
@@ -203,39 +232,10 @@ export default function DashboardPage() {
       setIsGenerated(true);
       queryClient.invalidateQueries({ queryKey: ["tokens"] });
     },
+    // NOTE: onError is only called for real API/network errors (non-200 responses,
+    // fetch failures). It is NEVER called when stop() is invoked because the AI SDK
+    // silently swallows AbortError. Stop cleanup is handled inline.
     onError: (error: Error) => {
-      const reason = stopReason.current;
-      stopReason.current = null;
-
-      if (reason === "user") {
-        setIsGenerated(false);
-        setGeneratedPostPack(null);
-        return;
-      }
-
-      if (reason === "stutter") {
-        if (retryCount.current < 1) {
-          retryCount.current++;
-          const input = lastGenerateInput.current;
-          if (input) {
-            setGeneratedPostPack(null);
-            setIsGenerated(true);
-            setTimeout(() => {
-              submitGenerate({
-                modelName: DEFAULT_MODEL.id,
-                ...input,
-              });
-            }, 10);
-            return;
-          }
-        }
-        
-        toast.error("The AI got stuck in a loop. Please try a different topic or keywords.");
-        setIsGenerated(false);
-        setGeneratedPostPack(null);
-        return;
-      }
-
       console.error("AI Generation failed:", error);
       const classified = classifyApiError(error);
       toast.error(classified.message);
@@ -243,6 +243,7 @@ export default function DashboardPage() {
       // Clean slate on generation error
       setIsGenerated(false);
       setGeneratedPostPack(null);
+      clearDraftState();
 
       if (classified.category === "daily-limit") {
         setTokensExhausted(true);
@@ -263,9 +264,10 @@ export default function DashboardPage() {
     const saved = loadDraftState();
     if (saved?.isGenerated && saved.generatedPostPack) {
       // Validate that the draft actually has content. If it's an empty corrupted draft, purge it.
-      const hasLiContent = !!saved.generatedPostPack.post?.linkedin?.content?.trim();
+      const hasLiContent =
+        !!saved.generatedPostPack.post?.linkedin?.content?.trim();
       const hasXContent = !!saved.generatedPostPack.post?.x?.posts?.length;
-      
+
       if (!hasLiContent && !hasXContent) {
         clearDraftState();
         return;
@@ -353,8 +355,31 @@ export default function DashboardPage() {
 
       if (detectStuttering(partialPost)) {
         console.warn("Stuttering detected mid-stream! Stopping generation.");
-        stopReason.current = "stutter";
         stop();
+
+        // stop() triggers AbortError which the AI SDK silently swallows —
+        // onError and onFinish will NOT fire. Handle retry/cleanup inline.
+        if (retryCount.current < 1) {
+          retryCount.current++;
+          const input = lastGenerateInput.current;
+          if (input) {
+            setGeneratedPostPack(null);
+            setTimeout(() => {
+              submitGenerate({
+                modelName: DEFAULT_MODEL.id,
+                ...input,
+              });
+            }, 10);
+            return;
+          }
+        }
+
+        toast.error(
+          "The AI got stuck in a loop. Please try a different topic or keywords.",
+        );
+        setIsGenerated(false);
+        setGeneratedPostPack(null);
+        clearDraftState();
       }
     }
   }, [object, topic, isGenerated, isGenerating, stop]);
@@ -532,11 +557,16 @@ export default function DashboardPage() {
           onKeywordsChange={setKeywords}
           onGenerate={handleGenerate}
           onStop={() => {
-            stopReason.current = "user";
             stop();
             setIsGenerated(false);
             setGeneratedPostPack(null);
             clearDraftState();
+
+            // Refund the consumed token since the user didn't get usable content.
+            // Fire-and-forget — UI reset is already done above.
+            fetch("/api/dashboard/refundToken", { method: "POST" })
+              .then(() => queryClient.invalidateQueries({ queryKey: ["tokens"] }))
+              .catch(() => {});
           }}
           isGenerating={isGenerating}
           isTokensExhausted={tokensExhausted}

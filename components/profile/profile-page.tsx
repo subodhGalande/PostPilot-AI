@@ -55,7 +55,9 @@ export default function ProfilePage() {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 md:px-6 md:py-10">
       <section>
         <div className="mb-6">
-          <h2 className="text-base font-semibold tracking-tight text-foreground">Profile Photo</h2>
+          <h2 className="text-base font-semibold tracking-tight text-foreground">
+            Profile Photo
+          </h2>
           <p className="mt-1 text-[13px] text-muted-foreground/80">
             Update your profile photo and personal details.
           </p>
@@ -80,7 +82,9 @@ export default function ProfilePage() {
 
       <section>
         <div className="mb-6">
-          <h2 className="text-base font-semibold tracking-tight text-foreground">Profile Information</h2>
+          <h2 className="text-base font-semibold tracking-tight text-foreground">
+            Profile Information
+          </h2>
           <p className="mt-1 text-[13px] text-muted-foreground/80">
             Edit your public profile information.
           </p>

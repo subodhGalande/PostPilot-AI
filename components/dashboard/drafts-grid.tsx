@@ -136,10 +136,16 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
     },
     initialData: initialDrafts,
   });
-  
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
-  const [filterOption, setFilterOption] = useState(searchParams.get("filter") || "all");
-  const [sortOption, setSortOption] = useState(searchParams.get("sort") || "recent");
+
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams.get("search") || "",
+  );
+  const [filterOption, setFilterOption] = useState(
+    searchParams.get("filter") || "all",
+  );
+  const [sortOption, setSortOption] = useState(
+    searchParams.get("sort") || "recent",
+  );
   const [visibleCount, setVisibleCount] = useState(24);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -148,23 +154,26 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
     setVisibleCount(24);
   }, [debouncedSearchQuery, filterOption, sortOption]);
 
-  const updateUrlParams = useCallback((newSearch: string, newFilter: string, newSort: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    
-    if (newSearch) params.set("search", newSearch);
-    else params.delete("search");
-    
-    if (newFilter && newFilter !== "all") params.set("filter", newFilter);
-    else params.delete("filter");
-    
-    if (newSort && newSort !== "recent") params.set("sort", newSort);
-    else params.delete("sort");
-    
-    const newQueryString = params.toString();
-    if (newQueryString !== searchParams.toString()) {
-      router.replace(`${pathname}?${newQueryString}`, { scroll: false });
-    }
-  }, [pathname, router, searchParams]);
+  const updateUrlParams = useCallback(
+    (newSearch: string, newFilter: string, newSort: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (newSearch) params.set("search", newSearch);
+      else params.delete("search");
+
+      if (newFilter && newFilter !== "all") params.set("filter", newFilter);
+      else params.delete("filter");
+
+      if (newSort && newSort !== "recent") params.set("sort", newSort);
+      else params.delete("sort");
+
+      const newQueryString = params.toString();
+      if (newQueryString !== searchParams.toString()) {
+        router.replace(`${pathname}?${newQueryString}`, { scroll: false });
+      }
+    },
+    [pathname, router, searchParams],
+  );
 
   useEffect(() => {
     updateUrlParams(debouncedSearchQuery, filterOption, sortOption);
@@ -200,12 +209,13 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
     },
     onMutate: async (draftId) => {
       await queryClient.cancelQueries({ queryKey: ["drafts"] });
-      const previousDrafts = queryClient.getQueryData<DraftListItem[]>(["drafts"]) || drafts;
+      const previousDrafts =
+        queryClient.getQueryData<DraftListItem[]>(["drafts"]) || drafts;
 
       queryClient.setQueryData<DraftListItem[]>(["drafts"], (old) =>
-        old ? old.filter((draft) => draft.id !== draftId) : old
+        old ? old.filter((draft) => draft.id !== draftId) : old,
       );
-      
+
       setPendingDeleteDraft(null);
 
       return { previousDrafts };
@@ -242,14 +252,22 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
 
     if (debouncedSearchQuery.trim()) {
       const fuseResults = fuse.search(debouncedSearchQuery);
-      result = fuseResults.map(r => r.item);
+      result = fuseResults.map((r) => r.item);
     }
 
     result = result.filter((draft) => {
       if (filterOption === "linkedin") return !!draft.linkedinPost;
       if (filterOption === "x") return !!draft.xPost;
-      if (filterOption === "scheduled") return draft.linkedinPost?.status === "SCHEDULED" || draft.xPost?.status === "SCHEDULED";
-      if (filterOption === "drafts") return draft.linkedinPost?.status !== "SCHEDULED" && draft.xPost?.status !== "SCHEDULED";
+      if (filterOption === "scheduled")
+        return (
+          draft.linkedinPost?.status === "SCHEDULED" ||
+          draft.xPost?.status === "SCHEDULED"
+        );
+      if (filterOption === "drafts")
+        return (
+          draft.linkedinPost?.status !== "SCHEDULED" &&
+          draft.xPost?.status !== "SCHEDULED"
+        );
       return true;
     });
 
@@ -259,11 +277,17 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
   const sortedDrafts = useMemo(() => {
     return [...filteredDrafts].sort((a, b) => {
       if (sortOption === "recent") {
-        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        return (
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        );
       } else if (sortOption === "oldest") {
-        return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+        return (
+          new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
+        );
       } else if (sortOption === "newest-created") {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
       } else if (sortOption === "az") {
         return a.topic.localeCompare(b.topic);
       }
@@ -284,7 +308,7 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input 
+          <Input
             type="text"
             placeholder="Search drafts by topic or title..."
             className="pl-9 rounded-xl border-border/60 bg-card shadow-sm h-10"
@@ -324,9 +348,18 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/60 bg-card/50 p-12 text-center">
           <Search className="size-8 text-muted-foreground/40 mb-4" />
           <p className="text-sm font-medium text-foreground">No drafts found</p>
-          <p className="text-xs text-muted-foreground mt-1 mb-4">Try adjusting your search or filters.</p>
-          {(searchQuery || filterOption !== "all" || sortOption !== "recent") && (
-            <Button variant="outline" size="sm" onClick={clearFilters} className="rounded-xl">
+          <p className="text-xs text-muted-foreground mt-1 mb-4">
+            Try adjusting your search or filters.
+          </p>
+          {(searchQuery ||
+            filterOption !== "all" ||
+            sortOption !== "recent") && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearFilters}
+              className="rounded-xl"
+            >
               Clear all filters
             </Button>
           )}
@@ -335,79 +368,79 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {visibleDrafts.map((draft) => (
-          // biome-ignore lint/a11y/useSemanticElements: The card contains its own delete button, so a native button wrapper would be invalid nested interactive markup.
-          <div
-            key={draft.id}
-            tabIndex={0}
-            role="button"
-            className="group flex h-full cursor-pointer flex-col rounded-2xl border border-border/70 bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-primary/20 hover:bg-card dark:border-transparent dark:bg-card/80 dark:hover:bg-card"
-            onClick={() => router.push(`/dashboard/drafts/${draft.id}`)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                router.push(`/dashboard/drafts/${draft.id}`);
-              }
-            }}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex size-11 items-center justify-center rounded-xl bg-primary/8 text-primary">
-                <FileText className="size-5" />
-              </div>
-              <div className="flex items-center gap-2">
-                {(draft.linkedinPost?.status === "DRAFT" ||
-                  draft.xPost?.status === "DRAFT") && (
-                  <div className="flex gap-1">
-                    {draft.linkedinPost?.status === "DRAFT" && (
-                      <span className="inline-flex items-center rounded-md bg-blue-50/80 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20">
-                        LinkedIn
-                      </span>
-                    )}
-                    {draft.xPost?.status === "DRAFT" && (
-                      <span className="inline-flex items-center rounded-md bg-slate-50/80 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20 dark:bg-slate-500/10 dark:text-slate-400 dark:ring-slate-500/20">
-                        X
-                      </span>
-                    )}
+              // biome-ignore lint/a11y/useSemanticElements: The card contains its own delete button, so a native button wrapper would be invalid nested interactive markup.
+              <div
+                key={draft.id}
+                tabIndex={0}
+                role="button"
+                className="group flex h-full cursor-pointer flex-col rounded-2xl border border-border/70 bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-primary/20 hover:bg-card dark:border-transparent dark:bg-card/80 dark:hover:bg-card"
+                onClick={() => router.push(`/dashboard/drafts/${draft.id}`)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    router.push(`/dashboard/drafts/${draft.id}`);
+                  }
+                }}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex size-11 items-center justify-center rounded-xl bg-primary/8 text-primary">
+                    <FileText className="size-5" />
                   </div>
-                )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-8 rounded-full border-border/60 bg-background/70 px-3 text-xs font-medium text-muted-foreground shadow-none hover:border-destructive/25 hover:bg-destructive/8 hover:text-destructive dark:bg-input/20 dark:hover:bg-destructive/15"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPendingDeleteDraft(draft);
-                  }}
-                  onKeyDown={(event) => event.stopPropagation()}
-                  aria-label={`Delete all content for ${draft.title}`}
-                >
-                  <Trash2 />
-                  Delete all
-                </Button>
-              </div>
-            </div>
-
-            <div className="mt-5 flex flex-1 flex-col">
-              <h3 className="line-clamp-1 text-lg font-bold leading-7 text-foreground transition-colors group-hover:text-primary capitalize">
-                {draft.topic}
-              </h3>
-              <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                {draft.title}
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-2 pt-3">
-                <div className="inline-flex items-center gap-2 rounded-full bg-muted/45 px-3 py-1.5 text-xs font-medium text-foreground">
-                  <Clock3 className="size-3.5 text-muted-foreground" />
-                  <span>Edited {formatDate(draft.updatedAt)}</span>
+                  <div className="flex items-center gap-2">
+                    {(draft.linkedinPost?.status === "DRAFT" ||
+                      draft.xPost?.status === "DRAFT") && (
+                      <div className="flex gap-1">
+                        {draft.linkedinPost?.status === "DRAFT" && (
+                          <span className="inline-flex items-center rounded-md bg-blue-50/80 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20">
+                            LinkedIn
+                          </span>
+                        )}
+                        {draft.xPost?.status === "DRAFT" && (
+                          <span className="inline-flex items-center rounded-md bg-slate-50/80 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20 dark:bg-slate-500/10 dark:text-slate-400 dark:ring-slate-500/20">
+                            X
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 rounded-full border-border/60 bg-background/70 px-3 text-xs font-medium text-muted-foreground shadow-none hover:border-destructive/25 hover:bg-destructive/8 hover:text-destructive dark:bg-input/20 dark:hover:bg-destructive/15"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPendingDeleteDraft(draft);
+                      }}
+                      onKeyDown={(event) => event.stopPropagation()}
+                      aria-label={`Delete all content for ${draft.title}`}
+                    >
+                      <Trash2 />
+                      Delete all
+                    </Button>
+                  </div>
                 </div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-muted/30 px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                  <History className="size-3.5" />
-                  <span>Created {formatDate(draft.createdAt)}</span>
+
+                <div className="mt-5 flex flex-1 flex-col">
+                  <h3 className="line-clamp-1 text-lg font-bold leading-7 text-foreground transition-colors group-hover:text-primary capitalize">
+                    {draft.topic}
+                  </h3>
+                  <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                    {draft.title}
+                  </p>
+
+                  <div className="mt-5 flex flex-wrap gap-2 pt-3">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-muted/45 px-3 py-1.5 text-xs font-medium text-foreground">
+                      <Clock3 className="size-3.5 text-muted-foreground" />
+                      <span>Edited {formatDate(draft.updatedAt)}</span>
+                    </div>
+                    <div className="inline-flex items-center gap-2 rounded-full bg-muted/30 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                      <History className="size-3.5" />
+                      <span>Created {formatDate(draft.createdAt)}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        ))}
+            ))}
           </div>
 
           {visibleCount < sortedDrafts.length && (

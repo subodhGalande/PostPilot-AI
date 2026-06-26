@@ -25,8 +25,15 @@ export default function LoginPage() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,#09090b_90%)] opacity-90" />
           <div className="absolute inset-0 pointer-events-none opacity-30 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
           <div className="absolute inset-0 flex flex-col justify-end p-12">
-            <h2 className="text-5xl font-medium tracking-tight text-white mb-4">Build your audience<br />on autopilot.</h2>
-            <p className="text-lg text-white/70 max-w-md">Generate, schedule, and publish high-quality posts that resonate with your followers.</p>
+            <h2 className="text-5xl font-medium tracking-tight text-white mb-4">
+              Build your audience
+              <br />
+              on autopilot.
+            </h2>
+            <p className="text-lg text-white/70 max-w-md">
+              Generate, schedule, and publish high-quality posts that resonate
+              with your followers.
+            </p>
           </div>
         </div>
       </div>

@@ -63,7 +63,6 @@ export default async function DraftDetailPage({
 
   return (
     <div className="flex flex-1 flex-col gap-4 bg-slate-50/50 p-4 dark:bg-transparent md:p-6">
-
       <DraftEditorWorkspace
         initialDraftId={draft.id}
         initialDraftUpdatedAt={draft.updatedAt}

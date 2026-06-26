@@ -33,15 +33,19 @@ import type { DateRange } from "@/lib/analytics/types";
 
 import { ReadonlyURLSearchParams } from "next/navigation";
 
-function getRouteMeta(pathname: string, searchParams?: ReadonlyURLSearchParams) {
+function getRouteMeta(
+  pathname: string,
+  searchParams?: ReadonlyURLSearchParams,
+) {
   if (pathname.startsWith("/dashboard/drafts/")) {
     const isFromCalendar = searchParams?.get("from") === "calendar";
-    
+
     if (isFromCalendar) {
       return {
         section: "Workspace",
         title: "Scheduled Post",
-        description: "Review your scheduled post. Unschedule it to move it back to drafts and make edits.",
+        description:
+          "Review your scheduled post. Unschedule it to move it back to drafts and make edits.",
       };
     }
 

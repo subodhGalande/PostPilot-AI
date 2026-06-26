@@ -4,12 +4,27 @@ import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import prisma from "@/lib/prisma";
 import { signupSchema } from "@/lib/validations/auth";
-import {
-  buildRateLimitHeaders,
-  checkRateLimit,
-  rateLimitExceededResponse,
-} from "@/lib/rate-limit";
 import { csrfErrorResponse, validateCsrf } from "@/lib/csrf";
+import aj from "@/lib/arcjet";
+import { protectSignup } from "@arcjet/next";
+
+const protect = aj.withRule(
+  protectSignup({
+    email: {
+      mode: "LIVE",
+      deny: ["DISPOSABLE", "INVALID", "NO_MX_RECORDS"],
+    },
+    bots: {
+      mode: "LIVE",
+      allow: [],
+    },
+    rateLimit: {
+      mode: "LIVE",
+      interval: "15m",
+      max: 3,
+    },
+  }),
+);
 
 const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
@@ -25,17 +40,6 @@ export async function POST(req: Request) {
   try {
     if (!validateCsrf(req).valid) return csrfErrorResponse();
 
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-
-    const ipLimit = checkRateLimit(`signup:ip:${ip}`, {
-      maxRequests: 3,
-      windowMs: 15 * 60 * 1000,
-    });
-    if (!ipLimit.success) {
-      return rateLimitExceededResponse(ipLimit.resetTime);
-    }
-
     const body = await req.json();
     const parsed = signupSchema.safeParse(body);
     if (!parsed.success) {
@@ -45,6 +49,23 @@ export async function POST(req: Request) {
       );
     }
     const { email, name, password } = parsed.data;
+
+    const decision = await protect.protect(req, { email });
+    if (decision.isDenied()) {
+      if (decision.reason.isRateLimit()) {
+        return NextResponse.json(
+          { message: "Too many requests" },
+          { status: 429 },
+        );
+      } else if (decision.reason.isEmail()) {
+        return NextResponse.json(
+          { message: "Invalid email address" },
+          { status: 400 },
+        );
+      } else {
+        return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      }
+    }
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
@@ -85,18 +106,10 @@ export async function POST(req: Request) {
       `,
     });
 
-    const successResponse = NextResponse.json(
+    return NextResponse.json(
       { message: "verification email sent" },
       { status: 200 },
     );
-
-    Object.entries(
-      buildRateLimitHeaders(3, ipLimit.remaining, ipLimit.resetTime),
-    ).forEach(([key, value]) => {
-      successResponse.headers.set(key, value);
-    });
-
-    return successResponse;
   } catch (_err) {
     console.error("signup error: ", _err);
     return NextResponse.json({ error: "signup failed", _err }, { status: 500 });

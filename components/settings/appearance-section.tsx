@@ -19,7 +19,9 @@ export function AppearanceSection() {
     return (
       <section>
         <div className="mb-6">
-          <h2 className="text-base font-semibold tracking-tight text-foreground">Appearance</h2>
+          <h2 className="text-base font-semibold tracking-tight text-foreground">
+            Appearance
+          </h2>
           <p className="mt-1 text-[13px] text-muted-foreground/80">
             Choose how PostPilot AI looks on your device.
           </p>
@@ -45,7 +47,9 @@ export function AppearanceSection() {
   return (
     <section>
       <div className="mb-6">
-        <h2 className="text-base font-semibold tracking-tight text-foreground">Appearance</h2>
+        <h2 className="text-base font-semibold tracking-tight text-foreground">
+          Appearance
+        </h2>
         <p className="mt-1 text-[13px] text-muted-foreground/80">
           Choose how PostPilot AI looks on your device.
         </p>

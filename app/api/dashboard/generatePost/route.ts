@@ -15,8 +15,30 @@ import {
 import prisma from "@/lib/prisma";
 import { generatePostSchema } from "@/lib/schemas/post.schema";
 import { getModelById } from "@/lib/ai/models";
+import aj from "@/lib/arcjet";
+import { detectBot, detectPromptInjection, slidingWindow } from "@arcjet/next";
 
 export const maxDuration = 60;
+
+const protect = aj
+  .withRule(
+    detectBot({
+      mode: "LIVE",
+      allow: [],
+    }),
+  )
+  .withRule(
+    slidingWindow({
+      mode: "LIVE",
+      interval: "1m",
+      max: 10,
+    }),
+  )
+  .withRule(
+    detectPromptInjection({
+      mode: "LIVE",
+    }),
+  );
 
 const aiGeneratedPostSchema = z.object({
   topic: z.string().min(1),
@@ -200,19 +222,6 @@ export async function POST(req: Request) {
 
     userId = authUser.id;
 
-    try {
-      await tokenLedger.consumeToken(userId!);
-      tokenConsumed = true;
-    } catch (e) {
-      if (e instanceof InsufficientTokensError) {
-        return NextResponse.json(
-          { error: "Daily generation limit reached" },
-          { status: 403 },
-        );
-      }
-      throw e;
-    }
-
     const apiKey =
       process.env.GOOGLE_GENERATIVE_AI_API_KEY ?? process.env.GEMINI_API_KEY;
 
@@ -242,6 +251,47 @@ export async function POST(req: Request) {
     const input = parsedBody.data;
     const modelConfig = getModelById(input.modelName);
 
+    const promptString = [
+      input.topic,
+      input.tone,
+      input.postStyle,
+      input.targetAudience,
+      input.keywords.join(" "),
+    ].join("\n");
+
+    const decision = await protect.protect(req, {
+      detectPromptInjectionMessage: promptString,
+    });
+
+    if (decision.isDenied()) {
+      if (decision.reason.isRateLimit()) {
+        return NextResponse.json(
+          { error: "Too many requests to this endpoint" },
+          { status: 429 },
+        );
+      } else if (decision.reason.isPromptInjection()) {
+        return NextResponse.json(
+          { error: "Input flagged as unsafe or prompt injection" },
+          { status: 400 },
+        );
+      } else {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+
+    try {
+      await tokenLedger.consumeToken(userId!);
+      tokenConsumed = true;
+    } catch (e) {
+      if (e instanceof InsufficientTokensError) {
+        return NextResponse.json(
+          { error: "Daily generation limit reached" },
+          { status: 403 },
+        );
+      }
+      throw e;
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -269,6 +319,10 @@ export async function POST(req: Request) {
       }),
       abortSignal: req.signal,
       onFinish: async ({ error, object }) => {
+        // Skip refund if the request was aborted (user stopped).
+        // The frontend handles user-initiated refunds via /api/dashboard/refundToken.
+        if (req.signal.aborted) return;
+
         if (error || !object) {
           console.error("generatePost stream error", error);
           if (tokenConsumed && userId) {
@@ -286,7 +340,9 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("generatePost route error", error);
 
-    if (tokenConsumed && userId) {
+    // Skip refund if the request was aborted (user stopped).
+    // The frontend handles user-initiated refunds via /api/dashboard/refundToken.
+    if (tokenConsumed && userId && !req.signal.aborted) {
       try {
         await tokenLedger.refundToken(userId);
       } catch {

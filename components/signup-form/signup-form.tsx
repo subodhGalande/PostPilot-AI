@@ -53,9 +53,14 @@ export function SignupForm({
               </div>
               <span className="sr-only">PostPilot AI</span>
             </span>
-            <h1 className="text-3xl font-medium tracking-tight">Create your account</h1>
+            <h1 className="text-3xl font-medium tracking-tight">
+              Create your account
+            </h1>
             <FieldDescription className="text-base">
-              Already have an account? <Link href="/login" className="text-primary hover:underline">Sign in</Link>
+              Already have an account?{" "}
+              <Link href="/login" className="text-primary hover:underline">
+                Sign in
+              </Link>
             </FieldDescription>
           </div>
           <Field className="gap-4">
@@ -177,7 +182,11 @@ export function SignupForm({
             )}
           />
           <Field>
-            <Button type="submit" disabled={isPending} className="w-full h-11 active:scale-[0.98] transition-transform">
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="w-full h-11 active:scale-[0.98] transition-transform"
+            >
               {isPending ? (
                 <svg
                   className="animate-spin -ml-1 mr-2 h-4 w-4"
@@ -203,7 +212,9 @@ export function SignupForm({
               ) : null}
               {isPending ? "Sending Verification Mail..." : "Create Account"}
             </Button>
-            <p className="text-center text-xs text-muted-foreground mt-4">Secure, encrypted account creation.</p>
+            <p className="text-center text-xs text-muted-foreground mt-4">
+              Secure, encrypted account creation.
+            </p>
           </Field>
         </FieldGroup>
       </form>

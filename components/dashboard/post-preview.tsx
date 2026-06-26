@@ -108,13 +108,14 @@ export function PostPreview({
       );
       const isNotCleared = !clearedPlatforms.has(p);
 
-      // Check if the platform actually has draft content. 
+      // Check if the platform actually has draft content.
       // If it's empty, it shouldn't show up in the switcher.
       let hasContent = false;
       if (p === "linkedin") {
-        hasContent = activePost.linkedin.content !== null && activePost.linkedin.content.length > 0;
+        hasContent = (activePost.linkedin?.content?.length ?? 0) > 0;
       } else {
-        hasContent = activePost.x.posts !== null && activePost.x.posts.length > 0;
+        hasContent =
+          activePost.x.posts !== null && activePost.x.posts.length > 0;
       }
 
       // If we are currently generating, we keep both platforms visible so they can populate.
@@ -189,7 +190,9 @@ export function PostPreview({
           )}
         </div>
         {description ? (
-          <p className="text-[13px] font-medium text-muted-foreground/80 pr-2 hidden md:block">{description}</p>
+          <p className="text-[13px] font-medium text-muted-foreground/80 pr-2 hidden md:block">
+            {description}
+          </p>
         ) : null}
         {activePost && availablePlatforms.length > 1 && (
           <Tabs
@@ -198,13 +201,18 @@ export function PostPreview({
             className="hidden md:flex"
           >
             <TabsList className="h-10 bg-background/50 backdrop-blur-md p-1 border border-border/50 shadow-inner rounded-xl">
-              <TabsTrigger value="linkedin" className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm">
+              <TabsTrigger
+                value="linkedin"
+                className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm"
+              >
                 <Linkedin className="size-3.5" />
                 LinkedIn
               </TabsTrigger>
-              <TabsTrigger value="x" className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm">
-                <Twitter className="size-3.5" />
-                X
+              <TabsTrigger
+                value="x"
+                className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm"
+              >
+                <Twitter className="size-3.5" />X
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -260,13 +268,18 @@ export function PostPreview({
                 }
               >
                 <TabsList className="w-full h-10 bg-background/50 backdrop-blur-md p-1 border border-border/50 shadow-inner rounded-xl">
-                  <TabsTrigger value="linkedin" className="w-full gap-2 rounded-lg text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm">
+                  <TabsTrigger
+                    value="linkedin"
+                    className="w-full gap-2 rounded-lg text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm"
+                  >
                     <Linkedin className="size-3.5" />
                     LinkedIn
                   </TabsTrigger>
-                  <TabsTrigger value="x" className="w-full gap-2 rounded-lg text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm">
-                    <Twitter className="size-3.5" />
-                    X
+                  <TabsTrigger
+                    value="x"
+                    className="w-full gap-2 rounded-lg text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm"
+                  >
+                    <Twitter className="size-3.5" />X
                   </TabsTrigger>
                 </TabsList>
               </Tabs>

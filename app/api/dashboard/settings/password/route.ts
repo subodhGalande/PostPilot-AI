@@ -1,19 +1,29 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuthJose, verifyPassword, hashPassword } from "@/lib/auth/auth";
-import { checkRateLimit, rateLimitExceededResponse } from "@/lib/rate-limit";
+import aj from "@/lib/arcjet";
+import { slidingWindow } from "@arcjet/next";
+
+const protect = aj.withRule(
+  slidingWindow({
+    mode: "LIVE",
+    interval: "15m",
+    max: 5,
+  }),
+);
 
 export async function PATCH(req: Request) {
   try {
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+    const decision = await protect.protect(req);
 
-    const ipLimit = checkRateLimit(`password:ip:${ip}`, {
-      maxRequests: 5,
-      windowMs: 15 * 60 * 1000,
-    });
-    if (!ipLimit.success) {
-      return rateLimitExceededResponse(ipLimit.resetTime);
+    if (decision.isDenied()) {
+      if (decision.reason.isRateLimit()) {
+        return NextResponse.json(
+          { message: "Too many requests. Try again later." },
+          { status: 429 },
+        );
+      }
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     const authUser = await requireAuthJose();
