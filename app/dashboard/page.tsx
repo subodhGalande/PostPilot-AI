@@ -324,6 +324,8 @@ export default function DashboardPage() {
 
   // Effect to update the preview in real-time as it streams
   useEffect(() => {
+    let retryTimer: NodeJS.Timeout;
+
     if (object && isGenerating) {
       const partialPost: GeneratedPostItem = {
         topic: object.topic || topic,
@@ -364,7 +366,7 @@ export default function DashboardPage() {
           const input = lastGenerateInput.current;
           if (input) {
             setGeneratedPostPack(null);
-            setTimeout(() => {
+            retryTimer = setTimeout(() => {
               submitGenerate({
                 modelName: DEFAULT_MODEL.id,
                 ...input,
@@ -382,6 +384,10 @@ export default function DashboardPage() {
         clearDraftState();
       }
     }
+
+    return () => {
+      if (retryTimer) clearTimeout(retryTimer);
+    };
   }, [object, topic, isGenerated, isGenerating, stop]);
 
   const handleGenerate = () => {
