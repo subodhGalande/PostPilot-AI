@@ -150,9 +150,24 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  useEffect(() => {
+  const [prevDeps, setPrevDeps] = useState({
+    search: debouncedSearchQuery,
+    filter: filterOption,
+    sort: sortOption,
+  });
+
+  if (
+    debouncedSearchQuery !== prevDeps.search ||
+    filterOption !== prevDeps.filter ||
+    sortOption !== prevDeps.sort
+  ) {
+    setPrevDeps({
+      search: debouncedSearchQuery,
+      filter: filterOption,
+      sort: sortOption,
+    });
     setVisibleCount(24);
-  }, [debouncedSearchQuery, filterOption, sortOption]);
+  }
 
   const updateUrlParams = useCallback(
     (newSearch: string, newFilter: string, newSort: string) => {
