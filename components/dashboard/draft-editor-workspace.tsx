@@ -300,8 +300,8 @@ export function DraftEditorWorkspace({
 
   return (
     <div className="flex h-full w-full flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3 text-sm shadow-sm">
-        <div className="flex flex-wrap items-center gap-3 text-foreground">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3 text-sm shadow-sm">
+        <div className="flex w-full sm:w-auto items-center justify-between sm:justify-start gap-3 text-foreground">
           <div className="inline-flex items-center gap-2">
             <SaveStatusIcon
               className={`size-4 ${saveDraftMutation.isPending ? "animate-spin text-primary" : hasUnsavedChanges ? "text-amber-500" : "text-emerald-500"}`}
@@ -315,14 +315,15 @@ export function DraftEditorWorkspace({
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          {isScheduledManagementView ? (
-            <DropdownMenu>
+        {(isScheduledManagementView || status === "SCHEDULED") && (
+          <div className="flex w-full sm:w-auto items-center gap-2">
+            {isScheduledManagementView ? (
+              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-3 font-semibold shadow-sm transition-all hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring"
+                  className="w-full sm:w-auto h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-3 font-semibold shadow-sm transition-all hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring"
                 >
                   Post Actions
                   <ChevronDown className="size-3.5 text-muted-foreground" />
@@ -330,7 +331,7 @@ export function DraftEditorWorkspace({
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-44 p-1 shadow-lg rounded-xl"
+                className="w-[var(--radix-dropdown-menu-trigger-width)] sm:w-44 p-1 shadow-lg rounded-xl"
               >
                 <DropdownMenuItem
                   className="cursor-pointer gap-2 py-2 rounded-lg focus:bg-accent focus:text-accent-foreground"
@@ -376,13 +377,16 @@ export function DraftEditorWorkspace({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-3 font-semibold shadow-sm transition-all hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring"
+                  className="w-full sm:w-auto h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-3 font-semibold shadow-sm transition-all hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring"
                 >
                   Post Actions
                   <ChevronDown className="size-3.5 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent
+                align="end"
+                className="w-[var(--radix-dropdown-menu-trigger-width)] sm:w-44 p-1 shadow-lg rounded-xl"
+              >
                 <DropdownMenuItem
                   className="cursor-pointer"
                   onClick={() => handleOpenConfirmation("unschedule")}
@@ -393,8 +397,9 @@ export function DraftEditorWorkspace({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : null}
-        </div>
+            ) : null}
+          </div>
+        )}
       </div>
 
       <PostPreview

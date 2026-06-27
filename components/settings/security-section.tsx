@@ -52,8 +52,8 @@ export function SecuritySection() {
               <div className="h-3 w-32 animate-pulse rounded-xl bg-muted" />
               <div className="h-9 w-full animate-pulse rounded-xl bg-muted" />
             </div>
-            <div className="flex justify-end">
-              <div className="h-9 w-36 animate-pulse rounded-xl bg-muted" />
+            <div className="flex sm:justify-end">
+              <div className="h-9 w-full sm:w-36 animate-pulse rounded-xl bg-muted" />
             </div>
           </div>
         </div>
@@ -217,8 +217,8 @@ function SecurityForm() {
             </Field>
           </FieldGroup>
 
-          <div className="mt-8 flex justify-end">
-            <Button type="submit" disabled={passwordMutation.isPending}>
+          <div className="mt-8 flex sm:justify-end">
+            <Button type="submit" disabled={passwordMutation.isPending} className="w-full sm:w-auto">
               {passwordMutation.isPending ? "Updating..." : "Update password"}
             </Button>
           </div>

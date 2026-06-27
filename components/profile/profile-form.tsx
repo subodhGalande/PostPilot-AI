@@ -253,13 +253,13 @@ export function ProfileForm({
         />
       </FieldGroup>
 
-      <div className="mt-8 flex justify-end gap-2">
+      <div className="mt-8 flex flex-col sm:flex-row sm:justify-end gap-2">
         {isDirty && (
-          <Button type="button" variant="outline" onClick={() => form.reset()}>
+          <Button type="button" variant="outline" onClick={() => form.reset()} className="w-full sm:w-auto">
             Reset
           </Button>
         )}
-        <Button type="submit" disabled={profileMutation.isPending}>
+        <Button type="submit" disabled={profileMutation.isPending} className="w-full sm:w-auto">
           {profileMutation.isPending ? "Saving..." : "Save changes"}
         </Button>
       </div>
