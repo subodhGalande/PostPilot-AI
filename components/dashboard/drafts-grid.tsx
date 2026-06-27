@@ -366,7 +366,7 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
         </div>
       ) : (
         <>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {visibleDrafts.map((draft) => (
               // biome-ignore lint/a11y/useSemanticElements: The card contains its own delete button, so a native button wrapper would be invalid nested interactive markup.
               <div
@@ -406,7 +406,7 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="h-8 rounded-full border-border/60 bg-background/70 px-3 text-xs font-medium text-muted-foreground shadow-none hover:border-destructive/25 hover:bg-destructive/8 hover:text-destructive dark:bg-input/20 dark:hover:bg-destructive/15"
+                      className="min-h-[44px] sm:min-h-[32px] sm:h-8 rounded-full border-border/60 bg-background/70 px-4 sm:px-3 text-xs font-medium text-muted-foreground shadow-none hover:border-destructive/25 hover:bg-destructive/8 hover:text-destructive dark:bg-input/20 dark:hover:bg-destructive/15"
                       onClick={(e) => {
                         e.stopPropagation();
                         setPendingDeleteDraft(draft);

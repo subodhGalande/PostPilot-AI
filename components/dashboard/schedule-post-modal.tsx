@@ -207,7 +207,7 @@ export function SchedulePostModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="gap-3 sm:max-w-[410px]">
+      <DialogContent className="w-[95vw] max-h-[90vh] overflow-y-auto gap-3 sm:max-w-[410px] p-4 sm:p-6 rounded-2xl">
         <DialogHeader>
           <DialogTitle>
             Schedule{" "}
