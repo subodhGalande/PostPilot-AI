@@ -11,7 +11,6 @@ import {
   Twitter,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import useMeasure from "react-use-measure";
 
 import { LinkedInPostPreview } from "@/components/dashboard/linkedin-post-preview";
 import { XPostPreview } from "@/components/dashboard/x-post-preview";
@@ -82,7 +81,6 @@ export function PostPreview({
   const [activePlatform, setActivePlatform] =
     useState<PlatformTab>(initialPlatform);
   const isDebouncingRef = useRef(false);
-  const [measureRef, { height }] = useMeasure();
 
   useEffect(() => {
     if (initialPlatform) {
@@ -148,15 +146,13 @@ export function PostPreview({
   const activePlatformLabel = activePlatform === "linkedin" ? "LinkedIn" : "X";
 
   return (
-    <motion.div
-      animate={{ height: height > 0 ? height : "auto" }}
-      transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+    <div
       className={cn(
         "flex flex-col overflow-hidden rounded-xl border border-border/50 bg-card/60 text-card-foreground shadow-sm backdrop-blur-xl transition-[border,background-color,shadow] duration-300 hover:shadow-md dark:bg-card/40",
         className,
       )}
     >
-      <div ref={measureRef} className="flex flex-col w-full">
+      <div className="flex flex-col h-full w-full overflow-hidden">
       <div className="flex shrink-0 items-center gap-3 border-b border-border/50 p-4 md:p-6">
         {isGenerated ? (
           <Button
@@ -282,7 +278,7 @@ export function PostPreview({
             animate={{ opacity: 1, transform: "translateY(0px)" }}
             exit={{ opacity: 0, transform: "translateY(-8px)" }}
             transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-            className="flex flex-col w-full"
+            className="flex flex-col flex-1 min-h-0 w-full"
           >
             {availablePlatforms.length > 1 && (
               <div className="border-b px-4 py-3 md:hidden">
@@ -311,7 +307,8 @@ export function PostPreview({
               </div>
             )}
 
-            <AnimatePresence mode="popLayout" initial={false}>
+            <div className="flex-1 overflow-y-auto relative min-h-0">
+              <AnimatePresence mode="popLayout" initial={false}>
               <motion.div
                 key={activePlatform}
                 initial={{ opacity: 0, filter: "blur(4px)", transform: "translateY(8px)" }}
@@ -339,8 +336,9 @@ export function PostPreview({
                 )}
               </motion.div>
             </AnimatePresence>
+            </div>
 
-            <div className="border-t px-4 py-4 md:px-6 md:py-5">
+            <div className="shrink-0 border-t px-4 py-4 md:px-6 md:py-5">
               <div className="flex flex-col gap-3 sm:flex-row">
                 {activePost[activePlatform].status === "DRAFT" && (
                   <SchedulePostModal
@@ -400,6 +398,6 @@ export function PostPreview({
         ) : null}
       </AnimatePresence>
       </div>
-    </motion.div>
+    </div>
   );
 }
