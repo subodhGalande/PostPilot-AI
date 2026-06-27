@@ -20,7 +20,7 @@ interface PlatformDonutChartProps {
 export function PlatformDonutChart({ data, loading }: PlatformDonutChartProps) {
   if (loading) {
     return (
-      <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
+      <Card className="flex-1 overflow-hidden border-border/50 bg-card shadow-sm dark:bg-white/5 dark:backdrop-blur-xl">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Platform Mix
@@ -35,7 +35,7 @@ export function PlatformDonutChart({ data, loading }: PlatformDonutChartProps) {
 
   if (data.length === 0) {
     return (
-      <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
+      <Card className="flex-1 overflow-hidden border-border/50 bg-card shadow-sm dark:bg-white/5 dark:backdrop-blur-xl">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Platform Mix
@@ -53,7 +53,7 @@ export function PlatformDonutChart({ data, loading }: PlatformDonutChartProps) {
   const total = data.reduce((sum, d) => sum + d.count, 0);
 
   return (
-    <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
+    <Card className="flex-1 overflow-hidden border-border/50 bg-card shadow-sm dark:bg-white/5 dark:backdrop-blur-xl">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           Platform Mix

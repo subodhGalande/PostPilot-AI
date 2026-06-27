@@ -29,8 +29,8 @@ export function XPostPreview({
 }: XPostPreviewProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 p-6 fade-in">
-      <div className="rounded-xl border bg-muted/30 p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+      <div className="rounded-xl border bg-muted p-4">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
           Shared Idea
         </p>
         <p className="mt-2 text-sm leading-6 text-foreground">
@@ -79,7 +79,7 @@ export function XPostPreview({
                     <Button
                       variant="outline"
                       size="icon-sm"
-                      className="rounded-lg"
+                      className="rounded-lg group"
                       onClick={async () => {
                         try {
                           await copyPostContent(threadPost.content);
@@ -104,7 +104,7 @@ export function XPostPreview({
                           : "Copy X post"
                       }
                     >
-                      <Copy />
+                      <Copy className="transition-transform duration-500 ease-out-ui group-hover:scale-110" />
                     </Button>
                   </div>
                 </div>

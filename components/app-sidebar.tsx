@@ -100,8 +100,8 @@ function SidebarMenuItems() {
                 className={cn(
                   "relative z-10 h-11 overflow-hidden rounded-xl border border-transparent px-3 text-sidebar-foreground/72 transition-[color,transform] duration-150 ease-out-ui md:h-10",
                   "hover:-translate-y-0.5 hover:bg-transparent hover:text-sidebar-foreground",
-                  "data-[active=true]:bg-transparent data-[active=true]:text-primary",
-                  "[&_svg]:text-sidebar-foreground/65 hover:[&_svg]:text-sidebar-foreground data-[active=true]:[&_svg]:text-primary",
+                  "data-[active=true]:bg-transparent data-[active=true]:text-primary dark:data-[active=true]:text-blue-400",
+                  "[&_svg]:text-sidebar-foreground/65 hover:[&_svg]:text-sidebar-foreground data-[active=true]:[&_svg]:text-primary dark:data-[active=true]:[&_svg]:text-blue-400",
                 )}
               >
                 <Link

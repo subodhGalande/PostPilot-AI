@@ -62,7 +62,7 @@ export default function ProfilePage() {
             Update your profile photo and personal details.
           </p>
         </div>
-        <div className="rounded-xl border border-border/50 bg-card/60 backdrop-blur-xl p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-card/40">
+        <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
           <div className="flex items-center gap-4">
             <AvatarUpload avatarUrl={user.avatarUrl} name={user.name} />
             <div className="min-w-0">
@@ -89,7 +89,7 @@ export default function ProfilePage() {
             Edit your public profile information.
           </p>
         </div>
-        <div className="rounded-xl border border-border/50 bg-card/60 backdrop-blur-xl p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-card/40">
+        <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
           <ProfileForm
             id={user.id}
             name={user.name}

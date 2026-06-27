@@ -55,7 +55,7 @@ export function DangerSection() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-destructive/30 bg-red-50/30 backdrop-blur-xl shadow-sm transition-all duration-300 hover:shadow-md hover:border-destructive/50 dark:bg-red-950/10">
+      <div className="rounded-xl border border-destructive/30 bg-red-50 shadow-sm transition-all duration-300 hover:shadow-md hover:border-destructive/50 dark:bg-red-950/10 dark:backdrop-blur-xl">
         <div className="flex items-start justify-between gap-4 border-b border-destructive/20 p-4 md:p-6">
           <div>
             <h3 className="font-medium">Sign Out</h3>

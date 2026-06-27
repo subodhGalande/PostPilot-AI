@@ -440,7 +440,8 @@ export function PlainTextPostEditor({
             <>
               <div className="ml-auto h-5 w-px bg-border" />
               <ToolbarButton
-                icon={<Copy />}
+                className="group"
+                icon={<Copy className="transition-transform duration-500 ease-out-ui group-hover:scale-110" />}
                 label={copyLabel}
                 onClick={onCopy}
               />

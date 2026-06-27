@@ -24,7 +24,7 @@ interface PostsOverTimeChartProps {
 export function PostsOverTimeChart({ data, loading }: PostsOverTimeChartProps) {
   if (loading) {
     return (
-      <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
+      <Card className="flex-1 overflow-hidden border-border/50 bg-card shadow-sm dark:bg-white/5 dark:backdrop-blur-xl">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Posts Over Time
@@ -42,7 +42,7 @@ export function PostsOverTimeChart({ data, loading }: PostsOverTimeChartProps) {
     data.every((d) => d.linkedinCount === 0 && d.xCount === 0)
   ) {
     return (
-      <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
+      <Card className="flex-1 overflow-hidden border-border/50 bg-card shadow-sm dark:bg-white/5 dark:backdrop-blur-xl">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Posts Over Time
@@ -58,7 +58,7 @@ export function PostsOverTimeChart({ data, loading }: PostsOverTimeChartProps) {
   }
 
   return (
-    <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
+    <Card className="flex-1 overflow-hidden border-border/50 bg-card shadow-sm dark:bg-white/5 dark:backdrop-blur-xl">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           Posts Over Time

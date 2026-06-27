@@ -27,7 +27,7 @@ export function PipelineFunnelChart({
 }: PipelineFunnelChartProps) {
   if (loading) {
     return (
-      <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
+      <Card className="flex-1 overflow-hidden border-border/50 bg-card shadow-sm dark:bg-white/5 dark:backdrop-blur-xl">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Pipeline Funnel
@@ -42,7 +42,7 @@ export function PipelineFunnelChart({
 
   if (data.length === 0) {
     return (
-      <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
+      <Card className="flex-1 overflow-hidden border-border/50 bg-card shadow-sm dark:bg-white/5 dark:backdrop-blur-xl">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Pipeline Funnel
@@ -63,7 +63,7 @@ export function PipelineFunnelChart({
     createdCount > 0 ? Math.round((scheduledCount / createdCount) * 100) : 0;
 
   return (
-    <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
+    <Card className="flex-1 overflow-hidden border-border/50 bg-card shadow-sm dark:bg-white/5 dark:backdrop-blur-xl">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           Pipeline Funnel

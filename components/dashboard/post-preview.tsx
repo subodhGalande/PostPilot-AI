@@ -148,7 +148,7 @@ export function PostPreview({
   return (
     <div
       className={cn(
-        "flex flex-col overflow-hidden rounded-xl border border-border/50 bg-card/60 text-card-foreground shadow-sm backdrop-blur-xl transition-[border,background-color,shadow] duration-300 hover:shadow-md dark:bg-card/40",
+        "flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm",
         className,
       )}
     >
@@ -164,39 +164,41 @@ export function PostPreview({
             <ArrowLeft className="size-5" />
           </Button>
         ) : null}
-        <div className="min-w-0 flex-1 flex flex-wrap items-center gap-3">
-          <h3 className="text-base font-bold tracking-tight">{title}</h3>
-          {!hideStatusBadge && activePost && (
-            <Badge
-              variant="outline"
-              className={cn(
-                "px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold shadow-sm",
-                activePost[activePlatform].status === "SCHEDULED"
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400"
-                  : "bg-amber-50 text-amber-700 border-amber-200 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400",
-              )}
-            >
-              {activePost[activePlatform].status === "SCHEDULED" ? (
-                <span className="flex items-center gap-1.5">
-                  <span className="size-1.5 rounded-full bg-emerald-500 shadow-sm" />
-                  {activePlatform === "linkedin"
-                    ? "LinkedIn Scheduled"
-                    : "X Scheduled"}
-                </span>
-              ) : (
-                <span className="flex items-center gap-1.5">
-                  <span className="size-1.5 rounded-full bg-amber-500 shadow-sm" />
-                  {activePlatform === "linkedin" ? "LinkedIn Draft" : "X Draft"}
-                </span>
-              )}
-            </Badge>
-          )}
+        <div className="min-w-0 flex-1 flex flex-col justify-center">
+          <div className="flex flex-wrap items-center gap-3">
+            <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
+            {!hideStatusBadge && activePost && (
+              <Badge
+                variant="outline"
+                className={cn(
+                  "px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold shadow-sm",
+                  activePost[activePlatform].status === "SCHEDULED"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400"
+                    : "bg-amber-50 text-amber-700 border-amber-200 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400",
+                )}
+              >
+                {activePost[activePlatform].status === "SCHEDULED" ? (
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-1.5 rounded-full bg-emerald-500 shadow-sm" />
+                    {activePlatform === "linkedin"
+                      ? "LinkedIn Scheduled"
+                      : "X Scheduled"}
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-1.5 rounded-full bg-amber-500 shadow-sm" />
+                    {activePlatform === "linkedin" ? "LinkedIn Draft" : "X Draft"}
+                  </span>
+                )}
+              </Badge>
+            )}
+          </div>
+          {description ? (
+            <p className="text-sm text-muted-foreground">
+              {description}
+            </p>
+          ) : null}
         </div>
-        {description ? (
-          <p className="text-[13px] font-medium text-muted-foreground/80 pr-2 hidden md:block">
-            {description}
-          </p>
-        ) : null}
         {activePost && availablePlatforms.length > 1 && (
           <Tabs
             value={activePlatform}

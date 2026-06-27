@@ -300,7 +300,7 @@ export function DraftEditorWorkspace({
 
   return (
     <div className="flex h-full w-full flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/50 bg-card/60 px-4 py-3 text-sm shadow-sm backdrop-blur-xl transition-all duration-300 hover:shadow-md dark:bg-card/40">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3 text-sm shadow-sm">
         <div className="flex flex-wrap items-center gap-3 text-foreground">
           <div className="inline-flex items-center gap-2">
             <SaveStatusIcon
@@ -310,7 +310,7 @@ export function DraftEditorWorkspace({
               {saveStatusLabel}
             </span>
           </div>
-          <span className="rounded-full border border-border/50 bg-muted/50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 shadow-sm">
+          <span className="rounded-full border border-border/50 bg-muted/50 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground shadow-sm">
             Created {createdLabel}
           </span>
         </div>

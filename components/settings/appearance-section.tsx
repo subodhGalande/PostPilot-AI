@@ -26,7 +26,7 @@ export function AppearanceSection() {
             Choose how PostPilot AI looks on your device.
           </p>
         </div>
-        <div className="rounded-xl border border-border/50 bg-card/60 backdrop-blur-xl p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-card/40">
+        <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
           <div className="grid gap-3 sm:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <div
@@ -55,7 +55,7 @@ export function AppearanceSection() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-border/50 bg-card/60 backdrop-blur-xl p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-card/40">
+      <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
         <RadioGroup
           value={theme ?? "system"}
           onValueChange={(value) =>

@@ -37,8 +37,8 @@ export function LinkedInPostPreview({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 p-6 fade-in">
-      <div className="rounded-xl border bg-muted/30 p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+      <div className="rounded-xl border bg-muted p-4">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
           Shared Idea
         </p>
         <p className="mt-2 text-sm leading-6 text-foreground">

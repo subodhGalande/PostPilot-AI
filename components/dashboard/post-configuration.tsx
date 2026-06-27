@@ -85,7 +85,7 @@ export function PostConfiguration({
       )}
     >
       <div className="shrink-0 border-b p-6">
-        <h3 className="text-lg font-bold">Configuration</h3>
+        <h3 className="text-lg font-semibold tracking-tight">Configuration</h3>
         <p className="text-sm text-muted-foreground">
           Define the core parameters for your AI-generated content.
         </p>
@@ -93,7 +93,7 @@ export function PostConfiguration({
 
       <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-6">
         <div className="flex flex-col gap-2">
-          <Label className="text-sm font-semibold">Topic</Label>
+          <Label className="text-sm font-medium text-foreground/80">Topic</Label>
           <Input
             value={topic}
             onChange={(event) => {
@@ -108,7 +108,7 @@ export function PostConfiguration({
 
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
-            <Label className="text-sm font-semibold">Tone</Label>
+            <Label className="text-sm font-medium text-foreground/80">Tone</Label>
             <Select
               value={tone}
               onValueChange={(v) => {
@@ -129,7 +129,7 @@ export function PostConfiguration({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label className="text-sm font-semibold">Post Style</Label>
+            <Label className="text-sm font-medium text-foreground/80">Post Style</Label>
             <Select
               value={postStyle}
               onValueChange={(v) => {
@@ -151,7 +151,7 @@ export function PostConfiguration({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label className="text-sm font-semibold">Target Audience</Label>
+          <Label className="text-sm font-medium text-foreground/80">Target Audience</Label>
           <Select
             value={targetAudience}
             onValueChange={(v) => {
@@ -174,7 +174,7 @@ export function PostConfiguration({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label className="text-sm font-semibold">Keywords</Label>
+          <Label className="text-sm font-medium text-foreground/80">Keywords</Label>
           <Input
             value={keywordInput}
             onChange={(event) => setKeywordInput(event.target.value)}
@@ -196,7 +196,7 @@ export function PostConfiguration({
             placeholder="Type a keyword and press Enter"
           />
 
-          <div className="flex min-h-11 flex-wrap gap-2 rounded-lg border border-dashed bg-muted/30 p-3">
+          <div className="flex min-h-11 flex-wrap gap-2 rounded-lg border border-dashed bg-muted p-3">
             {keywords.length > 0 ? (
               keywords.map((keyword) => (
                 <Badge
@@ -247,7 +247,8 @@ export function PostConfiguration({
         ) : (
           <Button
             size="lg"
-            className="flex w-full items-center gap-2 rounded-xl text-base font-bold"
+            className="group flex w-full items-center gap-2 rounded-xl text-base font-bold"
+            disabled={isTokensExhausted}
             onClick={() => {
               if (!topic.trim()) {
                 setValidationError("Topic is required");
@@ -270,7 +271,7 @@ export function PostConfiguration({
             }}
             disabled={isTokensExhausted}
           >
-            <Sparkles className="size-5" />
+            <Sparkles className="size-5 transition-transform duration-500 ease-out-ui group-hover:scale-110 group-hover:-rotate-12" />
             {isTokensExhausted ? "Daily Limit Reached" : "Generate Post"}
           </Button>
         )}

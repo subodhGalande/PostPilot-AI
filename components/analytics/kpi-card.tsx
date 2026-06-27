@@ -25,7 +25,7 @@ export function KpiCard({
   const showChange = change !== undefined && !loading;
 
   return (
-    <Card className="group flex-1 min-w-[180px] h-full overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm transition duration-200 ease-out-ui hover:shadow-md hover:-translate-y-0.5 dark:bg-card/40 hover:bg-card/80 dark:hover:bg-card/60">
+    <Card className="group flex-1 min-w-[180px] h-full overflow-hidden border-border/50 bg-card shadow-sm transition duration-200 ease-out-ui hover:shadow-md hover:-translate-y-0.5 dark:bg-white/5 dark:backdrop-blur-xl dark:hover:bg-card/60">
       <CardContent className="flex flex-col justify-between h-full px-5 py-3.5 relative">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-muted-foreground">

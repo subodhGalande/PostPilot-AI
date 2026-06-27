@@ -38,7 +38,7 @@ export function SecuritySection() {
             sessions after changing it.
           </p>
         </div>
-        <div className="rounded-xl border border-border/50 bg-card/60 backdrop-blur-xl p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-card/40">
+        <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
           <div className="space-y-4">
             <div className="space-y-2">
               <div className="h-3 w-28 animate-pulse rounded-xl bg-muted" />
@@ -74,7 +74,7 @@ export function SecuritySection() {
             Manage your account security.
           </p>
         </div>
-        <div className="rounded-xl border border-border/50 bg-card/60 backdrop-blur-xl p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-card/40">
+        <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
           <Alert variant="info">
             <Info className="size-4" />
             <AlertDescription>
@@ -154,7 +154,7 @@ function SecurityForm() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-border/50 bg-card/60 backdrop-blur-xl p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-card/40">
+      <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
             <Field data-invalid={!!form.formState.errors.currentPassword}>

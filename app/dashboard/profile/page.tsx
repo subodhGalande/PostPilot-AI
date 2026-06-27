@@ -9,5 +9,9 @@ export default async function ProfilePageRoute() {
     redirect("/login");
   }
 
-  return <ProfilePage />;
+  return (
+    <div className="flex flex-1 flex-col bg-zinc-50 dark:bg-transparent">
+      <ProfilePage />
+    </div>
+  );
 }
