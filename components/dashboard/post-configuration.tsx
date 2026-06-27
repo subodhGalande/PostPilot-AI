@@ -269,7 +269,6 @@ export function PostConfiguration({
               setValidationError(null);
               onGenerate?.();
             }}
-            disabled={isTokensExhausted}
           >
             <Sparkles className="size-5 transition-transform duration-500 ease-out-ui group-hover:scale-110 group-hover:-rotate-12" />
             {isTokensExhausted ? "Daily Limit Reached" : "Generate Post"}
