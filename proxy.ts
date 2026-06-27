@@ -13,11 +13,17 @@ export async function proxy(req: NextRequest) {
     const token = req.cookies.get("jwt")?.value;
 
     if (!token) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
       return NextResponse.redirect(new URL("/login", req.url));
     }
 
     const payload = await verifyTokenJose(token);
     if (!payload) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
       return NextResponse.redirect(new URL("/login", req.url));
     }
 
