@@ -22,3 +22,29 @@ vi.mock("sonner", () => ({
     info: vi.fn(),
   },
 }));
+
+// Mock arcjet
+vi.mock("@/lib/arcjet", () => {
+  const mockAj = {
+    withRule: vi.fn().mockReturnThis(),
+    protect: vi.fn().mockResolvedValue({
+      isDenied: () => false,
+      isSpoofed: () => false,
+      reason: { isRateLimit: () => false, isBot: () => false },
+    }),
+  };
+  return {
+    aj: mockAj,
+    default: mockAj,
+  };
+});
+
+vi.mock("@arcjet/next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@arcjet/next")>();
+  return {
+    ...actual,
+    detectBot: vi.fn(),
+    detectPromptInjection: vi.fn(),
+    slidingWindow: vi.fn(),
+  };
+});

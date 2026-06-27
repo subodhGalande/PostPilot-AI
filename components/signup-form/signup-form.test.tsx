@@ -24,9 +24,10 @@ describe("SignupForm", () => {
       </QueryClientProvider>,
     );
     expect(
-      screen.getByRole("heading", { name: /welcome to postpilot ai/i }),
+      screen.getByRole("heading", { name: /create your account/i }),
     ).toBeDefined();
-    expect(screen.getByLabelText(/full name/i)).toBeDefined();
+    expect(screen.getByLabelText(/first name/i)).toBeDefined();
+    expect(screen.getByLabelText(/last name/i)).toBeDefined();
     expect(screen.getByLabelText(/email/i)).toBeDefined();
     expect(screen.getByLabelText(/^password/i)).toBeDefined();
   });
@@ -43,7 +44,10 @@ describe("SignupForm", () => {
 
     // Expect error messages to appear
     expect(
-      await screen.findByText(/Name must be at least 2 characters long/i),
+      await screen.findByText(/First name must be at least 2 characters long/i),
+    ).toBeDefined();
+    expect(
+      await screen.findByText(/Last name must be at least 2 characters long/i),
     ).toBeDefined();
     expect(await screen.findByText(/Invalid email address/i)).toBeDefined();
   });
