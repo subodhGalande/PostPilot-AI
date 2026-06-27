@@ -128,7 +128,7 @@ function SidebarMenuItems() {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const _pathname = usePathname();
-  useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const { data: user } = useUserProfile();
   const { data: tokens } = useTokens();
 
@@ -163,7 +163,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
 
         {tokens && (
-          <div className="mt-auto hidden md:block pt-3 px-1">
+          <div className="mt-auto block pt-3 px-1">
             <div className="rounded-xl border border-sidebar-border/40 bg-sidebar-accent/20 px-3 py-2.5 shadow-sm transition-[transform,box-shadow,background-color] duration-150 ease-out-ui hover:-translate-y-0.5 hover:shadow-md">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/55">
@@ -190,8 +190,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-border/50 p-3 md:p-4">
-        <Link href="/dashboard/profile">
-          <div className="hidden items-center gap-3 rounded-xl border border-sidebar-border/40 bg-sidebar-accent/20 px-3 py-3 shadow-sm transition-[transform,box-shadow,background-color] duration-150 ease-out-ui md:flex hover:-translate-y-0.5 hover:bg-sidebar-accent/40 hover:shadow-md">
+        <Link 
+          href="/dashboard/profile"
+          onClick={() => {
+            if (isMobile) {
+              setOpenMobile(false);
+            }
+          }}
+        >
+          <div className="flex items-center gap-3 rounded-xl border border-sidebar-border/40 bg-sidebar-accent/20 px-3 py-3 shadow-sm transition-[transform,box-shadow,background-color] duration-150 ease-out-ui hover:-translate-y-0.5 hover:bg-sidebar-accent/40 hover:shadow-md">
             <Avatar
               src={user?.avatarUrl ?? null}
               alt={user?.name ?? ""}

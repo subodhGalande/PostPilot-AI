@@ -27,7 +27,7 @@ export function AppearanceSection() {
           </p>
         </div>
         <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <div
                 // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton, never reorders
@@ -61,7 +61,7 @@ export function AppearanceSection() {
           onValueChange={(value) =>
             setTheme(value as "light" | "dark" | "system")
           }
-          className="grid gap-3 sm:grid-cols-3"
+          className="grid gap-3 grid-cols-3"
         >
           {themeOptions.map((option) => {
             const Icon = option.icon;

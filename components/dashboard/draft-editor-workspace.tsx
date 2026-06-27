@@ -417,6 +417,9 @@ export function DraftEditorWorkspace({
         }
         onDeleteDraft={(platform) => handleOpenConfirmation("delete", platform)}
         clearedPlatforms={clearedPlatforms}
+        onReset={() => {
+          router.push(isScheduledManagementView ? "/dashboard/calendar" : "/dashboard/drafts");
+        }}
         onScheduleSuccess={(data) => {
           setDraftUpdatedAt(data.updatedAt);
           const nextLinkedinStatus =

@@ -3,6 +3,7 @@
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
+import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
 import type { DateClickArg } from "@fullcalendar/interaction";
 import type {
@@ -28,7 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ConfirmationModal } from "@/components/dashboard/confirmation-modal";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 
 interface LinkedInPostData {
   id: string;
@@ -75,6 +76,16 @@ interface CalendarEvent {
 export function CalendarView() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
   const [confirmationState, setConfirmationState] = useState<{
     isOpen: boolean;
     type: "unschedule" | "delete" | null;
@@ -379,7 +390,7 @@ export function CalendarView() {
               </span>
             </div>
 
-            <div className="flex shrink-0 items-center opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+            <div className="flex shrink-0 items-center opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -453,15 +464,23 @@ export function CalendarView() {
     [handleOpenConfirmation],
   );
 
+  if (!mounted) {
+    return (
+      <div className="flex h-[600px] items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full p-4 md:p-6 bg-card">
+    <div className="h-full px-2 py-4 md:p-6 bg-card">
       <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
+        initialView={isMobile ? "listWeek" : "dayGridMonth"}
         headerToolbar={{
-          left: "prev,next today",
+          left: isMobile ? "prev,next" : "prev,next today",
           center: "title",
-          right: "dayGridMonth,dayGridWeek,dayGridDay",
+          right: isMobile ? "listWeek,timeGridDay" : "dayGridMonth,dayGridWeek,dayGridDay",
         }}
         events={events}
         eventContent={renderEventContent}

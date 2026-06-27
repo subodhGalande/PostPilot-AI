@@ -263,7 +263,37 @@ body {
 }
 
 .fc .fc-toolbar-title {
-  @apply text-xl font-bold tracking-tight;
+  @apply text-xl font-bold tracking-tight text-foreground;
+}
+
+@media (max-width: 640px) {
+  .fc .fc-toolbar-title {
+    @apply text-lg;
+  }
+  .fc .fc-toolbar {
+    flex-wrap: wrap !important;
+    gap: 0.75rem !important;
+  }
+  /* Force title chunk to top and full width */
+  .fc .fc-toolbar-chunk:nth-child(2) {
+    order: -1;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+  }
+  /* Arrows on the left */
+  .fc .fc-toolbar-chunk:nth-child(1) {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+  }
+  /* View switcher on the right */
+  .fc .fc-toolbar-chunk:nth-child(3) {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+  }
 }
 
 .fc .fc-button {

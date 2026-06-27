@@ -221,14 +221,6 @@ function DashboardHeader() {
 
       <div className="flex items-center gap-2">
         <AnalyticsRangePicker />
-        <div className="flex items-center gap-2 rounded-full border bg-muted/40 px-2.5 py-1.5 md:hidden">
-          <div className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <User className="size-3.5" />
-          </div>
-          <span className="max-w-24 truncate text-sm font-medium text-foreground">
-            {user.name ?? "Account"}
-          </span>
-        </div>
       </div>
     </header>
   );

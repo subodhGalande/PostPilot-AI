@@ -36,7 +36,7 @@ export function LinkedInPostPreview({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 p-6 fade-in">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 p-3 md:p-6 fade-in">
       <div className="rounded-xl border bg-muted p-4">
         <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
           Shared Idea
@@ -54,7 +54,7 @@ export function LinkedInPostPreview({
         ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col rounded-xl border bg-muted/40 p-4">
+      <div className="flex flex-1 flex-col rounded-xl border bg-muted/40 p-2 md:p-4">
         <PlainTextPostEditor
           value={linkedInContent}
           onChange={onChange}

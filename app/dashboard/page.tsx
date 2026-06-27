@@ -536,7 +536,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="relative flex flex-1 min-h-0 flex-col gap-6 overflow-hidden bg-zinc-50 dark:bg-transparent p-4 md:p-6 lg:flex-row">
+    <div className="relative flex flex-1 min-h-0 flex-col gap-6 overflow-hidden bg-zinc-50 dark:bg-transparent px-2 py-4 md:p-6 lg:flex-row">
       <div
         className={cn(
           "w-full shrink-0 self-start max-h-full lg:w-5/12 xl:w-[450px]",
