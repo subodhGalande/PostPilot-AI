@@ -1,13 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Button, type ButtonProps } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
 export function LogoutButton({
   className,
   variant = "outline",
   ...props
-}: ButtonProps) {
+}: Omit<React.ComponentProps<typeof Button>, "onClick" | "disabled"> & {
+  variant?: React.ComponentProps<typeof Button>["variant"];
+}) {
   const router = useRouter();
 
   const handleLogout = async () => {

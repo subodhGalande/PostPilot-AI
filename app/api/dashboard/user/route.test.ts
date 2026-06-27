@@ -13,7 +13,7 @@ describe("GET /api/dashboard/user", () => {
     vi.mocked(await import("@/lib/auth/auth")).requireAuthJose = vi
       .fn()
       .mockResolvedValueOnce(null);
-    const req = new Request("http://localhost/api/dashboard/user");
+    const _req = new Request("http://localhost/api/dashboard/user");
     const res = await GET(); // Next.js handles req via params or closures, but our route uses requireAuthJose
     expect(res.status).toBe(401);
   });
@@ -24,7 +24,7 @@ describe("GET /api/dashboard/user", () => {
       .mockResolvedValueOnce({ id: "user1" });
     prismaMock.user.findUnique.mockResolvedValueOnce(null);
 
-    const req = new Request("http://localhost/api/dashboard/user");
+    const _req = new Request("http://localhost/api/dashboard/user");
     const res = await GET();
     expect(res.status).toBe(404);
   });
@@ -39,7 +39,7 @@ describe("GET /api/dashboard/user", () => {
       name: "Test",
     });
 
-    const req = new Request("http://localhost/api/dashboard/user");
+    const _req = new Request("http://localhost/api/dashboard/user");
     const res = await GET();
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({

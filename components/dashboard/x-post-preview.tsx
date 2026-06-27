@@ -28,9 +28,9 @@ export function XPostPreview({
   readOnly = false,
 }: XPostPreviewProps) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 p-6 fade-in">
-      <div className="rounded-xl border bg-muted/30 p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 p-3 md:p-6 fade-in">
+      <div className="rounded-xl border bg-muted p-4">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
           Shared Idea
         </p>
         <p className="mt-2 text-sm leading-6 text-foreground">
@@ -49,7 +49,7 @@ export function XPostPreview({
         </Badge>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden rounded-xl border bg-muted/40 p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden rounded-xl border bg-muted/40 p-2 md:p-4">
         <div className="flex max-h-[48rem] min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1">
           {post.x.posts.map((threadPost, index) => {
             const threadPostId = threadPost.id ?? `x-${index + 1}`;
@@ -59,7 +59,7 @@ export function XPostPreview({
             return (
               <div
                 key={threadPostId}
-                className="rounded-xl border bg-background/80 p-4"
+                className="rounded-xl border bg-background/80 p-2 md:p-4"
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-foreground">
@@ -79,7 +79,7 @@ export function XPostPreview({
                     <Button
                       variant="outline"
                       size="icon-sm"
-                      className="rounded-lg"
+                      className="rounded-lg group"
                       onClick={async () => {
                         try {
                           await copyPostContent(threadPost.content);
@@ -104,7 +104,7 @@ export function XPostPreview({
                           : "Copy X post"
                       }
                     >
-                      <Copy />
+                      <Copy className="transition-transform duration-500 ease-out-ui group-hover:scale-110" />
                     </Button>
                   </div>
                 </div>

@@ -19,13 +19,15 @@ export function AppearanceSection() {
     return (
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold">Appearance</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h2 className="text-base font-semibold tracking-tight text-foreground">
+            Appearance
+          </h2>
+          <p className="mt-1 text-[13px] text-muted-foreground/80">
             Choose how PostPilot AI looks on your device.
           </p>
         </div>
-        <div className="rounded-xl border bg-card p-4 md:p-6">
-          <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
+          <div className="grid gap-3 grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <div
                 // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton, never reorders
@@ -45,19 +47,21 @@ export function AppearanceSection() {
   return (
     <section>
       <div className="mb-6">
-        <h2 className="text-lg font-semibold">Appearance</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h2 className="text-base font-semibold tracking-tight text-foreground">
+          Appearance
+        </h2>
+        <p className="mt-1 text-[13px] text-muted-foreground/80">
           Choose how PostPilot AI looks on your device.
         </p>
       </div>
 
-      <div className="rounded-xl border bg-card p-4 md:p-6">
+      <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
         <RadioGroup
           value={theme ?? "system"}
           onValueChange={(value) =>
             setTheme(value as "light" | "dark" | "system")
           }
-          className="grid gap-3 sm:grid-cols-3"
+          className="grid gap-3 grid-cols-3"
         >
           {themeOptions.map((option) => {
             const Icon = option.icon;
@@ -65,7 +69,7 @@ export function AppearanceSection() {
               <Label
                 key={option.value}
                 htmlFor={`theme-${option.value}`}
-                className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-input p-4 transition-all hover:bg-accent/50 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
+                className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-input p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm hover:bg-accent/50 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 has-[[data-state=checked]]:shadow-sm"
               >
                 <RadioGroupItem
                   value={option.value}

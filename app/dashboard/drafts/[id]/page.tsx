@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 
 import { DraftEditorWorkspace } from "@/components/dashboard/draft-editor-workspace";
@@ -41,10 +39,6 @@ export default async function DraftDetailPage({
     xPost: draft.xPost,
   });
 
-  const breadcrumbHref =
-    from === "calendar" ? "/dashboard/calendar" : "/dashboard/drafts";
-  const breadcrumbLabel = from === "calendar" ? "Calendar" : "Drafts";
-
   // Determine initial platform based on draft status
   const linkedinIsDraft = draft.linkedinPost?.status === "DRAFT";
   const xIsDraft = draft.xPost?.status === "DRAFT";
@@ -66,20 +60,7 @@ export default async function DraftDetailPage({
       : undefined;
 
   return (
-    <div className="flex flex-1 flex-col gap-4 bg-slate-50/50 p-4 dark:bg-transparent md:p-6">
-      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-        <Link
-          href={breadcrumbHref}
-          className="font-medium transition-colors hover:text-foreground"
-        >
-          {breadcrumbLabel}
-        </Link>
-        <ChevronRight className="size-4" />
-        <span className="max-w-[24rem] truncate text-foreground">
-          {draft.title}
-        </span>
-      </div>
-
+    <div className="flex flex-1 flex-col gap-4 bg-slate-50/50 px-2 py-4 dark:bg-transparent md:p-6">
       <DraftEditorWorkspace
         initialDraftId={draft.id}
         initialDraftUpdatedAt={draft.updatedAt}

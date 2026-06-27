@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import type { OurFileRouter } from "@/lib/uploadthing/core";
 import { Avatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 const { useUploadThing } = generateReactHelpers<OurFileRouter>();
 
@@ -103,14 +104,18 @@ export function AvatarUpload({ avatarUrl, name }: AvatarUploadProps) {
           type="button"
           onClick={handleClick}
           disabled={isUploading}
-          className="group relative block overflow-hidden rounded-full disabled:opacity-50"
+          className="group relative block overflow-hidden rounded-full transition-transform active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
         >
           {isUploading ? (
             <span className="flex size-20 items-center justify-center bg-primary/10 text-xs font-medium text-primary md:size-24">
               Uploading...
             </span>
           ) : (
-            <Avatar src={avatarUrl} alt={name} className="size-20 md:size-24">
+            <Avatar
+              src={avatarUrl}
+              alt={name}
+              className="size-20 md:size-24 shadow-sm transition-shadow group-hover:shadow-md ring-1 ring-border/50"
+            >
               <span className="text-lg font-semibold md:text-xl">
                 {name.charAt(0).toUpperCase()}
               </span>
@@ -123,15 +128,17 @@ export function AvatarUpload({ avatarUrl, name }: AvatarUploadProps) {
           )}
         </button>
         {avatarUrl && (
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="icon"
             onClick={handleRemove}
             disabled={isUploading}
-            className="absolute bottom-0 right-0 flex size-7 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-colors hover:text-destructive disabled:opacity-50 md:size-8"
+            className="absolute -bottom-1 -right-1 z-10 size-8 rounded-full shadow-md ring-2 ring-background transition-all hover:bg-destructive hover:text-destructive-foreground hover:ring-destructive/20 md:size-9"
             aria-label="Remove avatar"
           >
-            <Trash2 className="size-3.5 md:size-4" />
-          </button>
+            <Trash2 className="size-4 md:size-4.5" />
+          </Button>
         )}
       </div>
     </>

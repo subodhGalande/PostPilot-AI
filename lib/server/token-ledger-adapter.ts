@@ -43,7 +43,7 @@ export interface TokenLedgerAdapter {
   ): Promise<DailyUsage>;
 }
 
-function getDefaultUsage(): DailyUsage {
+function _getDefaultUsage(): DailyUsage {
   return { allotted: 0, used: 0, refunded: 0, remaining: 0, total: 10 };
 }
 

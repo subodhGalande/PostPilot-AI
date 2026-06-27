@@ -3,11 +3,17 @@ import { generatedPostItemSchema } from "./social.schema";
 
 export const generatePostSchema = z.object({
   modelName: z.string().min(1),
-  topic: z.string().min(1, "Topic is required"),
-  tone: z.string().min(1, "Tone is required"),
-  postStyle: z.string().min(1, "Post style is required"),
-  targetAudience: z.string().min(1, "Target audience is required"),
-  keywords: z.array(z.string().min(1)).default([]),
+  topic: z.string().min(1, "Topic is required").max(1000, "Topic is too long"),
+  tone: z.string().min(1, "Tone is required").max(100, "Tone is too long"),
+  postStyle: z
+    .string()
+    .min(1, "Post style is required")
+    .max(100, "Post style is too long"),
+  targetAudience: z
+    .string()
+    .min(1, "Target audience is required")
+    .max(200, "Target audience is too long"),
+  keywords: z.array(z.string().min(1).max(50)).max(20).default([]),
 });
 
 export type GeneratePostPayload = z.infer<typeof generatePostSchema>;

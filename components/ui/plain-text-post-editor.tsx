@@ -38,15 +38,14 @@ interface PlainTextPostEditorProps {
   readOnly?: boolean;
 }
 
-interface ToolbarButtonProps {
+interface ToolbarButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon: React.ReactNode;
   label: string;
-  onClick?: () => void;
-  onMouseDown?: () => void;
 }
 
-const BULLET_PREFIX = "â€¢ ";
-const bulletLinePattern = /^(\s*)â€¢\s?(.*)$/;
+const BULLET_PREFIX = "• ";
+const bulletLinePattern = /^(\s*)•\s?(.*)$/;
 const numberedLinePattern = /^(\s*)(\d+)\.\s?(.*)$/;
 
 function getSelectedLineRange(
@@ -56,33 +55,37 @@ function getSelectedLineRange(
 ) {
   const lineStart =
     value.lastIndexOf("\n", Math.max(0, selectionStart - 1)) + 1;
-  const nextLineBreak = value.indexOf("\n", selectionEnd);
+
+  const adjustedEnd =
+    selectionEnd > selectionStart && value[selectionEnd - 1] === "\n"
+      ? selectionEnd - 1
+      : selectionEnd;
+
+  const nextLineBreak = value.indexOf("\n", adjustedEnd);
   const lineEnd = nextLineBreak === -1 ? value.length : nextLineBreak;
 
   return { lineStart, lineEnd };
 }
 
-function ToolbarButton({
-  icon,
-  label,
-  onClick,
-  onMouseDown,
-}: ToolbarButtonProps) {
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      size="icon-sm"
-      className="rounded-md"
-      onClick={onClick}
-      onMouseDown={onMouseDown}
-      aria-label={label}
-      title={label}
-    >
-      {icon}
-    </Button>
-  );
-}
+const ToolbarButton = React.forwardRef<HTMLButtonElement, ToolbarButtonProps>(
+  ({ icon, label, className, ...props }, ref) => {
+    return (
+      <Button
+        ref={ref}
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        className={cn("rounded-md", className)}
+        aria-label={label}
+        title={label}
+        {...props}
+      >
+        {icon}
+      </Button>
+    );
+  },
+);
+ToolbarButton.displayName = "ToolbarButton";
 
 export function PlainTextPostEditor({
   value,
@@ -192,8 +195,17 @@ export function PlainTextPostEditor({
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const scrollTop = textarea.scrollTop;
-    const nextValue = `${value.slice(0, start)}\n\n${value.slice(end)}`;
-    const cursorPosition = start + 2;
+
+    let nextValue: string;
+    let cursorPosition: number;
+
+    if (start !== end) {
+      nextValue = `${value.slice(0, start)}\n\n${value.slice(start, end)}\n\n${value.slice(end)}`;
+      cursorPosition = end + 4;
+    } else {
+      nextValue = `${value.slice(0, start)}\n\n${value.slice(end)}`;
+      cursorPosition = start + 2;
+    }
 
     updateValue(nextValue, cursorPosition, cursorPosition, scrollTop);
   }, [readOnly, updateValue, value]);
@@ -382,16 +394,19 @@ export function PlainTextPostEditor({
                 icon={<List />}
                 label="Bullet list"
                 onClick={insertBulletList}
+                onMouseDown={(e) => e.preventDefault()}
               />
               <ToolbarButton
                 icon={<ListOrdered />}
                 label="Numbered list"
                 onClick={insertNumberedList}
+                onMouseDown={(e) => e.preventDefault()}
               />
               <ToolbarButton
                 icon={<BetweenHorizontalStart />}
                 label="Blank line"
                 onClick={insertBlankLine}
+                onMouseDown={(e) => e.preventDefault()}
               />
               <Popover
                 open={isEmojiPickerOpen}
@@ -426,7 +441,10 @@ export function PlainTextPostEditor({
             <>
               <div className="ml-auto h-5 w-px bg-border" />
               <ToolbarButton
-                icon={<Copy />}
+                className="group"
+                icon={
+                  <Copy className="transition-transform duration-500 ease-out-ui group-hover:scale-110" />
+                }
                 label={copyLabel}
                 onClick={onCopy}
               />

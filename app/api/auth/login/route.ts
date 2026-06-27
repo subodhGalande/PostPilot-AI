@@ -3,26 +3,39 @@ import { verifyPassword } from "@/lib/auth/auth";
 import { signTokenJose } from "@/lib/auth/jwtjose";
 import prisma from "@/lib/prisma";
 import { loginSchema } from "@/lib/validations/auth";
-import {
-  buildRateLimitHeaders,
-  checkRateLimit,
-  rateLimitExceededResponse,
-} from "@/lib/rate-limit";
 import { csrfErrorResponse, validateCsrf } from "@/lib/csrf";
+import aj from "@/lib/arcjet";
+import { detectBot, slidingWindow } from "@arcjet/next";
+
+const protect = aj
+  .withRule(
+    detectBot({
+      mode: "LIVE",
+      allow: [], // blocks all automated clients
+    }),
+  )
+  .withRule(
+    slidingWindow({
+      mode: "LIVE",
+      interval: "15m",
+      max: 10,
+    }),
+  );
 
 export async function POST(req: Request) {
   try {
     if (!validateCsrf(req).valid) return csrfErrorResponse();
 
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-
-    const ipLimit = checkRateLimit(`login:ip:${ip}`, {
-      maxRequests: 10,
-      windowMs: 15 * 60 * 1000,
-    });
-    if (!ipLimit.success) {
-      return rateLimitExceededResponse(ipLimit.resetTime);
+    const decision = await protect.protect(req);
+    if (decision.isDenied()) {
+      if (decision.reason.isRateLimit()) {
+        return NextResponse.json(
+          { message: "Too many requests" },
+          { status: 429 },
+        );
+      } else {
+        return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      }
     }
 
     const body = await req.json();
@@ -96,16 +109,6 @@ export async function POST(req: Request) {
       path: "/",
       maxAge: 60 * 60,
       sameSite: "lax",
-    });
-
-    Object.entries(
-      buildRateLimitHeaders(
-        ipLimit.success ? 10 : 0,
-        ipLimit.remaining,
-        ipLimit.resetTime,
-      ),
-    ).forEach(([key, value]) => {
-      response.headers.set(key, value);
     });
 
     return response;

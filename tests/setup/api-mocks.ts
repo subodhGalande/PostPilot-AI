@@ -101,7 +101,7 @@ vi.mock("next/headers", () => ({
 }));
 
 // Shared mock for Rate Limit
-vi.mock("@/lib/rate-limit", () => ({
+vi.mock("@/lib/internal-rate-limit", () => ({
   checkRateLimit: vi
     .fn()
     .mockReturnValue({ success: true, remaining: 100, resetTime: Date.now() }),

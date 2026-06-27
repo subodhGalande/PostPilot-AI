@@ -3,7 +3,14 @@
 import { useState, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, Edit3, Loader2, RotateCcw } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronDown,
+  Edit3,
+  Loader2,
+  RotateCcw,
+  Trash2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { PostPreview } from "@/components/dashboard/post-preview";
@@ -63,9 +70,12 @@ export function DraftEditorWorkspace({
     Set<"linkedin" | "x">
   >(() => {
     const initialCleared = new Set<"linkedin" | "x">();
-    // Only hide other scheduled platforms if we're in the standard draft editor
-    // If we're in the scheduled management view, we want to see the scheduled platform
-    if (!isScheduledManagementView) {
+    if (isScheduledManagementView) {
+      // When opening from calendar, ONLY show the scheduled platform we clicked on
+      if (scheduledManagementPlatform === "linkedin") initialCleared.add("x");
+      if (scheduledManagementPlatform === "x") initialCleared.add("linkedin");
+    } else {
+      // Standard draft editor: hide platforms that are already scheduled elsewhere
       if (linkedinStatus && linkedinStatus !== "DRAFT")
         initialCleared.add("linkedin");
       if (xStatus && xStatus !== "DRAFT") initialCleared.add("x");
@@ -290,66 +300,106 @@ export function DraftEditorWorkspace({
 
   return (
     <div className="flex h-full w-full flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border bg-card/90 px-4 py-3 text-sm shadow-sm">
-        <div className="flex flex-wrap items-center gap-2 text-foreground">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3 text-sm shadow-sm">
+        <div className="flex w-full sm:w-auto items-center justify-between sm:justify-start gap-3 text-foreground">
           <div className="inline-flex items-center gap-2">
             <SaveStatusIcon
-              className={`size-4 ${saveDraftMutation.isPending ? "animate-spin text-primary" : hasUnsavedChanges ? "text-amber-600" : "text-emerald-600"}`}
+              className={`size-4 ${saveDraftMutation.isPending ? "animate-spin text-primary" : hasUnsavedChanges ? "text-amber-500" : "text-emerald-500"}`}
             />
-            <span className="font-medium">{saveStatusLabel}</span>
+            <span className="font-semibold tracking-tight">
+              {saveStatusLabel}
+            </span>
           </div>
-          <span className="rounded-full bg-muted/45 px-2.5 py-1 text-xs font-medium text-muted-foreground">
+          <span className="rounded-full border border-border/50 bg-muted/50 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground shadow-sm">
             Created {createdLabel}
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          {isScheduledManagementView ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 px-2">
-                  Post Actions
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onClick={() =>
-                    handleOpenConfirmation(
-                      "unschedule",
-                      scheduledManagementPlatform,
-                    )
-                  }
-                  disabled={unscheduleMutation.isPending}
+        {(isScheduledManagementView || status === "SCHEDULED") && (
+          <div className="flex w-full sm:w-auto items-center gap-2">
+            {isScheduledManagementView ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full sm:w-auto h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-3 font-semibold shadow-sm transition-all hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    Post Actions
+                    <ChevronDown className="size-3.5 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-[var(--radix-dropdown-menu-trigger-width)] sm:w-44 p-1 shadow-lg rounded-xl"
                 >
-                  <RotateCcw className="mr-2 size-4" />
-                  Unschedule{" "}
-                  {scheduledManagementPlatform === "linkedin"
-                    ? "LinkedIn"
-                    : "X"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : status === "SCHEDULED" ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 px-2">
-                  Post Actions
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onClick={() => handleOpenConfirmation("unschedule")}
-                  disabled={unscheduleMutation.isPending}
+                  <DropdownMenuItem
+                    className="cursor-pointer gap-2 py-2 rounded-lg focus:bg-accent focus:text-accent-foreground"
+                    onClick={() =>
+                      handleOpenConfirmation(
+                        "unschedule",
+                        scheduledManagementPlatform,
+                      )
+                    }
+                    disabled={unscheduleMutation.isPending}
+                  >
+                    <RotateCcw className="size-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">
+                      Unschedule{" "}
+                      {scheduledManagementPlatform === "linkedin"
+                        ? "LinkedIn"
+                        : "X"}
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer gap-2 py-2 rounded-lg text-destructive focus:bg-destructive/10 focus:text-destructive"
+                    onClick={() =>
+                      handleOpenConfirmation(
+                        "delete",
+                        scheduledManagementPlatform,
+                      )
+                    }
+                    disabled={deleteMutation.isPending}
+                  >
+                    <Trash2 className="size-4 text-destructive/80" />
+                    <span className="text-sm font-medium">
+                      Delete{" "}
+                      {scheduledManagementPlatform === "linkedin"
+                        ? "LinkedIn"
+                        : "X"}
+                    </span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : status === "SCHEDULED" ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full sm:w-auto h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-3 font-semibold shadow-sm transition-all hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    Post Actions
+                    <ChevronDown className="size-3.5 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-[var(--radix-dropdown-menu-trigger-width)] sm:w-44 p-1 shadow-lg rounded-xl"
                 >
-                  <RotateCcw className="mr-2 size-4" />
-                  Move to Draft
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
-        </div>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => handleOpenConfirmation("unschedule")}
+                    disabled={unscheduleMutation.isPending}
+                  >
+                    <RotateCcw className="mr-2 size-4" />
+                    Move to Draft
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null}
+          </div>
+        )}
       </div>
 
       <PostPreview
@@ -372,6 +422,13 @@ export function DraftEditorWorkspace({
         }
         onDeleteDraft={(platform) => handleOpenConfirmation("delete", platform)}
         clearedPlatforms={clearedPlatforms}
+        onReset={() => {
+          router.push(
+            isScheduledManagementView
+              ? "/dashboard/calendar"
+              : "/dashboard/drafts",
+          );
+        }}
         onScheduleSuccess={(data) => {
           setDraftUpdatedAt(data.updatedAt);
           const nextLinkedinStatus =

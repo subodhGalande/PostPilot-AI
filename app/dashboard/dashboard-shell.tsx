@@ -6,7 +6,6 @@ import {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
-  User,
 } from "lucide-react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
@@ -31,8 +30,24 @@ import {
 import { useUser } from "../context/userDetailsContext";
 import type { DateRange } from "@/lib/analytics/types";
 
-function getRouteMeta(pathname: string) {
+import type { ReadonlyURLSearchParams } from "next/navigation";
+
+function getRouteMeta(
+  pathname: string,
+  searchParams?: ReadonlyURLSearchParams,
+) {
   if (pathname.startsWith("/dashboard/drafts/")) {
+    const isFromCalendar = searchParams?.get("from") === "calendar";
+
+    if (isFromCalendar) {
+      return {
+        section: "Workspace",
+        title: "Scheduled Post",
+        description:
+          "Review your scheduled post. Unschedule it to move it back to drafts and make edits.",
+      };
+    }
+
     return {
       section: "Workspace",
       title: "Post Editor",
@@ -145,9 +160,9 @@ function AnalyticsRangePicker() {
 
 function DashboardHeader() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { isMobile, state, toggleSidebar } = useSidebar();
-  const routeMeta = getRouteMeta(pathname);
-  const { user } = useUser();
+  const routeMeta = getRouteMeta(pathname, searchParams);
   const [isNavigating, setIsNavigating] = useState(false);
 
   // Simple trick to show progress bar on pathname change
@@ -159,7 +174,7 @@ function DashboardHeader() {
   }, [pathname]);
 
   return (
-    <header className="relative flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3 md:gap-4 md:px-6">
+    <header className="sticky top-0 z-40 flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-border/50 bg-background/80 px-4 py-4 backdrop-blur-xl md:gap-4 md:px-6">
       {/* Global Progress Bar */}
       {isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-50 h-[2px] w-full overflow-hidden bg-primary/10">
@@ -204,18 +219,12 @@ function DashboardHeader() {
 
       <div className="flex items-center gap-2">
         <AnalyticsRangePicker />
-        <div className="flex items-center gap-2 rounded-full border bg-muted/40 px-2.5 py-1.5 md:hidden">
-          <div className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <User className="size-3.5" />
-          </div>
-          <span className="max-w-24 truncate text-sm font-medium text-foreground">
-            {user.name ?? "Account"}
-          </span>
-        </div>
       </div>
     </header>
   );
 }
+
+import { motion } from "framer-motion";
 
 export default function DashboardShell({
   children,
@@ -223,6 +232,7 @@ export default function DashboardShell({
   children: React.ReactNode;
 }) {
   const { user } = useUser();
+  const pathname = usePathname();
 
   if (!user.onboarded) {
     return <OnboardingDialog isOpen={true} />;
@@ -233,7 +243,19 @@ export default function DashboardShell({
       <AppSidebar />
       <SidebarInset>
         <DashboardHeader />
-        {children}
+        <motion.main
+          key={pathname}
+          initial={{ opacity: 0, transform: "translateY(12px)" }}
+          animate={{
+            opacity: 1,
+            transform: "translateY(0px)",
+            transitionEnd: { transform: "none" },
+          }}
+          transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+          className="flex min-w-0 flex-1 flex-col min-h-0"
+        >
+          {children}
+        </motion.main>
       </SidebarInset>
     </SidebarProvider>
   );

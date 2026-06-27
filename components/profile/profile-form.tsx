@@ -171,8 +171,8 @@ export function ProfileForm({
               tabIndex={-1}
               className="pr-24"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-sm text-emerald-600">
-              <CheckCircle2 className="size-4" />
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20">
+              <CheckCircle2 className="size-3.5" />
               Verified
             </span>
           </div>
@@ -253,13 +253,22 @@ export function ProfileForm({
         />
       </FieldGroup>
 
-      <div className="mt-8 flex justify-end gap-2">
+      <div className="mt-8 flex flex-col sm:flex-row sm:justify-end gap-2">
         {isDirty && (
-          <Button type="button" variant="outline" onClick={() => form.reset()}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => form.reset()}
+            className="w-full sm:w-auto"
+          >
             Reset
           </Button>
         )}
-        <Button type="submit" disabled={profileMutation.isPending}>
+        <Button
+          type="submit"
+          disabled={profileMutation.isPending}
+          className="w-full sm:w-auto"
+        >
           {profileMutation.isPending ? "Saving..." : "Save changes"}
         </Button>
       </div>

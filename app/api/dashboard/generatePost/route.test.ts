@@ -73,4 +73,41 @@ describe("POST /api/dashboard/generatePost", () => {
     expect(tokenLedgerMock.refundToken).toHaveBeenCalled();
     expect(res.status).toBe(500);
   });
+
+  it("refunds token if stream fails midway (onFinish error)", async () => {
+    aiMock.streamObject.mockImplementationOnce((args: any) => {
+      Promise.resolve().then(() => {
+        if (args.onFinish) {
+          args.onFinish({
+            error: new Error("Stream failed midway"),
+            object: undefined,
+          });
+        }
+      });
+      return {
+        toTextStreamResponse: () => new Response("mock stream"),
+      };
+    });
+
+    const req = new Request("http://localhost/api/dashboard/generatePost", {
+      method: "POST",
+      body: JSON.stringify({
+        topic: "AI",
+        tone: "professional",
+        postStyle: "short",
+        targetAudience: "devs",
+        keywords: [],
+        modelName: "gemini-1.5-pro",
+      }),
+    });
+
+    const res = await POST(req);
+
+    // Wait a tick for the onFinish promise chain to resolve
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(tokenLedgerMock.consumeToken).toHaveBeenCalled();
+    expect(tokenLedgerMock.refundToken).toHaveBeenCalled();
+    expect(res.status).toBe(200); // Status is 200 because the stream had already started
+  });
 });

@@ -1,0 +1,2049 @@
+﻿diff --git a/app/api/dashboard/drafts/route.ts b/app/api/dashboard/drafts/route.ts
+index 1b03d8c..18bdedd 100644
+--- a/app/api/dashboard/drafts/route.ts
++++ b/app/api/dashboard/drafts/route.ts
+@@ -1,40 +1,22 @@
+ import { NextResponse } from "next/server";
+-
+ import { requireAuthJose } from "@/lib/auth/auth";
+-import {
+-  databaseConnectionErrorResponse,
+-  isDatabaseConnectionError,
+-} from "@/lib/server/database-errors";
+ import { draftStore } from "@/lib/server/draft-store";
+ 
+-export async function GET(req: Request) {
++export async function GET() {
+   try {
+     const authUser = await requireAuthJose();
+-
+     if (!authUser || !authUser.id) {
+       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+     }
+ 
+-    const { searchParams } = new URL(req.url);
+-    const fetchType =
+-      (searchParams.get("fetch") as "drafts" | "scheduled") || "drafts";
+-
+-    const posts = await draftStore.listDrafts(authUser.id, fetchType);
++    const drafts = await draftStore.listDrafts(authUser.id, "drafts");
+ 
+-    return NextResponse.json(posts);
++    return NextResponse.json(drafts);
+   } catch (error) {
+-    console.error("drafts GET route error", error);
+-
+-    if (isDatabaseConnectionError(error)) {
+-      return databaseConnectionErrorResponse();
+-    }
+-
++    console.error("Error fetching drafts:", error);
+     return NextResponse.json(
+-      {
+-        error: "Failed to fetch drafts",
+-        message: "An unexpected error occurred",
+-      },
+-      { status: 500 },
++      { error: "Internal Server Error" },
++      { status: 500 }
+     );
+   }
+ }
+diff --git a/app/dashboard/dashboard-shell.tsx b/app/dashboard/dashboard-shell.tsx
+index f1631bc..63f7401 100644
+--- a/app/dashboard/dashboard-shell.tsx
++++ b/app/dashboard/dashboard-shell.tsx
+@@ -31,8 +31,20 @@ import {
+ import { useUser } from "../context/userDetailsContext";
+ import type { DateRange } from "@/lib/analytics/types";
+ 
+-function getRouteMeta(pathname: string) {
++import { ReadonlyURLSearchParams } from "next/navigation";
++
++function getRouteMeta(pathname: string, searchParams?: ReadonlyURLSearchParams) {
+   if (pathname.startsWith("/dashboard/drafts/")) {
++    const isFromCalendar = searchParams?.get("from") === "calendar";
++    
++    if (isFromCalendar) {
++      return {
++        section: "Workspace",
++        title: "Scheduled Post",
++        description: "Review your scheduled post. Unschedule it to move it back to drafts and make edits.",
++      };
++    }
++
+     return {
+       section: "Workspace",
+       title: "Post Editor",
+@@ -145,8 +157,9 @@ function AnalyticsRangePicker() {
+ 
+ function DashboardHeader() {
+   const pathname = usePathname();
++  const searchParams = useSearchParams();
+   const { isMobile, state, toggleSidebar } = useSidebar();
+-  const routeMeta = getRouteMeta(pathname);
++  const routeMeta = getRouteMeta(pathname, searchParams);
+   const { user } = useUser();
+   const [isNavigating, setIsNavigating] = useState(false);
+ 
+@@ -159,7 +172,7 @@ function DashboardHeader() {
+   }, [pathname]);
+ 
+   return (
+-    <header className="relative flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3 md:gap-4 md:px-6">
++    <header className="sticky top-0 z-40 flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-border/50 bg-background/80 px-4 py-4 backdrop-blur-xl md:gap-4 md:px-6">
+       {/* Global Progress Bar */}
+       {isNavigating && (
+         <div className="absolute top-0 left-0 right-0 z-50 h-[2px] w-full overflow-hidden bg-primary/10">
+diff --git a/app/dashboard/drafts/[id]/page.tsx b/app/dashboard/drafts/[id]/page.tsx
+index f4c63d6..8949959 100644
+--- a/app/dashboard/drafts/[id]/page.tsx
++++ b/app/dashboard/drafts/[id]/page.tsx
+@@ -41,10 +41,6 @@ export default async function DraftDetailPage({
+     xPost: draft.xPost,
+   });
+ 
+-  const breadcrumbHref =
+-    from === "calendar" ? "/dashboard/calendar" : "/dashboard/drafts";
+-  const breadcrumbLabel = from === "calendar" ? "Calendar" : "Drafts";
+-
+   // Determine initial platform based on draft status
+   const linkedinIsDraft = draft.linkedinPost?.status === "DRAFT";
+   const xIsDraft = draft.xPost?.status === "DRAFT";
+@@ -67,18 +63,6 @@ export default async function DraftDetailPage({
+ 
+   return (
+     <div className="flex flex-1 flex-col gap-4 bg-slate-50/50 p-4 dark:bg-transparent md:p-6">
+-      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+-        <Link
+-          href={breadcrumbHref}
+-          className="font-medium transition-colors hover:text-foreground"
+-        >
+-          {breadcrumbLabel}
+-        </Link>
+-        <ChevronRight className="size-4" />
+-        <span className="max-w-[24rem] truncate text-foreground">
+-          {draft.title}
+-        </span>
+-      </div>
+ 
+       <DraftEditorWorkspace
+         initialDraftId={draft.id}
+diff --git a/app/dashboard/drafts/page.tsx b/app/dashboard/drafts/page.tsx
+index b9b9d94..2b739fc 100644
+--- a/app/dashboard/drafts/page.tsx
++++ b/app/dashboard/drafts/page.tsx
+@@ -1,5 +1,5 @@
+ import Link from "next/link";
+-import { Plus, Sparkles } from "lucide-react";
++import { Sparkles } from "lucide-react";
+ import { redirect } from "next/navigation";
+ 
+ import { DraftsGrid } from "@/components/dashboard/drafts-grid";
+@@ -18,26 +18,7 @@ export default async function DraftsPage() {
+ 
+   return (
+     <div className="flex flex-1 flex-col gap-6 bg-slate-50/50 p-4 dark:bg-transparent md:p-6">
+-      <div className="flex flex-col gap-4 rounded-2xl border bg-card p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+-        <div className="max-w-2xl">
+-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+-            Draft Library
+-          </p>
+-          <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground">
+-            Saved drafts, ready to refine
+-          </h2>
+-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+-            Open any saved draft and continue editing it in the same LinkedIn
+-            and X workspace you already use on the dashboard.
+-          </p>
+-        </div>
+-        <Button asChild className="rounded-xl font-semibold shadow-md">
+-          <Link href="/dashboard">
+-            <Plus className="mr-2 size-4" />
+-            Create New Post
+-          </Link>
+-        </Button>
+-      </div>
++
+ 
+       {drafts.length === 0 ? (
+         <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed bg-card/80 p-10 text-center shadow-sm">
+diff --git a/app/globals.css b/app/globals.css
+index 741671f..4b0d8d8 100644
+--- a/app/globals.css
++++ b/app/globals.css
+@@ -3,37 +3,37 @@
+ @custom-variant dark (&:is(.dark *));
+ 
+ :root {
+-  --background: oklch(1 0 0);
+-  --foreground: oklch(0.32 0 0);
+-  --card: oklch(1 0 0);
+-  --card-foreground: oklch(0.32 0 0);
+-  --popover: oklch(1 0 0);
+-  --popover-foreground: oklch(0.32 0 0);
++  --background: #fdfdfc;
++  --foreground: #2b2a29;
++  --card: #ffffff;
++  --card-foreground: #2b2a29;
++  --popover: #ffffff;
++  --popover-foreground: #2b2a29;
+   --primary: oklch(0.62 0.19 259.76);
+-  --primary-foreground: oklch(1 0 0);
+-  --secondary: oklch(0.97 0 0);
+-  --secondary-foreground: oklch(0.45 0.03 257.68);
+-  --muted: oklch(0.98 0 0);
+-  --muted-foreground: oklch(0.55 0.02 264.41);
+-  --accent: oklch(0.95 0.03 233.56);
+-  --accent-foreground: oklch(0.38 0.14 265.59);
++  --primary-foreground: #ffffff;
++  --secondary: #f3f0eb;
++  --secondary-foreground: #2b2a29;
++  --muted: #f3f0eb;
++  --muted-foreground: #8b8682;
++  --accent: #f3f0eb;
++  --accent-foreground: #2b2a29;
+   --destructive: oklch(0.64 0.21 25.39);
+-  --border: oklch(0.93 0.01 261.82);
+-  --input: oklch(0.93 0.01 261.82);
++  --border: #eae5e0;
++  --input: #eae5e0;
+   --ring: oklch(0.62 0.19 259.76);
+   --chart-1: oklch(0.62 0.19 259.76);
+   --chart-2: oklch(0.55 0.22 262.96);
+   --chart-3: oklch(0.49 0.22 264.43);
+   --chart-4: oklch(0.42 0.18 265.55);
+   --chart-5: oklch(0.38 0.14 265.59);
+-  --sidebar: oklch(0.98 0 0);
+-  --sidebar-foreground: oklch(0.14 0 0);
+-  --sidebar-primary: oklch(0.2 0 0);
+-  --sidebar-primary-foreground: oklch(0.98 0 0);
+-  --sidebar-accent: oklch(0.97 0 0);
+-  --sidebar-accent-foreground: oklch(0.2 0 0);
+-  --sidebar-border: oklch(0.92 0 0);
+-  --sidebar-ring: oklch(0.71 0 0);
++  --sidebar: #fdfdfc;
++  --sidebar-foreground: #2b2a29;
++  --sidebar-primary: oklch(0.62 0.19 259.76);
++  --sidebar-primary-foreground: #ffffff;
++  --sidebar-accent: #f3f0eb;
++  --sidebar-accent-foreground: #2b2a29;
++  --sidebar-border: #eae5e0;
++  --sidebar-ring: oklch(0.62 0.19 259.76);
+ 
+   --font-sans: Inter, sans-serif;
+   --font-serif: Source Serif 4, serif;
+@@ -41,18 +41,14 @@
+ 
+   --radius: 0.6rem;
+ 
+-  --shadow-2xs: 0 1px 3px 0px oklch(0 0 0 / 0.05);
+-  --shadow-xs: 0 1px 3px 0px oklch(0 0 0 / 0.05);
+-  --shadow-sm:
+-    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1);
+-  --shadow: 0 1px 3px 0px oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1);
+-  --shadow-md:
+-    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 2px 4px -1px oklch(0 0 0 / 0.1);
+-  --shadow-lg:
+-    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 4px 6px -1px oklch(0 0 0 / 0.1);
+-  --shadow-xl:
+-    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 8px 10px -1px oklch(0 0 0 / 0.1);
+-  --shadow-2xl: 0 1px 3px 0px oklch(0 0 0 / 0.25);
++  --shadow-2xs: 0 1px 2px 0 rgba(43, 42, 41, 0.05);
++  --shadow-xs: 0 1px 2px 0 rgba(43, 42, 41, 0.05);
++  --shadow-sm: 0 2px 4px -1px rgba(43, 42, 41, 0.05), 0 1px 2px -1px rgba(43, 42, 41, 0.05);
++  --shadow: 0 4px 6px -1px rgba(43, 42, 41, 0.05), 0 2px 4px -2px rgba(43, 42, 41, 0.05);
++  --shadow-md: 0 12px 16px -4px rgba(43, 42, 41, 0.05), 0 4px 6px -2px rgba(43, 42, 41, 0.02);
++  --shadow-lg: 0 20px 24px -4px rgba(43, 42, 41, 0.05), 0 8px 8px -4px rgba(43, 42, 41, 0.02);
++  --shadow-xl: 0 24px 48px -12px rgba(43, 42, 41, 0.1);
++  --shadow-2xl: 0 32px 64px -12px rgba(43, 42, 41, 0.15);
+ 
+   --tracking-normal: 0em;
+ 
+@@ -73,36 +69,36 @@
+ }
+ 
+ .dark {
+-  --background: oklch(0.2 0 0);
+-  --foreground: oklch(0.92 0 0);
+-  --card: oklch(0.27 0 0);
+-  --card-foreground: oklch(0.92 0 0);
+-  --popover: oklch(0.27 0 0);
+-  --popover-foreground: oklch(0.92 0 0);
++  --background: #1a1918;
++  --foreground: #e6e4e1;
++  --card: #242220;
++  --card-foreground: #e6e4e1;
++  --popover: #242220;
++  --popover-foreground: #e6e4e1;
+   --primary: oklch(0.62 0.19 259.76);
+-  --primary-foreground: oklch(1 0 0);
+-  --secondary: oklch(0.27 0 0);
+-  --secondary-foreground: oklch(0.92 0 0);
+-  --muted: oklch(0.27 0 0);
+-  --muted-foreground: oklch(0.72 0 0);
+-  --accent: oklch(0.38 0.14 265.59);
+-  --accent-foreground: oklch(0.88 0.06 254.63);
++  --primary-foreground: #ffffff;
++  --secondary: #2d2b29;
++  --secondary-foreground: #e6e4e1;
++  --muted: #2d2b29;
++  --muted-foreground: #a39f9b;
++  --accent: #2d2b29;
++  --accent-foreground: #e6e4e1;
+   --destructive: oklch(0.64 0.21 25.39);
+-  --border: oklch(0.37 0 0);
+-  --input: oklch(0.37 0 0);
++  --border: #3a3735;
++  --input: #3a3735;
+   --ring: oklch(0.62 0.19 259.76);
+   --chart-1: oklch(0.71 0.14 254.69);
+   --chart-2: oklch(0.62 0.19 259.76);
+   --chart-3: oklch(0.55 0.22 262.96);
+   --chart-4: oklch(0.49 0.22 264.43);
+   --chart-5: oklch(0.42 0.18 265.55);
+-  --sidebar: oklch(0.21 0.01 285.56);
+-  --sidebar-foreground: oklch(0.99 0 0);
++  --sidebar: #1a1918;
++  --sidebar-foreground: #e6e4e1;
+   --sidebar-primary: oklch(0.49 0.24 264.41);
+-  --sidebar-primary-foreground: oklch(0.99 0 0);
+-  --sidebar-accent: oklch(0.27 0.01 285.81);
+-  --sidebar-accent-foreground: oklch(0.99 0 0);
+-  --sidebar-border: oklch(1 0 0 / 10%);
++  --sidebar-primary-foreground: #ffffff;
++  --sidebar-accent: #2d2b29;
++  --sidebar-accent-foreground: #e6e4e1;
++  --sidebar-border: #3a3735;
+   --sidebar-ring: oklch(0.55 0.02 285.76);
+ 
+   /* Calendar Dark Overrides */
+@@ -242,16 +238,32 @@ body {
+ }
+ 
+ .fc .fc-button {
+-  @apply inline-flex h-9 items-center justify-center rounded-md px-4 py-2 text-sm font-medium shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50;
++  @apply inline-flex h-9 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-transform focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50;
+ }
+ 
+ .fc .fc-button-primary {
+-  @apply border-none bg-primary text-primary-foreground hover:bg-primary/90;
++  @apply border border-input bg-background shadow-xs text-foreground hover:bg-accent hover:text-accent-foreground active:scale-[0.98];
+ }
+ 
+ .fc .fc-button-primary:not(:disabled).fc-button-active,
+ .fc .fc-button-primary:not(:disabled):active {
+-  @apply bg-primary/80;
++  @apply bg-accent text-accent-foreground;
++}
++
++.fc .fc-button-group {
++  @apply inline-flex items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground shadow-none;
++}
++
++.fc .fc-button-group > .fc-button {
++  @apply flex-1 border-transparent bg-transparent shadow-none hover:bg-transparent hover:text-foreground text-foreground/70 transition-all rounded-md px-3 py-1 text-sm font-medium active:scale-100 focus-visible:ring-0;
++}
++
++.fc .fc-button-group > .fc-button:not(:last-child) {
++  @apply border-none;
++}
++
++.fc .fc-button-group > .fc-button.fc-button-active {
++  @apply bg-background text-foreground shadow-sm dark:border-input dark:bg-input/30;
+ }
+ 
+ .fc .fc-col-header-cell {
+@@ -291,47 +303,47 @@ body {
+ }
+ 
+ .fc .scheduled-post-card {
+-  @apply flex w-full flex-col gap-1 rounded-lg border border-primary/20 bg-primary/10 px-2 py-1.5 text-card-foreground transition-all hover:border-primary/40 hover:bg-primary/20 hover:shadow-sm;
++  @apply flex w-full flex-col gap-1.5 rounded-r-lg rounded-l-sm pl-3 pr-2 py-2 text-card-foreground transition-all duration-300 hover:-translate-y-[1px] hover:shadow-sm;
+ }
+ 
+ .fc .platform-linkedin .scheduled-post-card {
+-  @apply border-blue-400/30 bg-blue-500/10 hover:bg-blue-500/20 hover:border-blue-400/50;
++  @apply border-l-[3px] border-l-blue-500 hover:border-l-blue-600 bg-blue-50/50 hover:bg-blue-50 dark:bg-blue-950/30 dark:hover:bg-blue-900/40;
+ }
+ 
+ .dark .fc .platform-linkedin .scheduled-post-card {
+-  @apply border-blue-400/40 bg-blue-600/20 hover:bg-blue-600/30 hover:border-blue-400/60;
++  @apply border-l-blue-500 hover:border-l-blue-400;
+ }
+ 
+ .fc .platform-x .scheduled-post-card {
+-  @apply border-slate-400/30 bg-slate-500/10 hover:bg-slate-500/20 hover:border-slate-400/50;
++  @apply border-l-[3px] border-l-slate-800 hover:border-l-slate-900 bg-slate-50/80 hover:bg-slate-100 dark:bg-slate-800/40 dark:hover:bg-slate-800/60;
+ }
+ 
+ .dark .fc .platform-x .scheduled-post-card {
+-  @apply border-slate-300/40 bg-slate-400/15 hover:bg-slate-400/25 hover:border-slate-300/60;
++  @apply border-l-slate-400 hover:border-l-slate-300;
+ }
+ 
+ .fc .scheduled-post-time {
+-  @apply bg-primary/15 px-1.5 py-0.5 rounded text-[10px] font-bold text-primary;
++  @apply text-xs font-medium text-muted-foreground;
+ }
+ 
+ .dark .fc .scheduled-post-time {
+-  @apply bg-primary/30 text-primary-foreground;
++  @apply text-muted-foreground;
+ }
+ 
+ .fc .scheduled-post-title {
+-  @apply line-clamp-2 min-w-0 text-[13px] font-bold leading-tight text-foreground;
++  @apply line-clamp-1 min-w-0 text-sm font-bold leading-tight text-foreground mt-0.5;
+ }
+ 
+ .dark .fc .scheduled-post-title {
+-  @apply text-foreground font-extrabold;
++  @apply text-foreground font-bold;
+ }
+ 
+ .fc .scheduled-post-preview {
+-  @apply line-clamp-1 text-[11px] leading-snug text-muted-foreground;
++  @apply line-clamp-2 text-xs leading-relaxed text-muted-foreground/70;
+ }
+ 
+ .dark .fc .scheduled-post-preview {
+-  @apply text-muted-foreground/80;
++  @apply text-muted-foreground/70;
+ }
+ 
+ .fc .scheduled-post-more-link {
+@@ -371,3 +383,32 @@ body {
+ .dark .fc .fc-timegrid-slot-label {
+   @apply text-foreground/60;
+ }
++
++/* Custom Scrollbar Styles */
++::-webkit-scrollbar {
++  width: 6px;
++  height: 6px;
++}
++
++::-webkit-scrollbar-track {
++  background: transparent;
++}
++
++::-webkit-scrollbar-thumb {
++  background: var(--border);
++  border-radius: 8px;
++  border: 1px solid transparent;
++  background-clip: padding-box;
++}
++
++::-webkit-scrollbar-thumb:hover {
++  background: var(--muted-foreground);
++  border: 1px solid transparent;
++  background-clip: padding-box;
++}
++
++/* Firefox fallback */
++* {
++  scrollbar-width: thin;
++  scrollbar-color: var(--border) transparent;
++}
+diff --git a/app/google/page.tsx b/app/google/page.tsx
+index 3745f9c..27d1808 100644
+--- a/app/google/page.tsx
++++ b/app/google/page.tsx
+@@ -1,14 +1,16 @@
+ "use client";
+ 
++import { Button } from "@/components/ui/button";
++
+ export default function GoogleLoginButton() {
+   return (
+-    <button
++    <Button
+       type="button"
+       onClick={() => {
+         window.location.href = "/api/auth/google";
+       }}
+     >
+       Sign In with Google
+-    </button>
++    </Button>
+   );
+ }
+diff --git a/app/layout.tsx b/app/layout.tsx
+index fad82aa..05f0f18 100644
+--- a/app/layout.tsx
++++ b/app/layout.tsx
+@@ -1,12 +1,12 @@
+ import type { Metadata } from "next";
+-import { Inter, Noto_Serif, Fira_Code } from "next/font/google";
++import { Outfit, Noto_Serif, Fira_Code } from "next/font/google";
+ import "./globals.css";
+ import QueryProvider from "@/lib/providers/queryProvider";
+ import ThemeProvider from "@/lib/providers/themeProvider";
+ import { Toaster } from "@/components/ui/sonner";
+ import { AppTooltipProvider } from "@/lib/providers/tooltipProvider";
+ 
+-const fontSans = Inter({
++const fontSans = Outfit({
+   subsets: ["latin"],
+   variable: "--font-sans",
+ });
+@@ -34,7 +34,7 @@ export default function RootLayout({
+   return (
+     <html lang="en" suppressHydrationWarning>
+       <body
+-        className={`${fontSans.variable} ${fontSerif.variable}  ${fontMono.variable} antialiased`}
++        className={`${fontSans.variable} ${fontSerif.variable}  ${fontMono.variable} antialiased tabular-nums`}
+       >
+         <AppTooltipProvider>
+           <ThemeProvider>
+diff --git a/app/page.tsx b/app/page.tsx
+index a071371..3d92020 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -8,17 +8,26 @@ interface User {
+ export default async function Home() {
+   const users = await prisma.user.findMany();
+   return (
+-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center -mt-16">
+-      <h1 className="text-4xl font-bold mb-8 font-[family-name:var(--font-geist-sans)] text-[#333333]">
+-        Superblog
+-      </h1>
+-      <ol className="list-decimal list-inside font-[family-name:var(--font-geist-sans)]">
+-        {users.map((user: User) => (
+-          <li key={user.id} className="mb-2 text-black">
+-            {user.email}
+-          </li>
+-        ))}
+-      </ol>
++    <div className="min-h-dvh bg-background text-foreground flex flex-col items-center justify-center p-8">
++      <div className="max-w-2xl w-full text-center space-y-12">
++        <h1 className="text-5xl font-semibold tracking-tighter leading-tight text-foreground">
++          Superblog
++        </h1>
++        
++        {users.length > 0 && (
++          <div className="bg-card text-card-foreground rounded-2xl shadow-md border border-border/60 p-8 mx-auto text-left max-w-md">
++            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-widest mb-6">Users</h2>
++            <ul className="space-y-4">
++              {users.map((user: User) => (
++                <li key={user.id} className="text-base text-foreground font-medium flex items-center gap-3">
++                  <div className="h-2 w-2 rounded-full bg-primary/40"></div>
++                  {user.email}
++                </li>
++              ))}
++            </ul>
++          </div>
++        )}
++      </div>
+     </div>
+   );
+ }
+diff --git a/components/analytics/kpi-card.tsx b/components/analytics/kpi-card.tsx
+index 6ec9b9b..c0e6030 100644
+--- a/components/analytics/kpi-card.tsx
++++ b/components/analytics/kpi-card.tsx
+@@ -25,46 +25,56 @@ export function KpiCard({
+   const showChange = change !== undefined && !loading;
+ 
+   return (
+-    <Card className="flex-1 min-w-[180px] h-full">
+-      <CardContent className="flex flex-col gap-2 p-6">
++    <Card className="group flex-1 min-w-[180px] h-full overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 dark:bg-card/40 hover:bg-card/80 dark:hover:bg-card/60">
++      <CardContent className="flex flex-col justify-between h-full px-5 py-3.5 relative">
+         <div className="flex items-center justify-between">
+           <span className="text-sm font-medium text-muted-foreground">
+             {label}
+           </span>
+-          <Icon
+-            className={cn(
+-              "size-4 text-muted-foreground",
+-              loading && "animate-pulse",
+-            )}
+-          />
++          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary transition-colors group-hover:bg-primary/15 dark:bg-primary/10 dark:group-hover:bg-primary/20">
++            <Icon
++              className={cn(
++                "size-4",
++                loading && "animate-pulse"
++              )}
++            />
++          </div>
+         </div>
+-        <div className="flex items-baseline gap-2">
++
++        <div className="mt-2 flex flex-col gap-1">
+           {loading ? (
+-            <div className="h-8 w-16 shimmer-effect rounded-md" />
++            <div className="h-8 w-24 shimmer-effect rounded-md" />
+           ) : (
+-            <span className="text-3xl font-bold tracking-tight">{value}</span>
+-          )}
+-          {showChange && (
+-            <span
+-              className={cn(
+-                "flex items-center gap-0.5 text-sm font-medium",
+-                isPositive
+-                  ? "text-emerald-600 dark:text-emerald-400"
+-                  : "text-red-600 dark:text-red-400",
+-              )}
+-            >
+-              {isPositive ? (
+-                <TrendingUp className="size-3.5" />
+-              ) : (
+-                <TrendingDown className="size-3.5" />
+-              )}
+-              {Math.abs(change)}%
++            <span className="text-3xl font-bold tracking-tight text-foreground">
++              {value}
+             </span>
+           )}
++
++          <div className="flex items-center gap-2 mt-0.5">
++            {showChange && (
++              <span
++                className={cn(
++                  "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium transition-colors",
++                  isPositive
++                    ? "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20"
++                    : "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20"
++                )}
++              >
++                {isPositive ? (
++                  <TrendingUp className="size-3" />
++                ) : (
++                  <TrendingDown className="size-3" />
++                )}
++                {Math.abs(change)}%
++              </span>
++            )}
++            {description && (
++              <span className="text-xs text-muted-foreground line-clamp-1">
++                {description}
++              </span>
++            )}
++          </div>
+         </div>
+-        {description && (
+-          <p className="text-xs text-muted-foreground">{description}</p>
+-        )}
+       </CardContent>
+     </Card>
+   );
+diff --git a/components/analytics/pipeline-funnel-chart.tsx b/components/analytics/pipeline-funnel-chart.tsx
+index 203e716..34ff990 100644
+--- a/components/analytics/pipeline-funnel-chart.tsx
++++ b/components/analytics/pipeline-funnel-chart.tsx
+@@ -27,9 +27,9 @@ export function PipelineFunnelChart({
+ }: PipelineFunnelChartProps) {
+   if (loading) {
+     return (
+-      <Card>
+-        <CardHeader>
+-          <CardTitle>Pipeline Funnel</CardTitle>
++      <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
++        <CardHeader className="pb-2">
++          <CardTitle className="text-sm font-medium text-muted-foreground">Pipeline Funnel</CardTitle>
+         </CardHeader>
+         <CardContent>
+           <div className="h-[250px] shimmer-effect rounded-md" />
+@@ -40,9 +40,9 @@ export function PipelineFunnelChart({
+ 
+   if (data.length === 0) {
+     return (
+-      <Card>
+-        <CardHeader>
+-          <CardTitle>Pipeline Funnel</CardTitle>
++      <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
++        <CardHeader className="pb-2">
++          <CardTitle className="text-sm font-medium text-muted-foreground">Pipeline Funnel</CardTitle>
+         </CardHeader>
+         <CardContent>
+           <div className="flex h-[250px] items-center justify-center text-sm text-muted-foreground">
+@@ -59,9 +59,9 @@ export function PipelineFunnelChart({
+     createdCount > 0 ? Math.round((scheduledCount / createdCount) * 100) : 0;
+ 
+   return (
+-    <Card>
+-      <CardHeader>
+-        <CardTitle>Pipeline Funnel</CardTitle>
++    <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
++      <CardHeader className="pb-2">
++        <CardTitle className="text-sm font-medium text-muted-foreground">Pipeline Funnel</CardTitle>
+       </CardHeader>
+       <CardContent>
+         <div className="chart-container h-[250px]">
+@@ -112,7 +112,7 @@ export function PipelineFunnelChart({
+                   />
+                 </pattern>
+               </defs>
+-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
++              <CartesianGrid strokeDasharray="3 3" className="stroke-border" strokeOpacity={0.4} />
+               <XAxis
+                 type="number"
+                 tick={{ fontSize: 12 }}
+@@ -128,6 +128,17 @@ export function PipelineFunnelChart({
+                 width={90}
+               />
+               <Tooltip
++                cursor={{ fill: 'var(--muted)', opacity: 0.5 }}
++                contentStyle={{
++                  backgroundColor: 'var(--card)',
++                  borderRadius: '0.5rem',
++                  border: '1px solid var(--border)',
++                  boxShadow: 'var(--shadow-sm)',
++                  color: 'var(--foreground)',
++                  padding: '8px 12px'
++                }}
++                itemStyle={{ color: 'var(--foreground)', fontSize: '13px', fontWeight: 600 }}
++                labelStyle={{ color: 'var(--muted-foreground)', fontSize: '12px', fontWeight: 500, marginBottom: '4px' }}
+                 formatter={(value: unknown) => {
+                   const count = typeof value === "number" ? value : 0;
+                   return `${numberFormat.format(count)} posts`;
+diff --git a/components/analytics/platform-donut-chart.tsx b/components/analytics/platform-donut-chart.tsx
+index fdab0cf..b6509bb 100644
+--- a/components/analytics/platform-donut-chart.tsx
++++ b/components/analytics/platform-donut-chart.tsx
+@@ -20,9 +20,9 @@ interface PlatformDonutChartProps {
+ export function PlatformDonutChart({ data, loading }: PlatformDonutChartProps) {
+   if (loading) {
+     return (
+-      <Card>
+-        <CardHeader>
+-          <CardTitle>Platform Mix</CardTitle>
++      <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
++        <CardHeader className="pb-2">
++          <CardTitle className="text-sm font-medium text-muted-foreground">Platform Mix</CardTitle>
+         </CardHeader>
+         <CardContent>
+           <div className="h-[250px] shimmer-effect rounded-md" />
+@@ -33,9 +33,9 @@ export function PlatformDonutChart({ data, loading }: PlatformDonutChartProps) {
+ 
+   if (data.length === 0) {
+     return (
+-      <Card>
+-        <CardHeader>
+-          <CardTitle>Platform Mix</CardTitle>
++      <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
++        <CardHeader className="pb-2">
++          <CardTitle className="text-sm font-medium text-muted-foreground">Platform Mix</CardTitle>
+         </CardHeader>
+         <CardContent>
+           <div className="flex h-[250px] items-center justify-center text-sm text-muted-foreground">
+@@ -49,9 +49,9 @@ export function PlatformDonutChart({ data, loading }: PlatformDonutChartProps) {
+   const total = data.reduce((sum, d) => sum + d.count, 0);
+ 
+   return (
+-    <Card>
+-      <CardHeader>
+-        <CardTitle>Platform Mix</CardTitle>
++    <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
++      <CardHeader className="pb-2">
++        <CardTitle className="text-sm font-medium text-muted-foreground">Platform Mix</CardTitle>
+       </CardHeader>
+       <CardContent>
+         <div className="flex flex-col items-center gap-4">
+@@ -76,6 +76,16 @@ export function PlatformDonutChart({ data, loading }: PlatformDonutChartProps) {
+                   ))}
+                 </Pie>
+                 <Tooltip
++                  contentStyle={{
++                    backgroundColor: 'var(--card)',
++                    borderRadius: '0.5rem',
++                    border: '1px solid var(--border)',
++                    boxShadow: 'var(--shadow-sm)',
++                    color: 'var(--foreground)',
++                    padding: '8px 12px'
++                  }}
++                  itemStyle={{ color: 'var(--foreground)', fontSize: '13px', fontWeight: 600 }}
++                  labelStyle={{ color: 'var(--muted-foreground)', fontSize: '12px', fontWeight: 500, marginBottom: '4px' }}
+                   formatter={(value: unknown, name: unknown) => {
+                     const num = typeof value === "number" ? value : 0;
+                     const nameStr = typeof name === "string" ? name : "";
+diff --git a/components/analytics/posts-over-time-chart.tsx b/components/analytics/posts-over-time-chart.tsx
+index d471c43..4a34e08 100644
+--- a/components/analytics/posts-over-time-chart.tsx
++++ b/components/analytics/posts-over-time-chart.tsx
+@@ -24,9 +24,9 @@ interface PostsOverTimeChartProps {
+ export function PostsOverTimeChart({ data, loading }: PostsOverTimeChartProps) {
+   if (loading) {
+     return (
+-      <Card className="flex-1">
+-        <CardHeader>
+-          <CardTitle>Posts Over Time</CardTitle>
++      <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
++        <CardHeader className="pb-2">
++          <CardTitle className="text-sm font-medium text-muted-foreground">Posts Over Time</CardTitle>
+         </CardHeader>
+         <CardContent>
+           <div className="h-[300px] shimmer-effect rounded-md" />
+@@ -40,9 +40,9 @@ export function PostsOverTimeChart({ data, loading }: PostsOverTimeChartProps) {
+     data.every((d) => d.linkedinCount === 0 && d.xCount === 0)
+   ) {
+     return (
+-      <Card className="flex-1">
+-        <CardHeader>
+-          <CardTitle>Posts Over Time</CardTitle>
++      <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
++        <CardHeader className="pb-2">
++          <CardTitle className="text-sm font-medium text-muted-foreground">Posts Over Time</CardTitle>
+         </CardHeader>
+         <CardContent>
+           <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
+@@ -54,9 +54,9 @@ export function PostsOverTimeChart({ data, loading }: PostsOverTimeChartProps) {
+   }
+ 
+   return (
+-    <Card className="flex-1">
+-      <CardHeader>
+-        <CardTitle>Posts Over Time</CardTitle>
++    <Card className="flex-1 overflow-hidden border-border/50 bg-card/60 backdrop-blur-xl shadow-sm dark:bg-card/40">
++      <CardHeader className="pb-2">
++        <CardTitle className="text-sm font-medium text-muted-foreground">Posts Over Time</CardTitle>
+       </CardHeader>
+       <CardContent>
+         <div className="chart-container h-[300px]">
+@@ -65,7 +65,7 @@ export function PostsOverTimeChart({ data, loading }: PostsOverTimeChartProps) {
+               data={data}
+               margin={{ top: 5, right: 10, left: -10, bottom: 5 }}
+             >
+-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
++              <CartesianGrid strokeDasharray="3 3" className="stroke-border" strokeOpacity={0.4} />
+               <XAxis
+                 dataKey="date"
+                 tick={{ fontSize: 12 }}
+@@ -84,6 +84,17 @@ export function PostsOverTimeChart({ data, loading }: PostsOverTimeChartProps) {
+                 axisLine={false}
+               />
+               <Tooltip
++                cursor={{ fill: 'var(--muted)', opacity: 0.5 }}
++                contentStyle={{
++                  backgroundColor: 'var(--card)',
++                  borderRadius: '0.5rem',
++                  border: '1px solid var(--border)',
++                  boxShadow: 'var(--shadow-sm)',
++                  color: 'var(--foreground)',
++                  padding: '8px 12px'
++                }}
++                itemStyle={{ color: 'var(--foreground)', fontSize: '13px', fontWeight: 600 }}
++                labelStyle={{ color: 'var(--muted-foreground)', fontSize: '12px', fontWeight: 500, marginBottom: '4px' }}
+                 labelFormatter={(val: unknown) => {
+                   const parts = String(val).split("-");
+                   return `${parts[2]}/${parts[1]}/${parts[0]}`;
+diff --git a/components/app-sidebar.tsx b/components/app-sidebar.tsx
+index cb742e1..7b67e72 100644
+--- a/components/app-sidebar.tsx
++++ b/components/app-sidebar.tsx
+@@ -88,9 +88,9 @@ function SidebarMenuItems() {
+               isActive={isActive}
+               tooltip={item.title}
+               className={cn(
+-                "h-11 rounded-xl border border-transparent px-3 text-sidebar-foreground/72 transition-all duration-200 md:h-10",
+-                "hover:border-sidebar-border/60 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground",
+-                "data-[active=true]:border-primary/15 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:shadow-sm",
++                "h-11 rounded-xl border border-transparent px-3 text-sidebar-foreground/72 transition-all duration-300 md:h-10",
++                "hover:-translate-y-0.5 hover:border-sidebar-border/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:shadow-sm",
++                "data-[active=true]:border-primary/20 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:shadow-sm",
+                 "[&_svg]:text-sidebar-foreground/65 hover:[&_svg]:text-sidebar-foreground data-[active=true]:[&_svg]:text-primary",
+               )}
+             >
+@@ -121,18 +121,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+ 
+   return (
+     <Sidebar {...props}>
+-      <SidebarHeader className="border-b border-sidebar-border/70 p-3 md:p-4">
+-        <div className="flex items-center gap-3 rounded-xl border border-sidebar-border/60 bg-sidebar-accent/35 px-3 py-3">
+-          <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+-            <Rocket className="size-4.5" />
++      <SidebarHeader className="flex h-[72px] shrink-0 justify-center border-b border-border/50 px-3 py-4 md:px-4">
++        <div className="flex items-center gap-3 px-2 py-1.5">
++          <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/20">
++            <Rocket className="size-4" />
+           </div>
+-          <div className="min-w-0">
+-            <p className="truncate font-semibold tracking-tight text-sidebar-foreground">
++          <div className="min-w-0 flex-1">
++            <span className="block truncate text-[15px] font-bold tracking-tight text-sidebar-foreground">
+               PostPilot AI
+-            </p>
+-            <p className="text-xs text-sidebar-foreground/70">
+-              Content workspace
+-            </p>
++            </span>
++            <span className="block truncate text-xs text-sidebar-foreground/60">
++              Workspace
++            </span>
+           </div>
+         </div>
+       </SidebarHeader>
+@@ -151,7 +151,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+ 
+         {tokens && (
+           <div className="mt-auto hidden md:block pt-3 px-1">
+-            <div className="rounded-xl border border-sidebar-border/60 bg-sidebar-accent/25 px-3 py-2.5">
++            <div className="rounded-xl border border-sidebar-border/40 bg-sidebar-accent/20 px-3 py-2.5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+               <div className="flex items-center justify-between">
+                 <span className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/55">
+                   Daily Tokens
+@@ -176,16 +176,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+         )}
+       </SidebarContent>
+ 
+-      <SidebarFooter className="border-t border-sidebar-border/70 p-3 md:p-4">
++      <SidebarFooter className="border-t border-border/50 p-3 md:p-4">
+         <Link href="/dashboard/profile">
+-          <div className="hidden items-center gap-3 rounded-xl border border-sidebar-border/60 bg-sidebar-accent/30 px-3 py-3 md:flex transition-colors hover:bg-sidebar-accent/60">
++          <div className="hidden items-center gap-3 rounded-xl border border-sidebar-border/40 bg-sidebar-accent/20 px-3 py-3 shadow-sm transition-all duration-300 md:flex hover:-translate-y-0.5 hover:bg-sidebar-accent/40 hover:shadow-md">
+             <Avatar
+               src={user?.avatarUrl ?? null}
+               alt={user?.name ?? ""}
+-              className="size-10"
++              className="size-10 shrink-0 shadow-sm ring-2 ring-sidebar-accent ring-offset-1 ring-offset-sidebar transition-all"
+             >
+               {user?.name ? (
+-                <span className="text-sm font-semibold">
++                <span className="text-sm font-bold">
+                   {user.name.charAt(0).toUpperCase()}
+                 </span>
+               ) : (
+@@ -193,10 +193,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+               )}
+             </Avatar>
+             <div className="min-w-0 flex-1">
+-              <p className="truncate text-sm font-medium text-sidebar-foreground">
++              <p className="truncate text-sm font-bold text-sidebar-foreground">
+                 {user?.name}
+               </p>
+-              <p className="truncate text-xs text-sidebar-foreground/65">
++              <p className="truncate text-[13px] font-medium text-sidebar-foreground/60">
+                 {user?.email}
+               </p>
+             </div>
+diff --git a/components/dashboard/calendar-view.tsx b/components/dashboard/calendar-view.tsx
+index 08ef9ef..58486fa 100644
+--- a/components/dashboard/calendar-view.tsx
++++ b/components/dashboard/calendar-view.tsx
+@@ -357,19 +357,19 @@ export function CalendarView() {
+       const PlatformIcon = platform === "linkedin" ? Linkedin : Twitter;
+       const platformColor =
+         platform === "linkedin"
+-          ? "text-blue-600 bg-blue-50"
+-          : "text-slate-900 bg-slate-50";
++          ? "text-blue-600 dark:text-blue-400"
++          : "text-slate-800 dark:text-slate-300";
+ 
+       return (
+-        <div className="scheduled-post-card group flex w-full flex-col gap-1 px-2 py-1.5">
++        <div className="scheduled-post-card group flex w-full flex-col px-2 py-1.5">
+           <div className="flex w-full items-center justify-between gap-2">
+             <div className="flex items-center gap-1.5 overflow-hidden">
+               <div
+-                className={`flex size-5 shrink-0 items-center justify-center rounded-md border ${platformColor}`}
++                className={`flex shrink-0 items-center justify-center ${platformColor}`}
+               >
+-                <PlatformIcon className="size-3" />
++                <PlatformIcon className="size-3.5" />
+               </div>
+-              <span className="scheduled-post-time whitespace-nowrap text-[11px] font-semibold text-primary/80">
++              <span className="scheduled-post-time whitespace-nowrap">
+                 {eventInfo.timeText}
+               </span>
+             </div>
+@@ -380,16 +380,16 @@ export function CalendarView() {
+                   <Button
+                     variant="ghost"
+                     size="icon"
+-                    className="size-7 h-7 w-7 p-0 hover:bg-primary/10 text-muted-foreground hover:text-primary focus-visible:ring-2 focus-visible:ring-primary"
++                    className="size-7 p-0 text-muted-foreground transition-colors hover:bg-background/80 hover:text-foreground focus-visible:ring-[3px]"
+                     title="Actions"
+                     aria-label="Post actions"
+                   >
+                     <MoreVertical className="size-3.5" />
+                   </Button>
+                 </DropdownMenuTrigger>
+-                <DropdownMenuContent align="end" className="w-40 shadow-lg">
++                <DropdownMenuContent align="end" className="w-44 p-1 shadow-lg rounded-xl">
+                   <DropdownMenuItem
+-                    className="cursor-pointer gap-2"
++                    className="cursor-pointer gap-2 py-2 rounded-lg focus:bg-accent focus:text-accent-foreground"
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       handleOpenConfirmation(
+@@ -400,13 +400,13 @@ export function CalendarView() {
+                       );
+                     }}
+                   >
+-                    <RotateCcw className="size-3.5 text-amber-500" />
+-                    <span className="text-xs">
++                    <RotateCcw className="size-4 text-muted-foreground" />
++                    <span className="text-sm font-medium">
+                       Unschedule {platform === "linkedin" ? "LinkedIn" : "X"}
+                     </span>
+                   </DropdownMenuItem>
+                   <DropdownMenuItem
+-                    className="group cursor-pointer gap-2 text-red-600 focus:bg-red-600 focus:text-white"
++                    className="cursor-pointer gap-2 py-2 rounded-lg text-destructive focus:bg-destructive/10 focus:text-destructive"
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       handleOpenConfirmation(
+@@ -417,8 +417,8 @@ export function CalendarView() {
+                       );
+                     }}
+                   >
+-                    <Trash2 className="size-3.5 text-red-500 group-hover:text-white focus:text-white" />
+-                    <span className="text-xs">
++                    <Trash2 className="size-4 text-destructive/80" />
++                    <span className="text-sm font-medium">
+                       Delete {platform === "linkedin" ? "LinkedIn" : "X"}
+                     </span>
+                   </DropdownMenuItem>
+@@ -428,14 +428,14 @@ export function CalendarView() {
+           </div>
+ 
+           <span
+-            className="scheduled-post-title min-w-0 line-clamp-1 text-[13px] font-bold leading-tight text-foreground"
++            className="scheduled-post-title"
+             title={eventInfo.event.title}
+           >
+             {eventInfo.event.title}
+           </span>
+ 
+           {truncatedContent && (
+-            <p className="scheduled-post-preview line-clamp-2 text-[11px] leading-snug text-muted-foreground/80">
++            <p className="scheduled-post-preview">
+               {truncatedContent}
+             </p>
+           )}
+diff --git a/components/dashboard/draft-editor-workspace.tsx b/components/dashboard/draft-editor-workspace.tsx
+index 58478b9..95a0ef2 100644
+--- a/components/dashboard/draft-editor-workspace.tsx
++++ b/components/dashboard/draft-editor-workspace.tsx
+@@ -3,7 +3,7 @@
+ import { useState, useMemo } from "react";
+ import { useMutation } from "@tanstack/react-query";
+ import { toast } from "sonner";
+-import { CheckCircle2, Edit3, Loader2, RotateCcw } from "lucide-react";
++import { CheckCircle2, ChevronDown, Edit3, Loader2, RotateCcw, Trash2 } from "lucide-react";
+ import { useRouter } from "next/navigation";
+ 
+ import { PostPreview } from "@/components/dashboard/post-preview";
+@@ -63,9 +63,12 @@ export function DraftEditorWorkspace({
+     Set<"linkedin" | "x">
+   >(() => {
+     const initialCleared = new Set<"linkedin" | "x">();
+-    // Only hide other scheduled platforms if we're in the standard draft editor
+-    // If we're in the scheduled management view, we want to see the scheduled platform
+-    if (!isScheduledManagementView) {
++    if (isScheduledManagementView) {
++      // When opening from calendar, ONLY show the scheduled platform we clicked on
++      if (scheduledManagementPlatform === "linkedin") initialCleared.add("x");
++      if (scheduledManagementPlatform === "x") initialCleared.add("linkedin");
++    } else {
++      // Standard draft editor: hide platforms that are already scheduled elsewhere
+       if (linkedinStatus && linkedinStatus !== "DRAFT")
+         initialCleared.add("linkedin");
+       if (xStatus && xStatus !== "DRAFT") initialCleared.add("x");
+@@ -290,15 +293,15 @@ export function DraftEditorWorkspace({
+ 
+   return (
+     <div className="flex h-full w-full flex-col gap-4">
+-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border bg-card/90 px-4 py-3 text-sm shadow-sm">
+-        <div className="flex flex-wrap items-center gap-2 text-foreground">
++      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/50 bg-card/60 px-4 py-3 text-sm shadow-sm backdrop-blur-xl transition-all duration-300 hover:shadow-md dark:bg-card/40">
++        <div className="flex flex-wrap items-center gap-3 text-foreground">
+           <div className="inline-flex items-center gap-2">
+             <SaveStatusIcon
+-              className={`size-4 ${saveDraftMutation.isPending ? "animate-spin text-primary" : hasUnsavedChanges ? "text-amber-600" : "text-emerald-600"}`}
++              className={`size-4 ${saveDraftMutation.isPending ? "animate-spin text-primary" : hasUnsavedChanges ? "text-amber-500" : "text-emerald-500"}`}
+             />
+-            <span className="font-medium">{saveStatusLabel}</span>
++            <span className="font-semibold tracking-tight">{saveStatusLabel}</span>
+           </div>
+-          <span className="rounded-full bg-muted/45 px-2.5 py-1 text-xs font-medium text-muted-foreground">
++          <span className="rounded-full border border-border/50 bg-muted/50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 shadow-sm">
+             Created {createdLabel}
+           </span>
+         </div>
+@@ -307,13 +310,14 @@ export function DraftEditorWorkspace({
+           {isScheduledManagementView ? (
+             <DropdownMenu>
+               <DropdownMenuTrigger asChild>
+-                <Button variant="ghost" size="sm" className="h-8 px-2">
++                <Button variant="outline" size="sm" className="h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-3 font-semibold shadow-sm transition-all hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring">
+                   Post Actions
++                  <ChevronDown className="size-3.5 text-muted-foreground" />
+                 </Button>
+               </DropdownMenuTrigger>
+-              <DropdownMenuContent align="end">
++              <DropdownMenuContent align="end" className="w-44 p-1 shadow-lg rounded-xl">
+                 <DropdownMenuItem
+-                  className="cursor-pointer"
++                  className="cursor-pointer gap-2 py-2 rounded-lg focus:bg-accent focus:text-accent-foreground"
+                   onClick={() =>
+                     handleOpenConfirmation(
+                       "unschedule",
+@@ -322,19 +326,40 @@ export function DraftEditorWorkspace({
+                   }
+                   disabled={unscheduleMutation.isPending}
+                 >
+-                  <RotateCcw className="mr-2 size-4" />
+-                  Unschedule{" "}
+-                  {scheduledManagementPlatform === "linkedin"
+-                    ? "LinkedIn"
+-                    : "X"}
++                  <RotateCcw className="size-4 text-muted-foreground" />
++                  <span className="text-sm font-medium">
++                    Unschedule{" "}
++                    {scheduledManagementPlatform === "linkedin"
++                      ? "LinkedIn"
++                      : "X"}
++                  </span>
++                </DropdownMenuItem>
++                <DropdownMenuItem
++                  className="cursor-pointer gap-2 py-2 rounded-lg text-destructive focus:bg-destructive/10 focus:text-destructive"
++                  onClick={() =>
++                    handleOpenConfirmation(
++                      "delete",
++                      scheduledManagementPlatform,
++                    )
++                  }
++                  disabled={deleteMutation.isPending}
++                >
++                  <Trash2 className="size-4 text-destructive/80" />
++                  <span className="text-sm font-medium">
++                    Delete{" "}
++                    {scheduledManagementPlatform === "linkedin"
++                      ? "LinkedIn"
++                      : "X"}
++                  </span>
+                 </DropdownMenuItem>
+               </DropdownMenuContent>
+             </DropdownMenu>
+           ) : status === "SCHEDULED" ? (
+             <DropdownMenu>
+               <DropdownMenuTrigger asChild>
+-                <Button variant="ghost" size="sm" className="h-8 px-2">
++                <Button variant="outline" size="sm" className="h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-3 font-semibold shadow-sm transition-all hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring">
+                   Post Actions
++                  <ChevronDown className="size-3.5 text-muted-foreground" />
+                 </Button>
+               </DropdownMenuTrigger>
+               <DropdownMenuContent align="end">
+diff --git a/components/dashboard/drafts-grid.tsx b/components/dashboard/drafts-grid.tsx
+index 273a9c4..daaad1a 100644
+--- a/components/dashboard/drafts-grid.tsx
++++ b/components/dashboard/drafts-grid.tsx
+@@ -1,8 +1,9 @@
+ "use client";
+ 
+-import { useRouter } from "next/navigation";
+-import { useState } from "react";
+-import { useMutation } from "@tanstack/react-query";
++import { useRouter, useSearchParams, usePathname } from "next/navigation";
++import { useState, useEffect, useMemo, useCallback } from "react";
++import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
++import Fuse from "fuse.js";
+ import {
+   AlertTriangle,
+   Clock3,
+@@ -12,6 +13,7 @@ import {
+   Trash2,
+   Linkedin,
+   Twitter,
++  Search,
+ } from "lucide-react";
+ import { toast } from "sonner";
+ 
+@@ -24,6 +26,14 @@ import {
+   DialogHeader,
+   DialogTitle,
+ } from "@/components/ui/dialog";
++import { Input } from "@/components/ui/input";
++import {
++  Select,
++  SelectContent,
++  SelectItem,
++  SelectTrigger,
++  SelectValue,
++} from "@/components/ui/select";
+ 
+ type LinkedInPostData = {
+   id: string;
+@@ -67,7 +77,7 @@ function getDeleteImpactItems(draft: DraftListItem) {
+       status: draft.linkedinPost.status,
+       Icon: Linkedin,
+       className:
+-        "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-200",
++        "bg-blue-50/80 text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20",
+     });
+   }
+ 
+@@ -78,7 +88,7 @@ function getDeleteImpactItems(draft: DraftListItem) {
+       status: draft.xPost.status,
+       Icon: Twitter,
+       className:
+-        "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-200",
++        "bg-slate-50/80 text-slate-700 ring-1 ring-inset ring-slate-600/20 dark:bg-slate-500/10 dark:text-slate-400 dark:ring-slate-500/20",
+     });
+   }
+ 
+@@ -100,9 +110,66 @@ function formatDate(value: string) {
+   }).format(new Date(value));
+ }
+ 
++function useDebounce<T>(value: T, delay: number): T {
++  const [debouncedValue, setDebouncedValue] = useState<T>(value);
++  useEffect(() => {
++    const handler = setTimeout(() => {
++      setDebouncedValue(value);
++    }, delay);
++    return () => clearTimeout(handler);
++  }, [value, delay]);
++  return debouncedValue;
++}
++
+ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
+   const router = useRouter();
+-  const [drafts, setDrafts] = useState(initialDrafts);
++  const pathname = usePathname();
++  const searchParams = useSearchParams();
++  const queryClient = useQueryClient();
++
++  const { data: drafts = initialDrafts } = useQuery({
++    queryKey: ["drafts"],
++    queryFn: async () => {
++      const response = await fetch("/api/dashboard/drafts");
++      if (!response.ok) throw new Error("Failed to fetch drafts");
++      return response.json() as Promise<DraftListItem[]>;
++    },
++    initialData: initialDrafts,
++  });
++  
++  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
++  const [filterOption, setFilterOption] = useState(searchParams.get("filter") || "all");
++  const [sortOption, setSortOption] = useState(searchParams.get("sort") || "recent");
++  const [visibleCount, setVisibleCount] = useState(24);
++
++  const debouncedSearchQuery = useDebounce(searchQuery, 300);
++
++  useEffect(() => {
++    setVisibleCount(24);
++  }, [debouncedSearchQuery, filterOption, sortOption]);
++
++  const updateUrlParams = useCallback((newSearch: string, newFilter: string, newSort: string) => {
++    const params = new URLSearchParams(searchParams.toString());
++    
++    if (newSearch) params.set("search", newSearch);
++    else params.delete("search");
++    
++    if (newFilter && newFilter !== "all") params.set("filter", newFilter);
++    else params.delete("filter");
++    
++    if (newSort && newSort !== "recent") params.set("sort", newSort);
++    else params.delete("sort");
++    
++    const newQueryString = params.toString();
++    if (newQueryString !== searchParams.toString()) {
++      router.replace(`${pathname}?${newQueryString}`, { scroll: false });
++    }
++  }, [pathname, router, searchParams]);
++
++  useEffect(() => {
++    updateUrlParams(debouncedSearchQuery, filterOption, sortOption);
++  }, [debouncedSearchQuery, filterOption, sortOption, updateUrlParams]);
++
+   const [pendingDeleteDraft, setPendingDeleteDraft] =
+     useState<DraftListItem | null>(null);
+   const pendingDeleteImpact = pendingDeleteDraft
+@@ -132,23 +199,27 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
+       }
+     },
+     onMutate: async (draftId) => {
+-      const previousDrafts = drafts;
+-      setDrafts((currentDrafts) =>
+-        currentDrafts.filter((draft) => draft.id !== draftId),
++      await queryClient.cancelQueries({ queryKey: ["drafts"] });
++      const previousDrafts = queryClient.getQueryData<DraftListItem[]>(["drafts"]) || drafts;
++
++      queryClient.setQueryData<DraftListItem[]>(["drafts"], (old) =>
++        old ? old.filter((draft) => draft.id !== draftId) : old
+       );
++      
+       setPendingDeleteDraft(null);
+ 
+       return { previousDrafts };
+     },
+     onSuccess: () => {
+       toast.success("Draft deleted.");
++      queryClient.invalidateQueries({ queryKey: ["drafts"] });
+     },
+     onError: (error, _draftId, context) => {
+       if (
+         (error as unknown as { status: number }).status !== 404 &&
+         context?.previousDrafts
+       ) {
+-        setDrafts(context.previousDrafts);
++        queryClient.setQueryData(["drafts"], context.previousDrafts);
+       }
+ 
+       console.error("Failed to delete draft:", error);
+@@ -158,10 +229,112 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
+     },
+   });
+ 
++  const fuse = useMemo(() => {
++    return new Fuse(drafts, {
++      keys: ["title", "topic"],
++      threshold: 0.3,
++      ignoreLocation: true,
++    });
++  }, [drafts]);
++
++  const filteredDrafts = useMemo(() => {
++    let result = drafts;
++
++    if (debouncedSearchQuery.trim()) {
++      const fuseResults = fuse.search(debouncedSearchQuery);
++      result = fuseResults.map(r => r.item);
++    }
++
++    result = result.filter((draft) => {
++      if (filterOption === "linkedin") return !!draft.linkedinPost;
++      if (filterOption === "x") return !!draft.xPost;
++      if (filterOption === "scheduled") return draft.linkedinPost?.status === "SCHEDULED" || draft.xPost?.status === "SCHEDULED";
++      if (filterOption === "drafts") return draft.linkedinPost?.status !== "SCHEDULED" && draft.xPost?.status !== "SCHEDULED";
++      return true;
++    });
++
++    return result;
++  }, [drafts, debouncedSearchQuery, filterOption, fuse]);
++
++  const sortedDrafts = useMemo(() => {
++    return [...filteredDrafts].sort((a, b) => {
++      if (sortOption === "recent") {
++        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
++      } else if (sortOption === "oldest") {
++        return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
++      } else if (sortOption === "newest-created") {
++        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
++      } else if (sortOption === "az") {
++        return a.topic.localeCompare(b.topic);
++      }
++      return 0;
++    });
++  }, [filteredDrafts, sortOption]);
++
++  const clearFilters = () => {
++    setSearchQuery("");
++    setFilterOption("all");
++    setSortOption("recent");
++  };
++
++  const visibleDrafts = sortedDrafts.slice(0, visibleCount);
++
+   return (
+     <>
+-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+-        {drafts.map((draft) => (
++      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
++        <div className="relative w-full max-w-sm">
++          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
++          <Input 
++            type="text"
++            placeholder="Search drafts by topic or title..."
++            className="pl-9 rounded-xl border-border/60 bg-card shadow-sm h-10"
++            value={searchQuery}
++            onChange={(e) => setSearchQuery(e.target.value)}
++          />
++        </div>
++        <div className="flex gap-3 w-full sm:w-auto">
++          <Select value={filterOption} onValueChange={setFilterOption}>
++            <SelectTrigger className="w-full sm:w-[150px] rounded-xl h-10 bg-card shadow-sm border-border/60 font-medium">
++              <SelectValue placeholder="Filter by" />
++            </SelectTrigger>
++            <SelectContent className="rounded-xl">
++              <SelectItem value="all">All Drafts</SelectItem>
++              <SelectItem value="linkedin">LinkedIn Only</SelectItem>
++              <SelectItem value="x">X Only</SelectItem>
++              <SelectItem value="scheduled">Scheduled Only</SelectItem>
++              <SelectItem value="drafts">Drafts Only</SelectItem>
++            </SelectContent>
++          </Select>
++
++          <Select value={sortOption} onValueChange={setSortOption}>
++            <SelectTrigger className="w-full sm:w-[150px] rounded-xl h-10 bg-card shadow-sm border-border/60 font-medium">
++              <SelectValue placeholder="Sort by" />
++            </SelectTrigger>
++            <SelectContent className="rounded-xl">
++              <SelectItem value="recent">Recently Edited</SelectItem>
++              <SelectItem value="oldest">Oldest Edited</SelectItem>
++              <SelectItem value="newest-created">Newest Created</SelectItem>
++              <SelectItem value="az">A-Z by Topic</SelectItem>
++            </SelectContent>
++          </Select>
++        </div>
++      </div>
++
++      {sortedDrafts.length === 0 ? (
++        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/60 bg-card/50 p-12 text-center">
++          <Search className="size-8 text-muted-foreground/40 mb-4" />
++          <p className="text-sm font-medium text-foreground">No drafts found</p>
++          <p className="text-xs text-muted-foreground mt-1 mb-4">Try adjusting your search or filters.</p>
++          {(searchQuery || filterOption !== "all" || sortOption !== "recent") && (
++            <Button variant="outline" size="sm" onClick={clearFilters} className="rounded-xl">
++              Clear all filters
++            </Button>
++          )}
++        </div>
++      ) : (
++        <>
++          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
++            {visibleDrafts.map((draft) => (
+           // biome-ignore lint/a11y/useSemanticElements: The card contains its own delete button, so a native button wrapper would be invalid nested interactive markup.
+           <div
+             key={draft.id}
+@@ -185,12 +358,12 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
+                   draft.xPost?.status === "DRAFT") && (
+                   <div className="flex gap-1">
+                     {draft.linkedinPost?.status === "DRAFT" && (
+-                      <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-600 border border-blue-200">
++                      <span className="inline-flex items-center rounded-md bg-blue-50/80 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20">
+                         LinkedIn
+                       </span>
+                     )}
+                     {draft.xPost?.status === "DRAFT" && (
+-                      <span className="rounded-full bg-slate-900/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
++                      <span className="inline-flex items-center rounded-md bg-slate-50/80 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20 dark:bg-slate-500/10 dark:text-slate-400 dark:ring-slate-500/20">
+                         X
+                       </span>
+                     )}
+@@ -215,9 +388,12 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
+             </div>
+ 
+             <div className="mt-5 flex flex-1 flex-col">
+-              <h3 className="line-clamp-2 text-lg font-semibold leading-7 text-foreground transition-colors group-hover:text-primary">
+-                {draft.title}
++              <h3 className="line-clamp-1 text-lg font-bold leading-7 text-foreground transition-colors group-hover:text-primary capitalize">
++                {draft.topic}
+               </h3>
++              <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
++                {draft.title}
++              </p>
+ 
+               <div className="mt-5 flex flex-wrap gap-2 pt-3">
+                 <div className="inline-flex items-center gap-2 rounded-full bg-muted/45 px-3 py-1.5 text-xs font-medium text-foreground">
+@@ -232,7 +408,21 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
+             </div>
+           </div>
+         ))}
+-      </div>
++          </div>
++
++          {visibleCount < sortedDrafts.length && (
++            <div className="mt-8 flex justify-center">
++              <Button
++                variant="outline"
++                className="rounded-xl border-border/60 bg-card px-8 shadow-sm hover:bg-accent hover:text-accent-foreground"
++                onClick={() => setVisibleCount((prev) => prev + 24)}
++              >
++                Load more drafts
++              </Button>
++            </div>
++          )}
++        </>
++      )}
+ 
+       <Dialog
+         open={pendingDeleteDraft !== null}
+@@ -266,7 +456,7 @@ export function DraftsGrid({ initialDrafts }: DraftsGridProps) {
+                       return (
+                         <span
+                           key={item.key}
+-                          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${item.className}`}
++                          className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium ${item.className}`}
+                         >
+                           <Icon className="size-3.5" />
+                           {item.label} {formatPlatformStatus(item.status)}
+diff --git a/components/dashboard/post-preview.tsx b/components/dashboard/post-preview.tsx
+index 1705592..969a35e 100644
+--- a/components/dashboard/post-preview.tsx
++++ b/components/dashboard/post-preview.tsx
+@@ -7,6 +7,8 @@ import {
+   Loader2,
+   Save,
+   Trash2,
++  Linkedin,
++  Twitter,
+ } from "lucide-react";
+ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+ 
+@@ -106,9 +108,19 @@ export function PostPreview({
+       );
+       const isNotCleared = !clearedPlatforms.has(p);
+ 
+-      return isValidStatus && isNotCleared;
++      // Check if the platform actually has draft content. 
++      // If it's empty, it shouldn't show up in the switcher.
++      let hasContent = false;
++      if (p === "linkedin") {
++        hasContent = activePost.linkedin.content !== null && activePost.linkedin.content.length > 0;
++      } else {
++        hasContent = activePost.x.posts !== null && activePost.x.posts.length > 0;
++      }
++
++      // If we are currently generating, we keep both platforms visible so they can populate.
++      return isValidStatus && isNotCleared && (hasContent || isGenerating);
+     });
+-  }, [activePost, clearedPlatforms]);
++  }, [activePost, clearedPlatforms, isGenerating]);
+ 
+   // Ensure activePlatform is always one of the available platforms
+   useEffect(() => {
+@@ -133,11 +145,11 @@ export function PostPreview({
+   return (
+     <div
+       className={cn(
+-        "flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm",
++        "flex flex-col overflow-hidden rounded-xl border border-border/50 bg-card/60 text-card-foreground shadow-sm backdrop-blur-xl transition-all duration-300 hover:shadow-md dark:bg-card/40",
+         className,
+       )}
+     >
+-      <div className="flex shrink-0 items-center gap-2 border-b p-4 md:p-6">
++      <div className="flex shrink-0 items-center gap-3 border-b border-border/50 p-4 md:p-6">
+         {isGenerated ? (
+           <Button
+             variant="ghost"
+@@ -148,28 +160,28 @@ export function PostPreview({
+             <ArrowLeft className="size-5" />
+           </Button>
+         ) : null}
+-        <div className="min-w-0 flex-1 flex items-center gap-2">
+-          <h3 className="text-lg font-bold">{title}</h3>
++        <div className="min-w-0 flex-1 flex flex-wrap items-center gap-3">
++          <h3 className="text-base font-bold tracking-tight">{title}</h3>
+           {!hideStatusBadge && activePost && (
+             <Badge
+               variant="outline"
+               className={cn(
+-                "text-[10px] uppercase tracking-wider font-medium",
++                "px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold shadow-sm",
+                 activePost[activePlatform].status === "SCHEDULED"
+-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+-                  : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100",
++                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400"
++                  : "bg-amber-50 text-amber-700 border-amber-200 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400",
+               )}
+             >
+               {activePost[activePlatform].status === "SCHEDULED" ? (
+-                <span className="flex items-center gap-1">
+-                  <span className="size-1.5 rounded-full bg-emerald-500" />
++                <span className="flex items-center gap-1.5">
++                  <span className="size-1.5 rounded-full bg-emerald-500 shadow-sm" />
+                   {activePlatform === "linkedin"
+                     ? "LinkedIn Scheduled"
+                     : "X Scheduled"}
+                 </span>
+               ) : (
+-                <span className="flex items-center gap-1">
+-                  <span className="size-1.5 rounded-full bg-amber-500" />
++                <span className="flex items-center gap-1.5">
++                  <span className="size-1.5 rounded-full bg-amber-500 shadow-sm" />
+                   {activePlatform === "linkedin" ? "LinkedIn Draft" : "X Draft"}
+                 </span>
+               )}
+@@ -177,7 +189,7 @@ export function PostPreview({
+           )}
+         </div>
+         {description ? (
+-          <p className="text-sm text-muted-foreground pr-2">{description}</p>
++          <p className="text-[13px] font-medium text-muted-foreground/80 pr-2 hidden md:block">{description}</p>
+         ) : null}
+         {activePost && availablePlatforms.length > 1 && (
+           <Tabs
+@@ -185,9 +197,15 @@ export function PostPreview({
+             onValueChange={(value) => setActivePlatform(value as PlatformTab)}
+             className="hidden md:flex"
+           >
+-            <TabsList className="bg-muted/80 border">
+-              <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
+-              <TabsTrigger value="x">X</TabsTrigger>
++            <TabsList className="h-10 bg-background/50 backdrop-blur-md p-1 border border-border/50 shadow-inner rounded-xl">
++              <TabsTrigger value="linkedin" className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm">
++                <Linkedin className="size-3.5" />
++                LinkedIn
++              </TabsTrigger>
++              <TabsTrigger value="x" className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm">
++                <Twitter className="size-3.5" />
++                X
++              </TabsTrigger>
+             </TabsList>
+           </Tabs>
+         )}
+@@ -241,9 +259,15 @@ export function PostPreview({
+                   setActivePlatform(value as PlatformTab)
+                 }
+               >
+-                <TabsList className="w-full bg-muted/80 border">
+-                  <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
+-                  <TabsTrigger value="x">X</TabsTrigger>
++                <TabsList className="w-full h-10 bg-background/50 backdrop-blur-md p-1 border border-border/50 shadow-inner rounded-xl">
++                  <TabsTrigger value="linkedin" className="w-full gap-2 rounded-lg text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm">
++                    <Linkedin className="size-3.5" />
++                    LinkedIn
++                  </TabsTrigger>
++                  <TabsTrigger value="x" className="w-full gap-2 rounded-lg text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm">
++                    <Twitter className="size-3.5" />
++                    X
++                  </TabsTrigger>
+                 </TabsList>
+               </Tabs>
+             </div>
+diff --git a/components/profile/avatar-upload.tsx b/components/profile/avatar-upload.tsx
+index 3687e92..c59158a 100644
+--- a/components/profile/avatar-upload.tsx
++++ b/components/profile/avatar-upload.tsx
+@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
+ 
+ import type { OurFileRouter } from "@/lib/uploadthing/core";
+ import { Avatar } from "@/components/ui/avatar";
++import { Button } from "@/components/ui/button";
+ 
+ const { useUploadThing } = generateReactHelpers<OurFileRouter>();
+ 
+@@ -103,14 +104,14 @@ export function AvatarUpload({ avatarUrl, name }: AvatarUploadProps) {
+           type="button"
+           onClick={handleClick}
+           disabled={isUploading}
+-          className="group relative block overflow-hidden rounded-full disabled:opacity-50"
++          className="group relative block overflow-hidden rounded-full transition-transform active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+         >
+           {isUploading ? (
+             <span className="flex size-20 items-center justify-center bg-primary/10 text-xs font-medium text-primary md:size-24">
+               Uploading...
+             </span>
+           ) : (
+-            <Avatar src={avatarUrl} alt={name} className="size-20 md:size-24">
++            <Avatar src={avatarUrl} alt={name} className="size-20 md:size-24 shadow-sm transition-shadow group-hover:shadow-md ring-1 ring-border/50">
+               <span className="text-lg font-semibold md:text-xl">
+                 {name.charAt(0).toUpperCase()}
+               </span>
+@@ -123,15 +124,17 @@ export function AvatarUpload({ avatarUrl, name }: AvatarUploadProps) {
+           )}
+         </button>
+         {avatarUrl && (
+-          <button
++          <Button
+             type="button"
++            variant="secondary"
++            size="icon"
+             onClick={handleRemove}
+             disabled={isUploading}
+-            className="absolute bottom-0 right-0 flex size-7 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-colors hover:text-destructive disabled:opacity-50 md:size-8"
++            className="absolute -bottom-1 -right-1 z-10 size-8 rounded-full shadow-md ring-2 ring-background transition-all hover:bg-destructive hover:text-destructive-foreground hover:ring-destructive/20 md:size-9"
+             aria-label="Remove avatar"
+           >
+-            <Trash2 className="size-3.5 md:size-4" />
+-          </button>
++            <Trash2 className="size-4 md:size-4.5" />
++          </Button>
+         )}
+       </div>
+     </>
+diff --git a/components/profile/profile-form.tsx b/components/profile/profile-form.tsx
+index efb79f8..623e0d5 100644
+--- a/components/profile/profile-form.tsx
++++ b/components/profile/profile-form.tsx
+@@ -171,8 +171,8 @@ export function ProfileForm({
+               tabIndex={-1}
+               className="pr-24"
+             />
+-            <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-sm text-emerald-600">
+-              <CheckCircle2 className="size-4" />
++            <span className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20">
++              <CheckCircle2 className="size-3.5" />
+               Verified
+             </span>
+           </div>
+diff --git a/components/profile/profile-page.tsx b/components/profile/profile-page.tsx
+index 2f50c32..2876c2a 100644
+--- a/components/profile/profile-page.tsx
++++ b/components/profile/profile-page.tsx
+@@ -55,12 +55,12 @@ export default function ProfilePage() {
+     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 md:px-6 md:py-10">
+       <section>
+         <div className="mb-6">
+-          <h2 className="text-lg font-semibold">Profile Photo</h2>
+-          <p className="mt-1 text-sm text-muted-foreground">
++          <h2 className="text-base font-semibold tracking-tight text-foreground">Profile Photo</h2>
++          <p className="mt-1 text-[13px] text-muted-foreground/80">
+             Update your profile photo and personal details.
+           </p>
+         </div>
+-        <div className="rounded-xl border bg-card p-4 md:p-6">
++        <div className="rounded-xl border border-border/50 bg-card/60 backdrop-blur-xl p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-card/40">
+           <div className="flex items-center gap-4">
+             <AvatarUpload avatarUrl={user.avatarUrl} name={user.name} />
+             <div className="min-w-0">
+@@ -80,12 +80,12 @@ export default function ProfilePage() {
+ 
+       <section>
+         <div className="mb-6">
+-          <h2 className="text-lg font-semibold">Profile Information</h2>
+-          <p className="mt-1 text-sm text-muted-foreground">
++          <h2 className="text-base font-semibold tracking-tight text-foreground">Profile Information</h2>
++          <p className="mt-1 text-[13px] text-muted-foreground/80">
+             Edit your public profile information.
+           </p>
+         </div>
+-        <div className="rounded-xl border bg-card p-4 md:p-6">
++        <div className="rounded-xl border border-border/50 bg-card/60 backdrop-blur-xl p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-card/40">
+           <ProfileForm
+             id={user.id}
+             name={user.name}
+diff --git a/components/settings/appearance-section.tsx b/components/settings/appearance-section.tsx
+index bdd1710..ea45bf0 100644
+--- a/components/settings/appearance-section.tsx
++++ b/components/settings/appearance-section.tsx
+@@ -19,12 +19,12 @@ export function AppearanceSection() {
+     return (
+       <section>
+         <div className="mb-6">
+-          <h2 className="text-lg font-semibold">Appearance</h2>
+-          <p className="mt-1 text-sm text-muted-foreground">
++          <h2 className="text-base font-semibold tracking-tight text-foreground">Appearance</h2>
++          <p className="mt-1 text-[13px] text-muted-foreground/80">
+             Choose how PostPilot AI looks on your device.
+           </p>
+         </div>
+-        <div className="rounded-xl border bg-card p-4 md:p-6">
++        <div className="rounded-xl border border-border/50 bg-card/60 backdrop-blur-xl p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-card/40">
+           <div className="grid gap-3 sm:grid-cols-3">
+             {Array.from({ length: 3 }).map((_, i) => (
+               <div
+@@ -45,13 +45,13 @@ export function AppearanceSection() {
+   return (
+     <section>
+       <div className="mb-6">
+-        <h2 className="text-lg font-semibold">Appearance</h2>
+-        <p className="mt-1 text-sm text-muted-foreground">
++        <h2 className="text-base font-semibold tracking-tight text-foreground">Appearance</h2>
++        <p className="mt-1 text-[13px] text-muted-foreground/80">
+           Choose how PostPilot AI looks on your device.
+         </p>
+       </div>
+ 
+-      <div className="rounded-xl border bg-card p-4 md:p-6">
++      <div className="rounded-xl border border-border/50 bg-card/60 backdrop-blur-xl p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-card/40">
+         <RadioGroup
+           value={theme ?? "system"}
+           onValueChange={(value) =>
+@@ -65,7 +65,7 @@ export function AppearanceSection() {
+               <Label
+                 key={option.value}
+                 htmlFor={`theme-${option.value}`}
+-                className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-input p-4 transition-all hover:bg-accent/50 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
++                className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-input p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm hover:bg-accent/50 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 has-[[data-state=checked]]:shadow-sm"
+               >
+                 <RadioGroupItem
+                   value={option.value}
+diff --git a/components/settings/danger-section.tsx b/components/settings/danger-section.tsx
+index 32d9958..b9da1f0 100644
+--- a/components/settings/danger-section.tsx
++++ b/components/settings/danger-section.tsx
+@@ -47,17 +47,17 @@ export function DangerSection() {
+   return (
+     <section>
+       <div className="mb-6">
+-        <h2 className="text-lg font-semibold">Danger Zone</h2>
+-        <p className="mt-1 text-sm text-muted-foreground">
++        <h2 className="text-base font-semibold tracking-tight text-destructive">Danger Zone</h2>
++        <p className="mt-1 text-[13px] text-muted-foreground/80">
+           Irreversible actions affecting your account.
+         </p>
+       </div>
+ 
+-      <div className="rounded-xl border border-destructive/50 bg-card">
+-        <div className="flex items-start justify-between gap-4 border-b border-border/40 p-4 md:p-6">
++      <div className="rounded-xl border border-destructive/30 bg-red-50/30 backdrop-blur-xl shadow-sm transition-all duration-300 hover:shadow-md hover:border-destructive/50 dark:bg-red-950/10">
++        <div className="flex items-start justify-between gap-4 border-b border-destructive/20 p-4 md:p-6">
+           <div>
+             <h3 className="font-medium">Sign Out</h3>
+-            <p className="mt-1 text-sm text-muted-foreground">
++            <p className="mt-1 text-[13px] text-muted-foreground/80">
+               Sign out of your account on this device.
+             </p>
+           </div>
+@@ -67,7 +67,7 @@ export function DangerSection() {
+         <div className="flex items-start justify-between gap-4 p-4 md:p-6">
+           <div>
+             <h3 className="font-medium text-destructive">Delete Account</h3>
+-            <p className="mt-1 text-sm text-muted-foreground">
++            <p className="mt-1 text-[13px] text-muted-foreground/80">
+               Permanently delete your account and all associated data. This
+               action cannot be undone.
+             </p>
+diff --git a/components/settings/security-section.tsx b/components/settings/security-section.tsx
+index c7a5b46..1616ae4 100644
+--- a/components/settings/security-section.tsx
++++ b/components/settings/security-section.tsx
+@@ -30,13 +30,13 @@ export function SecuritySection() {
+     return (
+       <section>
+         <div className="mb-6">
+-          <h2 className="text-lg font-semibold">Security</h2>
+-          <p className="mt-1 text-sm text-muted-foreground">
++          <h2 className="text-base font-semibold tracking-tight text-foreground">Security</h2>
++          <p className="mt-1 text-[13px] text-muted-foreground/80">
+             Update your password. You&apos;ll be logged out of all active
+             sessions after changing it.
+           </p>
+         </div>
+-        <div className="rounded-xl border bg-card p-4 md:p-6">
++        <div className="rounded-xl border border-border/50 bg-card/60 backdrop-blur-xl p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-card/40">
+           <div className="space-y-4">
+             <div className="space-y-2">
+               <div className="h-3 w-28 animate-pulse rounded-xl bg-muted" />
+@@ -65,12 +65,12 @@ export function SecuritySection() {
+     return (
+       <section>
+         <div className="mb-6">
+-          <h2 className="text-lg font-semibold">Security</h2>
+-          <p className="mt-1 text-sm text-muted-foreground">
++          <h2 className="text-base font-semibold tracking-tight text-foreground">Security</h2>
++          <p className="mt-1 text-[13px] text-muted-foreground/80">
+             Manage your account security.
+           </p>
+         </div>
+-        <div className="rounded-xl border bg-card p-4 md:p-6">
++        <div className="rounded-xl border border-border/50 bg-card/60 backdrop-blur-xl p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-card/40">
+           <Alert variant="info">
+             <Info className="size-4" />
+             <AlertDescription>
+@@ -141,14 +141,14 @@ function SecurityForm() {
+   return (
+     <section>
+       <div className="mb-6">
+-        <h2 className="text-lg font-semibold">Security</h2>
+-        <p className="mt-1 text-sm text-muted-foreground">
++        <h2 className="text-base font-semibold tracking-tight text-foreground">Security</h2>
++        <p className="mt-1 text-[13px] text-muted-foreground/80">
+           Update your password. You&apos;ll be logged out of all active sessions
+           after changing it.
+         </p>
+       </div>
+ 
+-      <div className="rounded-xl border bg-card p-4 md:p-6">
++      <div className="rounded-xl border border-border/50 bg-card/60 backdrop-blur-xl p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-card/40">
+         <form onSubmit={form.handleSubmit(onSubmit)}>
+           <FieldGroup>
+             <Field data-invalid={!!form.formState.errors.currentPassword}>
+diff --git a/components/ui/button.tsx b/components/ui/button.tsx
+index 0828e6b..437c76d 100644
+--- a/components/ui/button.tsx
++++ b/components/ui/button.tsx
+@@ -5,17 +5,18 @@ import { cva, type VariantProps } from "class-variance-authority";
+ import { cn } from "@/lib/utils";
+ 
+ const buttonVariants = cva(
+-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
++  "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-300 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+   {
+     variants: {
+       variant: {
+-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
++        default:
++          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:-translate-y-[1px] hover:shadow-md",
+         destructive:
+-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
++          "bg-destructive text-white shadow-sm hover:bg-destructive/90 hover:-translate-y-[1px] hover:shadow-md focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+         outline:
+           "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+         secondary:
+-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
++          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:-translate-y-[1px] hover:shadow-md",
+         ghost:
+           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+         link: "text-primary underline-offset-4 hover:underline",
+diff --git a/components/ui/card.tsx b/components/ui/card.tsx
+index cc1ff8a..6e1eaaa 100644
+--- a/components/ui/card.tsx
++++ b/components/ui/card.tsx
+@@ -7,7 +7,7 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
+     <div
+       data-slot="card"
+       className={cn(
+-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
++        "bg-card text-card-foreground flex flex-col gap-6 rounded-2xl border border-border/60 py-6 shadow-md transition-all duration-300",
+         className,
+       )}
+       {...props}
+@@ -32,7 +32,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+   return (
+     <div
+       data-slot="card-title"
+-      className={cn("leading-none font-semibold", className)}
++      className={cn("leading-none font-semibold tracking-tight", className)}
+       {...props}
+     />
+   );
+@@ -42,7 +42,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
+   return (
+     <div
+       data-slot="card-description"
+-      className={cn("text-muted-foreground text-sm", className)}
++      className={cn("text-muted-foreground text-sm leading-relaxed", className)}
+       {...props}
+     />
+   );
+diff --git a/components/ui/emoji-picker.tsx b/components/ui/emoji-picker.tsx
+index 1ac1e26..4427d30 100644
+--- a/components/ui/emoji-picker.tsx
++++ b/components/ui/emoji-picker.tsx
+@@ -9,6 +9,7 @@ import {
+ import { LoaderIcon, SearchIcon } from "lucide-react";
+ import type * as React from "react";
+ 
++import { Button } from "@/components/ui/button";
+ import { cn } from "@/lib/utils";
+ 
+ function EmojiPicker({
+@@ -60,16 +61,18 @@ function EmojiPickerEmoji({
+   ...props
+ }: EmojiPickerListEmojiProps) {
+   return (
+-    <button
++    <Button
++      variant="ghost"
++      size="icon"
+       {...props}
+       className={cn(
+-        "data-[active]:bg-accent flex size-7 items-center justify-center rounded-sm text-base",
++        "data-[active]:bg-accent size-7 rounded-sm text-base hover:bg-accent",
+         className,
+       )}
+       data-slot="emoji-picker-emoji"
+     >
+       {emoji.emoji}
+-    </button>
++    </Button>
+   );
+ }
+ 
+diff --git a/components/ui/sidebar.tsx b/components/ui/sidebar.tsx
+index 9f6cf66..5f35047 100644
+--- a/components/ui/sidebar.tsx
++++ b/components/ui/sidebar.tsx
+@@ -427,7 +427,7 @@ function SidebarGroupAction({
+       data-slot="sidebar-group-action"
+       data-sidebar="group-action"
+       className={cn(
+-        "text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground absolute top-3.5 right-3 flex aspect-square w-5 items-center justify-center rounded-md p-0 outline-hidden transition-transform focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
++        "text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground absolute top-3.5 right-3 flex aspect-square w-5 items-center justify-center rounded-md p-0 outline-hidden transition-transform active:scale-[0.98] focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+         // Increases the hit area of the button on mobile.
+         "after:absolute after:-inset-2 md:after:hidden",
+         "group-data-[collapsible=icon]:hidden",
+@@ -475,7 +475,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
+ }
+ 
+ const sidebarMenuButtonVariants = cva(
+-  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
++  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding,transform] active:scale-[0.98] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+   {
+     variants: {
+       variant: {
+@@ -562,7 +562,7 @@ function SidebarMenuAction({
+       data-slot="sidebar-menu-action"
+       data-sidebar="menu-action"
+       className={cn(
+-        "text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer-hover/menu-button:text-sidebar-accent-foreground absolute top-1.5 right-1 flex aspect-square w-5 items-center justify-center rounded-md p-0 outline-hidden transition-transform focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
++        "text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer-hover/menu-button:text-sidebar-accent-foreground absolute top-1.5 right-1 flex aspect-square w-5 items-center justify-center rounded-md p-0 outline-hidden transition-transform active:scale-[0.98] focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+         // Increases the hit area of the button on mobile.
+         "after:absolute after:-inset-2 md:after:hidden",
+         "peer-data-[size=sm]/menu-button:top-1",
+diff --git a/components/ui/tabs.tsx b/components/ui/tabs.tsx
+index 2de05fd..7028737 100644
+--- a/components/ui/tabs.tsx
++++ b/components/ui/tabs.tsx
+@@ -64,7 +64,7 @@ function TabsTrigger({
+     <TabsPrimitive.Trigger
+       data-slot="tabs-trigger"
+       className={cn(
+-        "relative inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap text-foreground/60 transition-all group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 group-data-[variant=default]/tabs-list:data-[state=active]:shadow-sm group-data-[variant=line]/tabs-list:data-[state=active]:shadow-none dark:text-muted-foreground dark:hover:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
++        "relative inline-flex cursor-pointer h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap text-foreground/60 transition-all group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 group-data-[variant=default]/tabs-list:data-[state=active]:shadow-sm group-data-[variant=line]/tabs-list:data-[state=active]:shadow-none dark:text-muted-foreground dark:hover:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+         "group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent dark:group-data-[variant=line]/tabs-list:data-[state=active]:border-transparent dark:group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent",
+         "data-[state=active]:bg-background data-[state=active]:text-foreground dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 dark:data-[state=active]:text-foreground",
+         "after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-[orientation=horizontal]/tabs:after:inset-x-0 group-data-[orientation=horizontal]/tabs:after:bottom-[-5px] group-data-[orientation=horizontal]/tabs:after:h-0.5 group-data-[orientation=vertical]/tabs:after:inset-y-0 group-data-[orientation=vertical]/tabs:after:-right-1 group-data-[orientation=vertical]/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-[state=active]:after:opacity-100",
+diff --git a/package-lock.json b/package-lock.json
+index c50a25a..cec6757 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -35,6 +35,7 @@
+         "clsx": "^2.1.1",
+         "date-fns": "^4.1.0",
+         "frimousse": "^0.3.0",
++        "fuse.js": "^7.4.2",
+         "google-auth-library": "^10.4.0",
+         "googleapis": "^161.0.0",
+         "jose": "^6.1.0",
+@@ -8833,6 +8834,19 @@
+         "url": "https://github.com/sponsors/ljharb"
+       }
+     },
++    "node_modules/fuse.js": {
++      "version": "7.4.2",
++      "resolved": "https://registry.npmjs.org/fuse.js/-/fuse.js-7.4.2.tgz",
++      "integrity": "sha512-LVbzjD4WA6UP5B1UnP8wuaXJiLnqMdM/E4fiJXTJ5haJ5b/MBNsK29h2fm6swEoQaVQjvYFWKLE2RanyZIoRVQ==",
++      "license": "Apache-2.0",
++      "engines": {
++        "node": ">=10"
++      },
++      "funding": {
++        "type": "github",
++        "url": "https://github.com/sponsors/krisk"
++      }
++    },
+     "node_modules/fuzzysort": {
+       "version": "3.1.0",
+       "resolved": "https://registry.npmjs.org/fuzzysort/-/fuzzysort-3.1.0.tgz",
+diff --git a/package.json b/package.json
+index 2fb1a2c..27a7af4 100644
+--- a/package.json
++++ b/package.json
+@@ -38,6 +38,7 @@
+     "clsx": "^2.1.1",
+     "date-fns": "^4.1.0",
+     "frimousse": "^0.3.0",
++    "fuse.js": "^7.4.2",
+     "google-auth-library": "^10.4.0",
+     "googleapis": "^161.0.0",
+     "jose": "^6.1.0",
+diff --git a/skills-lock.json b/skills-lock.json
+index 2363d2d..15f920c 100644
+--- a/skills-lock.json
++++ b/skills-lock.json
+@@ -24,6 +24,12 @@
+       "skillPath": "skills/engineering/diagnose/SKILL.md",
+       "computedHash": "1c3c85517ac42116fe5f2bfb5150f7b3e38ad23808e40b33fbb01f1afb611983"
+     },
++    "emil-design-eng": {
++      "source": "emilkowalski/skill",
++      "sourceType": "github",
++      "skillPath": "skills/emil-design-eng/SKILL.md",
++      "computedHash": "ac3fc5b4e206488ffc408a2806f829bb2e5eaf518fded09be34790685c2b3a0d"
++    },
+     "grill-me": {
+       "source": "mattpocock/skills",
+       "sourceType": "github",
+@@ -59,6 +65,12 @@
+       "skillPath": "skills/engineering/prototype/SKILL.md",
+       "computedHash": "f52c019c3e0af2ad1807332d553b9ee7282a28c162d78cdeddd89dc8456b73ff"
+     },
++    "review-animations": {
++      "source": "emilkowalski/skill",
++      "sourceType": "github",
++      "skillPath": "skills/review-animations/SKILL.md",
++      "computedHash": "57c681344448379fbec8c11b45e355b70799998427240662318d017f292571bd"
++    },
+     "setup-matt-pocock-skills": {
+       "source": "mattpocock/skills",
+       "sourceType": "github",

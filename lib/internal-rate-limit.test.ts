@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { checkRateLimit, clearRateLimitStore } from "./rate-limit";
+import { checkRateLimit, clearRateLimitStore } from "./internal-rate-limit";
 
-vi.unmock("@/lib/rate-limit");
+vi.unmock("@/lib/internal-rate-limit");
 
 describe("rate-limit logic", () => {
   beforeEach(() => {

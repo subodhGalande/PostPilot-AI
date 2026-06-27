@@ -27,9 +27,11 @@ export function PipelineFunnelChart({
 }: PipelineFunnelChartProps) {
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Pipeline Funnel</CardTitle>
+      <Card className="flex-1 overflow-hidden border-border/50 bg-card shadow-sm dark:bg-white/5 dark:backdrop-blur-xl">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Pipeline Funnel
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[250px] shimmer-effect rounded-md" />
@@ -40,9 +42,11 @@ export function PipelineFunnelChart({
 
   if (data.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Pipeline Funnel</CardTitle>
+      <Card className="flex-1 overflow-hidden border-border/50 bg-card shadow-sm dark:bg-white/5 dark:backdrop-blur-xl">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Pipeline Funnel
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex h-[250px] items-center justify-center text-sm text-muted-foreground">
@@ -59,9 +63,11 @@ export function PipelineFunnelChart({
     createdCount > 0 ? Math.round((scheduledCount / createdCount) * 100) : 0;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Pipeline Funnel</CardTitle>
+    <Card className="flex-1 overflow-hidden border-border/50 bg-card shadow-sm dark:bg-white/5 dark:backdrop-blur-xl">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          Pipeline Funnel
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="chart-container h-[250px]">
@@ -112,7 +118,11 @@ export function PipelineFunnelChart({
                   />
                 </pattern>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                className="stroke-border"
+                strokeOpacity={0.4}
+              />
               <XAxis
                 type="number"
                 tick={{ fontSize: 12 }}
@@ -128,6 +138,26 @@ export function PipelineFunnelChart({
                 width={90}
               />
               <Tooltip
+                cursor={{ fill: "var(--muted)", opacity: 0.5 }}
+                contentStyle={{
+                  backgroundColor: "var(--card)",
+                  borderRadius: "0.5rem",
+                  border: "1px solid var(--border)",
+                  boxShadow: "var(--shadow-sm)",
+                  color: "var(--foreground)",
+                  padding: "8px 12px",
+                }}
+                itemStyle={{
+                  color: "var(--foreground)",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                }}
+                labelStyle={{
+                  color: "var(--muted-foreground)",
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  marginBottom: "4px",
+                }}
                 formatter={(value: unknown) => {
                   const count = typeof value === "number" ? value : 0;
                   return `${numberFormat.format(count)} posts`;

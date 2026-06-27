@@ -3,6 +3,7 @@
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
+import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
 import type { DateClickArg } from "@fullcalendar/interaction";
 import type {
@@ -28,7 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ConfirmationModal } from "@/components/dashboard/confirmation-modal";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 
 interface LinkedInPostData {
   id: string;
@@ -75,6 +76,16 @@ interface CalendarEvent {
 export function CalendarView() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
   const [confirmationState, setConfirmationState] = useState<{
     isOpen: boolean;
     type: "unschedule" | "delete" | null;
@@ -355,41 +366,51 @@ export function CalendarView() {
         content.length > 80 ? `${content.slice(0, 80)}...` : content;
 
       const PlatformIcon = platform === "linkedin" ? Linkedin : Twitter;
-      const platformColor =
+      const platformPillClass =
         platform === "linkedin"
-          ? "text-blue-600 bg-blue-50"
-          : "text-slate-900 bg-slate-50";
+          ? "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400"
+          : "bg-slate-500/10 text-slate-700 dark:bg-slate-400/20 dark:text-slate-300";
+
+      const platformCardClass =
+        platform === "linkedin"
+          ? "bg-blue-50/60 dark:bg-blue-950/20 border-blue-200/50 dark:border-blue-900/50 hover:bg-blue-100/50 dark:hover:bg-blue-900/40"
+          : "bg-slate-100/70 dark:bg-slate-800/50 border-slate-300/50 dark:border-slate-700/60 hover:bg-slate-200/60 dark:hover:bg-slate-800/80";
 
       return (
-        <div className="scheduled-post-card group flex w-full flex-col gap-1 px-2 py-1.5">
+        <div
+          className={`group flex w-full flex-col gap-1.5 rounded-lg border p-2 text-card-foreground shadow-sm transition-all duration-200 ease-out-ui hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] cursor-pointer ${platformCardClass}`}
+        >
           <div className="flex w-full items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 overflow-hidden">
+            <div className="flex flex-wrap items-center gap-1.5 overflow-hidden">
               <div
-                className={`flex size-5 shrink-0 items-center justify-center rounded-md border ${platformColor}`}
+                className={`flex shrink-0 items-center justify-center rounded-sm px-1 py-0.5 ${platformPillClass}`}
               >
                 <PlatformIcon className="size-3" />
               </div>
-              <span className="scheduled-post-time whitespace-nowrap text-[11px] font-semibold text-primary/80">
+              <span className="truncate text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
                 {eventInfo.timeText}
               </span>
             </div>
 
-            <div className="flex shrink-0 items-center">
+            <div className="flex shrink-0 items-center opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="size-7 h-7 w-7 p-0 hover:bg-primary/10 text-muted-foreground hover:text-primary focus-visible:ring-2 focus-visible:ring-primary"
+                    className="size-6 p-0 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-[3px]"
                     title="Actions"
                     aria-label="Post actions"
                   >
                     <MoreVertical className="size-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-40 shadow-lg">
+                <DropdownMenuContent
+                  align="end"
+                  className="z-[9999] w-44 p-1 shadow-lg rounded-xl"
+                >
                   <DropdownMenuItem
-                    className="cursor-pointer gap-2"
+                    className="cursor-pointer gap-2 py-2 rounded-lg focus:bg-accent focus:text-accent-foreground"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenConfirmation(
@@ -400,13 +421,13 @@ export function CalendarView() {
                       );
                     }}
                   >
-                    <RotateCcw className="size-3.5 text-amber-500" />
-                    <span className="text-xs">
+                    <RotateCcw className="size-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">
                       Unschedule {platform === "linkedin" ? "LinkedIn" : "X"}
                     </span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    className="group cursor-pointer gap-2 text-red-600 focus:bg-red-600 focus:text-white"
+                    className="cursor-pointer gap-2 py-2 rounded-lg text-destructive focus:bg-destructive/10 focus:text-destructive"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenConfirmation(
@@ -417,8 +438,8 @@ export function CalendarView() {
                       );
                     }}
                   >
-                    <Trash2 className="size-3.5 text-red-500 group-hover:text-white focus:text-white" />
-                    <span className="text-xs">
+                    <Trash2 className="size-4 text-destructive/80" />
+                    <span className="text-sm font-medium">
                       Delete {platform === "linkedin" ? "LinkedIn" : "X"}
                     </span>
                   </DropdownMenuItem>
@@ -428,14 +449,14 @@ export function CalendarView() {
           </div>
 
           <span
-            className="scheduled-post-title min-w-0 line-clamp-1 text-[13px] font-bold leading-tight text-foreground"
+            className="line-clamp-1 min-w-0 text-[13px] font-semibold leading-tight text-foreground"
             title={eventInfo.event.title}
           >
             {eventInfo.event.title}
           </span>
 
           {truncatedContent && (
-            <p className="scheduled-post-preview line-clamp-2 text-[11px] leading-snug text-muted-foreground/80">
+            <p className="line-clamp-2 text-xs font-medium text-muted-foreground/70 leading-relaxed">
               {truncatedContent}
             </p>
           )}
@@ -445,15 +466,25 @@ export function CalendarView() {
     [handleOpenConfirmation],
   );
 
+  if (!mounted) {
+    return (
+      <div className="flex h-[600px] items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full p-4 md:p-6 bg-card">
+    <div className="h-full px-2 py-4 md:p-6 bg-card">
       <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
+        initialView={isMobile ? "listWeek" : "dayGridMonth"}
         headerToolbar={{
-          left: "prev,next today",
+          left: isMobile ? "prev,next" : "prev,next today",
           center: "title",
-          right: "dayGridMonth,dayGridWeek,dayGridDay",
+          right: isMobile
+            ? "listWeek,timeGridDay"
+            : "dayGridMonth,dayGridWeek,dayGridDay",
         }}
         events={events}
         eventContent={renderEventContent}

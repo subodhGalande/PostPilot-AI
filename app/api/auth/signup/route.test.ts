@@ -24,12 +24,12 @@ vi.mock("@/lib/csrf", () => ({
 
 describe("POST /api/auth/signup", () => {
   let prismaMock: any;
-  let nodemailerMock: any;
+  let _nodemailerMock: any;
 
   beforeEach(async () => {
     vi.clearAllMocks();
     prismaMock = (await import("@/lib/prisma")).default;
-    nodemailerMock = (await import("nodemailer")).default;
+    _nodemailerMock = (await import("nodemailer")).default;
   });
 
   it("returns 400 for invalid input", async () => {

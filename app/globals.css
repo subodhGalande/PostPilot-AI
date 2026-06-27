@@ -1,58 +1,57 @@
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.32 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.32 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.32 0 0);
-  --primary: oklch(0.62 0.19 259.76);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.45 0.03 257.68);
-  --muted: oklch(0.98 0 0);
-  --muted-foreground: oklch(0.55 0.02 264.41);
-  --accent: oklch(0.95 0.03 233.56);
-  --accent-foreground: oklch(0.38 0.14 265.59);
+  --background: #ffffff;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+  --primary: #0047ff;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #09090b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #09090b;
   --destructive: oklch(0.64 0.21 25.39);
-  --border: oklch(0.93 0.01 261.82);
-  --input: oklch(0.93 0.01 261.82);
-  --ring: oklch(0.62 0.19 259.76);
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #0047ff;
   --chart-1: oklch(0.62 0.19 259.76);
   --chart-2: oklch(0.55 0.22 262.96);
   --chart-3: oklch(0.49 0.22 264.43);
   --chart-4: oklch(0.42 0.18 265.55);
   --chart-5: oklch(0.38 0.14 265.59);
-  --sidebar: oklch(0.98 0 0);
-  --sidebar-foreground: oklch(0.14 0 0);
-  --sidebar-primary: oklch(0.2 0 0);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.2 0 0);
-  --sidebar-border: oklch(0.92 0 0);
-  --sidebar-ring: oklch(0.71 0 0);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #09090b;
+  --sidebar-primary: #0047ff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f4f4f5;
+  --sidebar-accent-foreground: #09090b;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #0047ff;
 
-  --font-sans: Inter, sans-serif;
-  --font-serif: Source Serif 4, serif;
-  --font-mono: JetBrains Mono, monospace;
+  /* Fonts are inherited from app/layout.tsx */
 
   --radius: 0.6rem;
 
-  --shadow-2xs: 0 1px 3px 0px oklch(0 0 0 / 0.05);
-  --shadow-xs: 0 1px 3px 0px oklch(0 0 0 / 0.05);
+  --shadow-2xs: 0 1px 2px 0 rgba(9, 9, 11, 0.05);
+  --shadow-xs: 0 1px 2px 0 rgba(9, 9, 11, 0.05);
   --shadow-sm:
-    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1);
-  --shadow: 0 1px 3px 0px oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1);
+    0 2px 4px -1px rgba(9, 9, 11, 0.06), 0 1px 2px -1px rgba(9, 9, 11, 0.04);
+  --shadow:
+    0 4px 6px -1px rgba(9, 9, 11, 0.08), 0 2px 4px -2px rgba(9, 9, 11, 0.04);
   --shadow-md:
-    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 2px 4px -1px oklch(0 0 0 / 0.1);
+    0 12px 16px -4px rgba(9, 9, 11, 0.08), 0 4px 6px -2px rgba(9, 9, 11, 0.04);
   --shadow-lg:
-    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 4px 6px -1px oklch(0 0 0 / 0.1);
-  --shadow-xl:
-    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 8px 10px -1px oklch(0 0 0 / 0.1);
-  --shadow-2xl: 0 1px 3px 0px oklch(0 0 0 / 0.25);
+    0 20px 24px -4px rgba(9, 9, 11, 0.08), 0 8px 8px -4px rgba(9, 9, 11, 0.04);
+  --shadow-xl: 0 24px 48px -12px rgba(43, 42, 41, 0.1);
+  --shadow-2xl: 0 32px 64px -12px rgba(43, 42, 41, 0.15);
 
   --tracking-normal: 0em;
 
@@ -73,37 +72,37 @@
 }
 
 .dark {
-  --background: oklch(0.2 0 0);
-  --foreground: oklch(0.92 0 0);
-  --card: oklch(0.27 0 0);
-  --card-foreground: oklch(0.92 0 0);
-  --popover: oklch(0.27 0 0);
-  --popover-foreground: oklch(0.92 0 0);
-  --primary: oklch(0.62 0.19 259.76);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.27 0 0);
-  --secondary-foreground: oklch(0.92 0 0);
-  --muted: oklch(0.27 0 0);
-  --muted-foreground: oklch(0.72 0 0);
-  --accent: oklch(0.38 0.14 265.59);
-  --accent-foreground: oklch(0.88 0.06 254.63);
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #18181b;
+  --card-foreground: #fafafa;
+  --popover: #18181b;
+  --popover-foreground: #fafafa;
+  --primary: #0047ff;
+  --primary-foreground: #ffffff;
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
   --destructive: oklch(0.64 0.21 25.39);
-  --border: oklch(0.37 0 0);
-  --input: oklch(0.37 0 0);
-  --ring: oklch(0.62 0.19 259.76);
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #0047ff;
   --chart-1: oklch(0.71 0.14 254.69);
   --chart-2: oklch(0.62 0.19 259.76);
   --chart-3: oklch(0.55 0.22 262.96);
   --chart-4: oklch(0.49 0.22 264.43);
   --chart-5: oklch(0.42 0.18 265.55);
-  --sidebar: oklch(0.21 0.01 285.56);
-  --sidebar-foreground: oklch(0.99 0 0);
-  --sidebar-primary: oklch(0.49 0.24 264.41);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.27 0.01 285.81);
-  --sidebar-accent-foreground: oklch(0.99 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.55 0.02 285.76);
+  --sidebar: #09090b;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #0047ff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #27272a;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #27272a;
+  --sidebar-ring: #0047ff;
 
   /* Calendar Dark Overrides */
   --fc-today-bg-color: oklch(0.38 0.14 265.59 / 0.3);
@@ -167,7 +166,12 @@
   --tracking-wider: calc(var(--tracking-normal) + 0.05em);
   --tracking-widest: calc(var(--tracking-normal) + 0.1em);
 
+  --ease-out-ui: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-ui: cubic-bezier(0.77, 0, 0.175, 1);
+
   --animate-shimmer: shimmer 2s infinite;
+  --animate-blob: blob 15s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  --animate-scan: scan 8s linear infinite;
 }
 
 .chart-container:focus-visible {
@@ -180,41 +184,60 @@
   outline: none;
 }
 
-.shimmer-effect {
-  position: relative;
-  overflow: hidden;
-  background-color: var(--muted);
-}
-
-.shimmer-effect::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  animation: shimmer 2s infinite;
+.animate-shimmer {
   background-image: linear-gradient(
     90deg,
-    transparent,
-    rgba(255, 255, 255, 0.4),
-    transparent
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
   );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
 }
 
-.dark .shimmer-effect::before {
+.dark .animate-shimmer {
   background-image: linear-gradient(
     90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0) 100%
   );
 }
 
 @keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0%, 0%) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(15%, -25%) scale(1.2) rotate(10deg);
+  }
+  66% {
+    transform: translate(-15%, 20%) scale(0.8) rotate(-10deg);
+  }
+  100% {
+    transform: translate(0%, 0%) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes scan {
   from {
-    transform: translateX(-100%);
+    background-position:
+      0 0,
+      0 0;
   }
   to {
-    transform: translateX(100%);
+    background-position:
+      0 100vh,
+      0 0;
   }
 }
 
@@ -238,20 +261,66 @@ body {
 }
 
 .fc .fc-toolbar-title {
-  @apply text-xl font-bold tracking-tight;
+  @apply text-xl font-bold tracking-tight text-foreground;
+}
+
+@media (max-width: 640px) {
+  .fc .fc-toolbar-title {
+    @apply text-lg;
+  }
+  .fc .fc-toolbar {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  /* Force title chunk to top and full width */
+  .fc .fc-toolbar-chunk:nth-child(2) {
+    order: -1;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+  }
+  /* Arrows on the left */
+  .fc .fc-toolbar-chunk:nth-child(1) {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+  }
+  /* View switcher on the right */
+  .fc .fc-toolbar-chunk:nth-child(3) {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+  }
 }
 
 .fc .fc-button {
-  @apply inline-flex h-9 items-center justify-center rounded-md px-4 py-2 text-sm font-medium shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50;
+  @apply inline-flex h-9 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-transform focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50;
 }
 
 .fc .fc-button-primary {
-  @apply border-none bg-primary text-primary-foreground hover:bg-primary/90;
+  @apply border border-input bg-background shadow-xs text-foreground hover:bg-accent hover:text-accent-foreground active:scale-[0.98];
 }
 
 .fc .fc-button-primary:not(:disabled).fc-button-active,
 .fc .fc-button-primary:not(:disabled):active {
-  @apply bg-primary/80;
+  @apply bg-accent text-accent-foreground;
+}
+
+.fc .fc-button-group {
+  @apply inline-flex items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground shadow-none;
+}
+
+.fc .fc-button-group > .fc-button {
+  @apply flex-1 border-transparent bg-transparent shadow-none hover:bg-transparent hover:text-foreground text-foreground/70 transition-colors duration-150 ease-out-ui rounded-md px-3 py-1 text-sm font-medium active:scale-100 focus-visible:ring-0;
+}
+
+.fc .fc-button-group > .fc-button:not(:last-child) {
+  @apply border-none;
+}
+
+.fc .fc-button-group > .fc-button.fc-button-active {
+  @apply bg-background text-foreground shadow-sm dark:border-input dark:bg-input/30;
 }
 
 .fc .fc-col-header-cell {
@@ -291,47 +360,47 @@ body {
 }
 
 .fc .scheduled-post-card {
-  @apply flex w-full flex-col gap-1 rounded-lg border border-primary/20 bg-primary/10 px-2 py-1.5 text-card-foreground transition-all hover:border-primary/40 hover:bg-primary/20 hover:shadow-sm;
+  @apply flex w-full flex-col gap-1.5 rounded-r-lg rounded-l-sm pl-3 pr-2 py-2 text-card-foreground transition duration-200 ease-out-ui hover:-translate-y-[1px] hover:shadow-sm;
 }
 
 .fc .platform-linkedin .scheduled-post-card {
-  @apply border-blue-400/30 bg-blue-500/10 hover:bg-blue-500/20 hover:border-blue-400/50;
+  @apply border-l-[3px] border-l-blue-500 hover:border-l-blue-600 bg-blue-50/50 hover:bg-blue-50 dark:bg-blue-950/30 dark:hover:bg-blue-900/40;
 }
 
 .dark .fc .platform-linkedin .scheduled-post-card {
-  @apply border-blue-400/40 bg-blue-600/20 hover:bg-blue-600/30 hover:border-blue-400/60;
+  @apply border-l-blue-500 hover:border-l-blue-400;
 }
 
 .fc .platform-x .scheduled-post-card {
-  @apply border-slate-400/30 bg-slate-500/10 hover:bg-slate-500/20 hover:border-slate-400/50;
+  @apply border-l-[3px] border-l-slate-800 hover:border-l-slate-900 bg-slate-50/80 hover:bg-slate-100 dark:bg-slate-800/40 dark:hover:bg-slate-800/60;
 }
 
 .dark .fc .platform-x .scheduled-post-card {
-  @apply border-slate-300/40 bg-slate-400/15 hover:bg-slate-400/25 hover:border-slate-300/60;
+  @apply border-l-slate-400 hover:border-l-slate-300;
 }
 
 .fc .scheduled-post-time {
-  @apply bg-primary/15 px-1.5 py-0.5 rounded text-[10px] font-bold text-primary;
+  @apply text-xs font-medium text-muted-foreground;
 }
 
 .dark .fc .scheduled-post-time {
-  @apply bg-primary/30 text-primary-foreground;
+  @apply text-muted-foreground;
 }
 
 .fc .scheduled-post-title {
-  @apply line-clamp-2 min-w-0 text-[13px] font-bold leading-tight text-foreground;
+  @apply line-clamp-1 min-w-0 text-sm font-bold leading-tight text-foreground mt-0.5;
 }
 
 .dark .fc .scheduled-post-title {
-  @apply text-foreground font-extrabold;
+  @apply text-foreground font-bold;
 }
 
 .fc .scheduled-post-preview {
-  @apply line-clamp-1 text-[11px] leading-snug text-muted-foreground;
+  @apply line-clamp-2 text-xs leading-relaxed text-muted-foreground/70;
 }
 
 .dark .fc .scheduled-post-preview {
-  @apply text-muted-foreground/80;
+  @apply text-muted-foreground/70;
 }
 
 .fc .scheduled-post-more-link {
@@ -370,4 +439,33 @@ body {
 
 .dark .fc .fc-timegrid-slot-label {
   @apply text-foreground/60;
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Firefox fallback */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }

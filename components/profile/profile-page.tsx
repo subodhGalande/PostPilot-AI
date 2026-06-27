@@ -13,9 +13,9 @@ function ProfilePageSkeleton() {
           <div className="mt-1 h-4 w-48 animate-pulse rounded-xl bg-muted" />
         </div>
         <div className="rounded-xl border bg-card p-4 md:p-6">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
             <div className="size-20 animate-pulse rounded-full bg-muted md:size-24" />
-            <div className="min-w-0 flex-1 space-y-2">
+            <div className="min-w-0 flex-1 flex flex-col items-center sm:items-start space-y-2 mt-2 sm:mt-0">
               <div className="h-5 w-48 animate-pulse rounded-xl bg-muted" />
               <div className="h-4 w-36 animate-pulse rounded-xl bg-muted" />
             </div>
@@ -55,15 +55,17 @@ export default function ProfilePage() {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 md:px-6 md:py-10">
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold">Profile Photo</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h2 className="text-base font-semibold tracking-tight text-foreground">
+            Profile Photo
+          </h2>
+          <p className="mt-1 text-[13px] text-muted-foreground/80">
             Update your profile photo and personal details.
           </p>
         </div>
-        <div className="rounded-xl border bg-card p-4 md:p-6">
-          <div className="flex items-center gap-4">
+        <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
             <AvatarUpload avatarUrl={user.avatarUrl} name={user.name} />
-            <div className="min-w-0">
+            <div className="min-w-0 mt-2 sm:mt-0">
               <h3 className="truncate text-lg font-semibold">{user.name}</h3>
               <p className="truncate text-sm text-muted-foreground">
                 {user.email}
@@ -80,12 +82,14 @@ export default function ProfilePage() {
 
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold">Profile Information</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h2 className="text-base font-semibold tracking-tight text-foreground">
+            Profile Information
+          </h2>
+          <p className="mt-1 text-[13px] text-muted-foreground/80">
             Edit your public profile information.
           </p>
         </div>
-        <div className="rounded-xl border bg-card p-4 md:p-6">
+        <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
           <ProfileForm
             id={user.id}
             name={user.name}

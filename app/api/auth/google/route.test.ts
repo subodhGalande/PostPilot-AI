@@ -3,7 +3,7 @@ import { GET } from "./route";
 
 describe("GET /api/auth/google", () => {
   it("redirects to google auth url", async () => {
-    const req = new Request("http://localhost/api/auth/google");
+    const _req = new Request("http://localhost/api/auth/google");
     const res = await GET();
 
     expect(res.status).toBe(307);

@@ -1,14 +1,16 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 export default function GoogleLoginButton() {
   return (
-    <button
+    <Button
       type="button"
       onClick={() => {
         window.location.href = "/api/auth/google";
       }}
     >
       Sign In with Google
-    </button>
+    </Button>
   );
 }

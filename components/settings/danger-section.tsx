@@ -47,34 +47,41 @@ export function DangerSection() {
   return (
     <section>
       <div className="mb-6">
-        <h2 className="text-lg font-semibold">Danger Zone</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h2 className="text-base font-semibold tracking-tight text-destructive">
+          Danger Zone
+        </h2>
+        <p className="mt-1 text-[13px] text-muted-foreground/80">
           Irreversible actions affecting your account.
         </p>
       </div>
 
-      <div className="rounded-xl border border-destructive/50 bg-card">
-        <div className="flex items-start justify-between gap-4 border-b border-border/40 p-4 md:p-6">
+      <div className="rounded-xl border border-destructive/30 bg-red-50 shadow-sm transition-all duration-300 hover:shadow-md hover:border-destructive/50 dark:bg-red-950/10 dark:backdrop-blur-xl">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-destructive/20 p-4 md:p-6">
           <div>
             <h3 className="font-medium">Sign Out</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-[13px] text-muted-foreground/80">
               Sign out of your account on this device.
             </p>
           </div>
-          <LogoutButton className="shrink-0" />
+          <div className="w-full sm:w-auto shrink-0">
+            <LogoutButton className="w-full sm:w-auto" />
+          </div>
         </div>
 
-        <div className="flex items-start justify-between gap-4 p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 md:p-6">
           <div>
             <h3 className="font-medium text-destructive">Delete Account</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-[13px] text-muted-foreground/80">
               Permanently delete your account and all associated data. This
               action cannot be undone.
             </p>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button variant="destructive" className="shrink-0">
+              <Button
+                variant="destructive"
+                className="w-full sm:w-auto shrink-0"
+              >
                 Delete Account
               </Button>
             </DialogTrigger>

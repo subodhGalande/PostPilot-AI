@@ -14,7 +14,8 @@ export function useSignupForm() {
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
     defaultValues: {
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
     },
@@ -27,12 +28,17 @@ export function useSignupForm() {
     mutationFn: async (
       data: SignupFormValues,
     ): Promise<{ message: string }> => {
+      const payload = {
+        name: `${data.firstName} ${data.lastName}`.trim(),
+        email: data.email,
+        password: data.password,
+      };
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Server error. Please try again later.");
       return res.json();

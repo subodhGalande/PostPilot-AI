@@ -30,13 +30,15 @@ export function SecuritySection() {
     return (
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold">Security</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h2 className="text-base font-semibold tracking-tight text-foreground">
+            Security
+          </h2>
+          <p className="mt-1 text-[13px] text-muted-foreground/80">
             Update your password. You&apos;ll be logged out of all active
             sessions after changing it.
           </p>
         </div>
-        <div className="rounded-xl border bg-card p-4 md:p-6">
+        <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
           <div className="space-y-4">
             <div className="space-y-2">
               <div className="h-3 w-28 animate-pulse rounded-xl bg-muted" />
@@ -50,8 +52,8 @@ export function SecuritySection() {
               <div className="h-3 w-32 animate-pulse rounded-xl bg-muted" />
               <div className="h-9 w-full animate-pulse rounded-xl bg-muted" />
             </div>
-            <div className="flex justify-end">
-              <div className="h-9 w-36 animate-pulse rounded-xl bg-muted" />
+            <div className="flex sm:justify-end">
+              <div className="h-9 w-full sm:w-36 animate-pulse rounded-xl bg-muted" />
             </div>
           </div>
         </div>
@@ -65,12 +67,14 @@ export function SecuritySection() {
     return (
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold">Security</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h2 className="text-base font-semibold tracking-tight text-foreground">
+            Security
+          </h2>
+          <p className="mt-1 text-[13px] text-muted-foreground/80">
             Manage your account security.
           </p>
         </div>
-        <div className="rounded-xl border bg-card p-4 md:p-6">
+        <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
           <Alert variant="info">
             <Info className="size-4" />
             <AlertDescription>
@@ -141,14 +145,16 @@ function SecurityForm() {
   return (
     <section>
       <div className="mb-6">
-        <h2 className="text-lg font-semibold">Security</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h2 className="text-base font-semibold tracking-tight text-foreground">
+          Security
+        </h2>
+        <p className="mt-1 text-[13px] text-muted-foreground/80">
           Update your password. You&apos;ll be logged out of all active sessions
           after changing it.
         </p>
       </div>
 
-      <div className="rounded-xl border bg-card p-4 md:p-6">
+      <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
             <Field data-invalid={!!form.formState.errors.currentPassword}>
@@ -211,8 +217,12 @@ function SecurityForm() {
             </Field>
           </FieldGroup>
 
-          <div className="mt-8 flex justify-end">
-            <Button type="submit" disabled={passwordMutation.isPending}>
+          <div className="mt-8 flex sm:justify-end">
+            <Button
+              type="submit"
+              disabled={passwordMutation.isPending}
+              className="w-full sm:w-auto"
+            >
               {passwordMutation.isPending ? "Updating..." : "Update password"}
             </Button>
           </div>

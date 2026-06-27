@@ -1,4 +1,4 @@
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit } from "@/lib/internal-rate-limit";
 import {
   PrismaTokenLedgerAdapter,
   type DailyUsage,

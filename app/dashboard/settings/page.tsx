@@ -4,10 +4,12 @@ import { DangerSection } from "@/components/settings/danger-section";
 
 export default function SettingsPage() {
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-10 p-4 md:p-6">
-      <SecuritySection />
-      <AppearanceSection />
-      <DangerSection />
+    <div className="flex flex-1 flex-col bg-zinc-50 dark:bg-transparent">
+      <div className="mx-auto w-full max-w-2xl space-y-10 p-4 md:p-6">
+        <SecuritySection />
+        <AppearanceSection />
+        <DangerSection />
+      </div>
     </div>
   );
 }
