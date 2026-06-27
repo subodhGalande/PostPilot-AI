@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { requireAuthJose } from "@/lib/auth/auth";
 import { draftStore } from "@/lib/server/draft-store";
 
@@ -10,7 +10,8 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const fetchType = searchParams.get("fetch") === "scheduled" ? "scheduled" : "drafts";
+    const fetchType =
+      searchParams.get("fetch") === "scheduled" ? "scheduled" : "drafts";
 
     const drafts = await draftStore.listDrafts(authUser.id, fetchType);
 

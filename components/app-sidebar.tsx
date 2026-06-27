@@ -190,7 +190,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-border/50 p-3 md:p-4">
-        <Link 
+        <Link
           href="/dashboard/profile"
           onClick={() => {
             if (isMobile) {

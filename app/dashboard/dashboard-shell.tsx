@@ -6,7 +6,6 @@ import {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
-  User,
 } from "lucide-react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
@@ -31,7 +30,7 @@ import {
 import { useUser } from "../context/userDetailsContext";
 import type { DateRange } from "@/lib/analytics/types";
 
-import { ReadonlyURLSearchParams } from "next/navigation";
+import type { ReadonlyURLSearchParams } from "next/navigation";
 
 function getRouteMeta(
   pathname: string,
@@ -164,7 +163,6 @@ function DashboardHeader() {
   const searchParams = useSearchParams();
   const { isMobile, state, toggleSidebar } = useSidebar();
   const routeMeta = getRouteMeta(pathname, searchParams);
-  const { user } = useUser();
   const [isNavigating, setIsNavigating] = useState(false);
 
   // Simple trick to show progress bar on pathname change

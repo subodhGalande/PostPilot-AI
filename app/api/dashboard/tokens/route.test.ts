@@ -15,7 +15,7 @@ describe("GET /api/dashboard/tokens", () => {
     vi.mocked(await import("@/lib/auth/auth")).requireAuthJose = vi
       .fn()
       .mockResolvedValueOnce(null);
-    const req = new Request("http://localhost/api/dashboard/tokens");
+    const _req = new Request("http://localhost/api/dashboard/tokens");
     const res = await GET();
     expect(res.status).toBe(401);
   });
@@ -25,7 +25,7 @@ describe("GET /api/dashboard/tokens", () => {
       .fn()
       .mockResolvedValueOnce({ id: "user1" });
 
-    const req = new Request("http://localhost/api/dashboard/tokens");
+    const _req = new Request("http://localhost/api/dashboard/tokens");
     const res = await GET();
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ remaining: 5 });

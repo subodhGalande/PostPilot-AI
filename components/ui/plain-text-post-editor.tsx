@@ -38,7 +38,8 @@ interface PlainTextPostEditorProps {
   readOnly?: boolean;
 }
 
-interface ToolbarButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ToolbarButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon: React.ReactNode;
   label: string;
 }
@@ -54,8 +55,8 @@ function getSelectedLineRange(
 ) {
   const lineStart =
     value.lastIndexOf("\n", Math.max(0, selectionStart - 1)) + 1;
-    
-  const adjustedEnd = 
+
+  const adjustedEnd =
     selectionEnd > selectionStart && value[selectionEnd - 1] === "\n"
       ? selectionEnd - 1
       : selectionEnd;
@@ -194,10 +195,10 @@ export function PlainTextPostEditor({
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const scrollTop = textarea.scrollTop;
-    
-    let nextValue;
-    let cursorPosition;
-    
+
+    let nextValue: string;
+    let cursorPosition: number;
+
     if (start !== end) {
       nextValue = `${value.slice(0, start)}\n\n${value.slice(start, end)}\n\n${value.slice(end)}`;
       cursorPosition = end + 4;
@@ -441,7 +442,9 @@ export function PlainTextPostEditor({
               <div className="ml-auto h-5 w-px bg-border" />
               <ToolbarButton
                 className="group"
-                icon={<Copy className="transition-transform duration-500 ease-out-ui group-hover:scale-110" />}
+                icon={
+                  <Copy className="transition-transform duration-500 ease-out-ui group-hover:scale-110" />
+                }
                 label={copyLabel}
                 onClick={onCopy}
               />

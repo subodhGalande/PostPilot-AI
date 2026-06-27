@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 
 import { DraftEditorWorkspace } from "@/components/dashboard/draft-editor-workspace";

@@ -153,252 +153,266 @@ export function PostPreview({
       )}
     >
       <div className="flex flex-col h-full w-full overflow-hidden">
-      <div className="flex shrink-0 items-center gap-3 border-b border-border/50 p-4 md:p-6">
-        {isGenerated ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="-ml-2 shrink-0 lg:hidden"
-            onClick={onReset}
-          >
-            <ArrowLeft className="size-5" />
-          </Button>
-        ) : null}
-        <div className="min-w-0 flex-1 flex flex-col justify-center">
-          <div className="flex flex-wrap items-center gap-3">
-            <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
-            {!hideStatusBadge && activePost && (
-              <Badge
-                variant="outline"
-                className={cn(
-                  "px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold shadow-sm",
-                  activePost[activePlatform].status === "SCHEDULED"
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400"
-                    : "bg-amber-50 text-amber-700 border-amber-200 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400",
-                )}
-              >
-                {activePost[activePlatform].status === "SCHEDULED" ? (
-                  <span className="flex items-center gap-1.5">
-                    <span className="size-1.5 rounded-full bg-emerald-500 shadow-sm" />
-                    {activePlatform === "linkedin"
-                      ? "LinkedIn Scheduled"
-                      : "X Scheduled"}
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1.5">
-                    <span className="size-1.5 rounded-full bg-amber-500 shadow-sm" />
-                    {activePlatform === "linkedin" ? "LinkedIn Draft" : "X Draft"}
-                  </span>
-                )}
-              </Badge>
-            )}
-          </div>
-          {description ? (
-            <p className="text-sm text-muted-foreground">
-              {description}
-            </p>
+        <div className="flex shrink-0 items-center gap-3 border-b border-border/50 p-4 md:p-6">
+          {isGenerated ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="-ml-2 shrink-0 lg:hidden"
+              onClick={onReset}
+            >
+              <ArrowLeft className="size-5" />
+            </Button>
           ) : null}
-        </div>
-        {activePost && availablePlatforms.length > 1 && (
-          <Tabs
-            value={activePlatform}
-            onValueChange={(value) => setActivePlatform(value as PlatformTab)}
-            className="hidden md:flex"
-          >
-            <TabsList className="h-10 bg-background/50 backdrop-blur-md p-1 border border-border/50 shadow-inner rounded-xl">
-              <TabsTrigger
-                value="linkedin"
-                className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm"
-              >
-                <Linkedin className="size-3.5" />
-                LinkedIn
-              </TabsTrigger>
-              <TabsTrigger
-                value="x"
-                className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm"
-              >
-                <Twitter className="size-3.5" />X
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        )}
-      </div>
-
-      <AnimatePresence mode="popLayout" initial={false}>
-        {!isGenerated && !isGenerating ? (
-          <motion.div
-            key="ready"
-            initial={{ opacity: 0, transform: "translateY(8px)" }}
-            animate={{ opacity: 1, transform: "translateY(0px)" }}
-            exit={{ opacity: 0, transform: "translateY(-8px)" }}
-            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-            className="flex min-h-0 flex-1 w-full flex-col items-center justify-center p-6 text-center"
-          >
-            <div className="mb-4 flex size-20 items-center justify-center rounded-full bg-primary/10">
-              <FileText className="size-10 text-primary" />
-            </div>
-            <h4 className="mb-2 text-xl font-bold">Ready to Write</h4>
-            <p className="max-w-sm text-sm text-muted-foreground">
-              Fill out the configuration on the left and hit generate to create
-              your first draft.
-            </p>
-          </motion.div>
-        ) : isThinking ? (
-          <motion.div
-            key="thinking"
-            initial={{ opacity: 0, transform: "translateY(8px)" }}
-            animate={{ opacity: 1, transform: "translateY(0px)" }}
-            exit={{ opacity: 0, transform: "translateY(-8px)" }}
-            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-            className="flex min-h-0 flex-1 w-full flex-col gap-4 p-6 fade-in"
-          >
-            <div className="rounded-xl border bg-muted/30 p-4">
-              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <Loader2 className="size-4 animate-spin text-primary" />
-                Thinking...
-              </div>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Analyzing your request and preparing the post structure...
-              </p>
-            </div>
-            <div className="rounded-xl border bg-muted/20 p-4">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="mt-4 h-12 w-full" />
-              <div className="mt-6 flex flex-wrap gap-2">
-                <Skeleton className="h-6 w-24 rounded-full" />
-                <Skeleton className="h-6 w-28 rounded-full" />
-                <Skeleton className="h-6 w-32 rounded-full" />
-              </div>
-              <Skeleton className="mt-6 h-24 w-full" />
-              <Skeleton className="mt-3 h-24 w-full" />
-            </div>
-          </motion.div>
-        ) : isGenerated && activePost && generatedPostPack ? (
-          <motion.div
-            key="generated"
-            initial={{ opacity: 0, transform: "translateY(8px)" }}
-            animate={{ opacity: 1, transform: "translateY(0px)" }}
-            exit={{ opacity: 0, transform: "translateY(-8px)" }}
-            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-            className="flex flex-col flex-1 min-h-0 w-full"
-          >
-            {availablePlatforms.length > 1 && (
-              <div className="border-b px-4 py-3 md:hidden">
-                <Tabs
-                  value={activePlatform}
-                  onValueChange={(value) =>
-                    setActivePlatform(value as PlatformTab)
-                  }
+          <div className="min-w-0 flex-1 flex flex-col justify-center">
+            <div className="flex flex-wrap items-center gap-3">
+              <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
+              {!hideStatusBadge && activePost && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold shadow-sm",
+                    activePost[activePlatform].status === "SCHEDULED"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400"
+                      : "bg-amber-50 text-amber-700 border-amber-200 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400",
+                  )}
                 >
-                  <TabsList className="w-full h-10 bg-background/50 backdrop-blur-md p-1 border border-border/50 shadow-inner rounded-xl">
-                    <TabsTrigger
-                      value="linkedin"
-                      className="w-full gap-2 rounded-lg text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm"
-                    >
-                      <Linkedin className="size-3.5" />
-                      LinkedIn
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="x"
-                      className="w-full gap-2 rounded-lg text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm"
-                    >
-                      <Twitter className="size-3.5" />X
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
-            )}
-
-            <div className="flex-1 overflow-y-auto relative min-h-0">
-              <AnimatePresence mode="popLayout" initial={false}>
-              <motion.div
-                key={activePlatform}
-                initial={{ opacity: 0, filter: "blur(4px)", transform: "translateY(8px)" }}
-                animate={{ opacity: 1, filter: "blur(0px)", transform: "translateY(0px)" }}
-                exit={{ opacity: 0, filter: "blur(4px)", transform: "translateY(-8px)" }}
-                transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-                className="w-full"
-              >
-                {activePlatform === "linkedin" ? (
-                  <LinkedInPostPreview
-                    postStyle={postStyle}
-                    targetAudience={targetAudience}
-                    post={activePost}
-                    onChange={onLinkedInChange}
-                    readOnly={readOnly}
-                  />
-                ) : (
-                  <XPostPreview
-                    postStyle={postStyle}
-                    targetAudience={targetAudience}
-                    post={activePost}
-                    onPostChange={onXPostChange}
-                    readOnly={readOnly}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
+                  {activePost[activePlatform].status === "SCHEDULED" ? (
+                    <span className="flex items-center gap-1.5">
+                      <span className="size-1.5 rounded-full bg-emerald-500 shadow-sm" />
+                      {activePlatform === "linkedin"
+                        ? "LinkedIn Scheduled"
+                        : "X Scheduled"}
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5">
+                      <span className="size-1.5 rounded-full bg-amber-500 shadow-sm" />
+                      {activePlatform === "linkedin"
+                        ? "LinkedIn Draft"
+                        : "X Draft"}
+                    </span>
+                  )}
+                </Badge>
+              )}
             </div>
+            {description ? (
+              <p className="text-sm text-muted-foreground">{description}</p>
+            ) : null}
+          </div>
+          {activePost && availablePlatforms.length > 1 && (
+            <Tabs
+              value={activePlatform}
+              onValueChange={(value) => setActivePlatform(value as PlatformTab)}
+              className="hidden md:flex"
+            >
+              <TabsList className="h-10 bg-background/50 backdrop-blur-md p-1 border border-border/50 shadow-inner rounded-xl">
+                <TabsTrigger
+                  value="linkedin"
+                  className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm"
+                >
+                  <Linkedin className="size-3.5" />
+                  LinkedIn
+                </TabsTrigger>
+                <TabsTrigger
+                  value="x"
+                  className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm"
+                >
+                  <Twitter className="size-3.5" />X
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
+        </div>
 
-            <div className="shrink-0 border-t px-4 py-4 md:px-6 md:py-5">
-              <div className="flex flex-col gap-3 sm:flex-row">
-                {activePost[activePlatform].status === "DRAFT" && (
-                  <SchedulePostModal
-                    post={activePost}
-                    model={generatedPostPack.model}
-                    clientDraftKey={clientDraftKey || ""}
-                    id={id}
-                    updatedAt={updatedAt}
-                    platform={activePlatform}
-                    onSuccess={onScheduleSuccess}
+        <AnimatePresence mode="popLayout" initial={false}>
+          {!isGenerated && !isGenerating ? (
+            <motion.div
+              key="ready"
+              initial={{ opacity: 0, transform: "translateY(8px)" }}
+              animate={{ opacity: 1, transform: "translateY(0px)" }}
+              exit={{ opacity: 0, transform: "translateY(-8px)" }}
+              transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+              className="flex min-h-0 flex-1 w-full flex-col items-center justify-center p-6 text-center"
+            >
+              <div className="mb-4 flex size-20 items-center justify-center rounded-full bg-primary/10">
+                <FileText className="size-10 text-primary" />
+              </div>
+              <h4 className="mb-2 text-xl font-bold">Ready to Write</h4>
+              <p className="max-w-sm text-sm text-muted-foreground">
+                Fill out the configuration on the left and hit generate to
+                create your first draft.
+              </p>
+            </motion.div>
+          ) : isThinking ? (
+            <motion.div
+              key="thinking"
+              initial={{ opacity: 0, transform: "translateY(8px)" }}
+              animate={{ opacity: 1, transform: "translateY(0px)" }}
+              exit={{ opacity: 0, transform: "translateY(-8px)" }}
+              transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+              className="flex min-h-0 flex-1 w-full flex-col gap-4 p-6 fade-in"
+            >
+              <div className="rounded-xl border bg-muted/30 p-4">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <Loader2 className="size-4 animate-spin text-primary" />
+                  Thinking...
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Analyzing your request and preparing the post structure...
+                </p>
+              </div>
+              <div className="rounded-xl border bg-muted/20 p-4">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="mt-4 h-12 w-full" />
+                <div className="mt-6 flex flex-wrap gap-2">
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                  <Skeleton className="h-6 w-28 rounded-full" />
+                  <Skeleton className="h-6 w-32 rounded-full" />
+                </div>
+                <Skeleton className="mt-6 h-24 w-full" />
+                <Skeleton className="mt-3 h-24 w-full" />
+              </div>
+            </motion.div>
+          ) : isGenerated && activePost && generatedPostPack ? (
+            <motion.div
+              key="generated"
+              initial={{ opacity: 0, transform: "translateY(8px)" }}
+              animate={{ opacity: 1, transform: "translateY(0px)" }}
+              exit={{ opacity: 0, transform: "translateY(-8px)" }}
+              transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+              className="flex flex-col flex-1 min-h-0 w-full"
+            >
+              {availablePlatforms.length > 1 && (
+                <div className="border-b px-4 py-3 md:hidden">
+                  <Tabs
+                    value={activePlatform}
+                    onValueChange={(value) =>
+                      setActivePlatform(value as PlatformTab)
+                    }
                   >
-                    <Button
-                      className="w-full flex-1 rounded-xl font-semibold shadow-md transition-all"
-                      disabled={isGenerating}
-                    >
-                      <Calendar className="mr-2 size-4" />
-                      Schedule {activePlatformLabel}
-                    </Button>
-                  </SchedulePostModal>
-                )}
-                {!readOnly ? (
-                  <>
-                    <Button
-                      variant="secondary"
-                      className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold hover:bg-muted"
-                      onClick={() => handleSaveDraft(activePlatform as Platform)}
-                      disabled={isSavingDraft || isGenerating || !onSaveDraft}
-                    >
-                      {isSavingDraft ? (
-                        <Loader2 className="mr-2 size-4 animate-spin" />
-                      ) : (
-                        <Save className="mr-2 size-4" />
-                      )}
-                      {isSavingDraft
-                        ? "Saving..."
-                        : saveDraftLabel || "Save as Draft"}
-                    </Button>
-                    {mode === "draft" &&
-                      activePost[activePlatform].status === "DRAFT" && (
-                        <Button
-                          variant="outline"
-                          className="w-full flex-1 rounded-xl border-destructive bg-transparent font-semibold text-destructive transition-all hover:bg-destructive hover:text-white"
-                          onClick={() =>
-                            onDeleteDraft?.(activePlatform as Platform)
-                          }
-                          disabled={isSavingDraft || isGenerating}
-                        >
-                          <Trash2 className="mr-2 size-4" />
-                          Delete {activePlatformLabel} Draft
-                        </Button>
-                      )}
-                  </>
-                ) : null}
+                    <TabsList className="w-full h-10 bg-background/50 backdrop-blur-md p-1 border border-border/50 shadow-inner rounded-xl">
+                      <TabsTrigger
+                        value="linkedin"
+                        className="w-full gap-2 rounded-lg text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm"
+                      >
+                        <Linkedin className="size-3.5" />
+                        LinkedIn
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="x"
+                        className="w-full gap-2 rounded-lg text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm"
+                      >
+                        <Twitter className="size-3.5" />X
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+              )}
+
+              <div className="flex-1 overflow-y-auto relative min-h-0">
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.div
+                    key={activePlatform}
+                    initial={{
+                      opacity: 0,
+                      filter: "blur(4px)",
+                      transform: "translateY(8px)",
+                    }}
+                    animate={{
+                      opacity: 1,
+                      filter: "blur(0px)",
+                      transform: "translateY(0px)",
+                    }}
+                    exit={{
+                      opacity: 0,
+                      filter: "blur(4px)",
+                      transform: "translateY(-8px)",
+                    }}
+                    transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                    className="w-full"
+                  >
+                    {activePlatform === "linkedin" ? (
+                      <LinkedInPostPreview
+                        postStyle={postStyle}
+                        targetAudience={targetAudience}
+                        post={activePost}
+                        onChange={onLinkedInChange}
+                        readOnly={readOnly}
+                      />
+                    ) : (
+                      <XPostPreview
+                        postStyle={postStyle}
+                        targetAudience={targetAudience}
+                        post={activePost}
+                        onPostChange={onXPostChange}
+                        readOnly={readOnly}
+                      />
+                    )}
+                  </motion.div>
+                </AnimatePresence>
               </div>
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+
+              <div className="shrink-0 border-t px-4 py-4 md:px-6 md:py-5">
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  {activePost[activePlatform].status === "DRAFT" && (
+                    <SchedulePostModal
+                      post={activePost}
+                      model={generatedPostPack.model}
+                      clientDraftKey={clientDraftKey || ""}
+                      id={id}
+                      updatedAt={updatedAt}
+                      platform={activePlatform}
+                      onSuccess={onScheduleSuccess}
+                    >
+                      <Button
+                        className="w-full flex-1 rounded-xl font-semibold shadow-md transition-all"
+                        disabled={isGenerating}
+                      >
+                        <Calendar className="mr-2 size-4" />
+                        Schedule {activePlatformLabel}
+                      </Button>
+                    </SchedulePostModal>
+                  )}
+                  {!readOnly ? (
+                    <>
+                      <Button
+                        variant="secondary"
+                        className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold hover:bg-muted"
+                        onClick={() =>
+                          handleSaveDraft(activePlatform as Platform)
+                        }
+                        disabled={isSavingDraft || isGenerating || !onSaveDraft}
+                      >
+                        {isSavingDraft ? (
+                          <Loader2 className="mr-2 size-4 animate-spin" />
+                        ) : (
+                          <Save className="mr-2 size-4" />
+                        )}
+                        {isSavingDraft
+                          ? "Saving..."
+                          : saveDraftLabel || "Save as Draft"}
+                      </Button>
+                      {mode === "draft" &&
+                        activePost[activePlatform].status === "DRAFT" && (
+                          <Button
+                            variant="outline"
+                            className="w-full flex-1 rounded-xl border-destructive bg-transparent font-semibold text-destructive transition-all hover:bg-destructive hover:text-white"
+                            onClick={() =>
+                              onDeleteDraft?.(activePlatform as Platform)
+                            }
+                            disabled={isSavingDraft || isGenerating}
+                          >
+                            <Trash2 className="mr-2 size-4" />
+                            Delete {activePlatformLabel} Draft
+                          </Button>
+                        )}
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       </div>
     </div>
   );

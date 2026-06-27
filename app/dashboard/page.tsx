@@ -188,9 +188,11 @@ export default function DashboardPage() {
         return;
       }
 
-      const finalLinkedinContent = stripMarkdown(object.linkedin?.content || "");
+      const finalLinkedinContent = stripMarkdown(
+        object.linkedin?.content || "",
+      );
       const finalXPosts = (object.x?.posts || [])
-        .filter((p) => p && p.content)
+        .filter((p) => p?.content)
         .map((p, i) => ({
           id: p.id || `x-${i + 1}`,
           content: stripMarkdown(p.content || ""),
@@ -385,11 +387,10 @@ export default function DashboardPage() {
       }
     }
 
-
     return () => {
       if (retryTimer) clearTimeout(retryTimer);
     };
-  }, [object, topic, isGenerated, isGenerating, stop]);
+  }, [object, topic, isGenerated, isGenerating, stop, submitGenerate]);
 
   const handleGenerate = () => {
     retryCount.current = 0;
@@ -572,7 +573,9 @@ export default function DashboardPage() {
             // Refund the consumed token since the user didn't get usable content.
             // Fire-and-forget — UI reset is already done above.
             fetch("/api/dashboard/refundToken", { method: "POST" })
-              .then(() => queryClient.invalidateQueries({ queryKey: ["tokens"] }))
+              .then(() =>
+                queryClient.invalidateQueries({ queryKey: ["tokens"] }),
+              )
               .catch(() => {});
           }}
           isGenerating={isGenerating}

@@ -29,14 +29,16 @@ export default function GlobalError({
               </p>
             </div>
             <div className="flex gap-4">
-              <button 
-                onClick={() => reset()} 
+              <button
+                type="button"
+                onClick={() => reset()}
                 className="flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
               >
                 <RefreshCcw className="h-4 w-4" />
                 Try again
               </button>
               <button
+                type="button"
                 onClick={() => {
                   window.location.href = "/";
                 }}

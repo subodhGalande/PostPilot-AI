@@ -255,11 +255,20 @@ export function ProfileForm({
 
       <div className="mt-8 flex flex-col sm:flex-row sm:justify-end gap-2">
         {isDirty && (
-          <Button type="button" variant="outline" onClick={() => form.reset()} className="w-full sm:w-auto">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => form.reset()}
+            className="w-full sm:w-auto"
+          >
             Reset
           </Button>
         )}
-        <Button type="submit" disabled={profileMutation.isPending} className="w-full sm:w-auto">
+        <Button
+          type="submit"
+          disabled={profileMutation.isPending}
+          className="w-full sm:w-auto"
+        >
           {profileMutation.isPending ? "Saving..." : "Save changes"}
         </Button>
       </div>

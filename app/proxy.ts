@@ -4,7 +4,7 @@ import { verifyTokenJose, signTokenJose } from "@/lib/auth/jwtjose";
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  let res = NextResponse.next();
+  const res = NextResponse.next();
 
   if (
     pathname.startsWith("/dashboard") ||
@@ -28,10 +28,11 @@ export async function proxy(req: NextRequest) {
 
     if (exp && exp - now < thirtyMinutes) {
       // Extract custom payload, omitting standard claims
+      // biome-ignore lint/correctness/noUnusedVariables: Intentional omit
       const { iat, exp, nbf, jti, ...customPayload } = payload;
-      
+
       const newToken = await signTokenJose(customPayload as any);
-      
+
       res.cookies.set({
         name: "jwt",
         value: newToken,

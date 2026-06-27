@@ -377,7 +377,9 @@ export function CalendarView() {
           : "bg-slate-100/70 dark:bg-slate-800/50 border-slate-300/50 dark:border-slate-700/60 hover:bg-slate-200/60 dark:hover:bg-slate-800/80";
 
       return (
-        <div className={`group flex w-full flex-col gap-1.5 rounded-lg border p-2 text-card-foreground shadow-sm transition-all duration-200 ease-out-ui hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] cursor-pointer ${platformCardClass}`}>
+        <div
+          className={`group flex w-full flex-col gap-1.5 rounded-lg border p-2 text-card-foreground shadow-sm transition-all duration-200 ease-out-ui hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] cursor-pointer ${platformCardClass}`}
+        >
           <div className="flex w-full items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-1.5 overflow-hidden">
               <div
@@ -480,7 +482,9 @@ export function CalendarView() {
         headerToolbar={{
           left: isMobile ? "prev,next" : "prev,next today",
           center: "title",
-          right: isMobile ? "listWeek,timeGridDay" : "dayGridMonth,dayGridWeek,dayGridDay",
+          right: isMobile
+            ? "listWeek,timeGridDay"
+            : "dayGridMonth,dayGridWeek,dayGridDay",
         }}
         events={events}
         eventContent={renderEventContent}

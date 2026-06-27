@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Sparkles, X, Square } from "lucide-react";
+import { Sparkles, X, Square } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -93,7 +93,9 @@ export function PostConfiguration({
 
       <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-6">
         <div className="flex flex-col gap-2">
-          <Label className="text-sm font-medium text-foreground/80">Topic</Label>
+          <Label className="text-sm font-medium text-foreground/80">
+            Topic
+          </Label>
           <Input
             value={topic}
             onChange={(event) => {
@@ -108,7 +110,9 @@ export function PostConfiguration({
 
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
-            <Label className="text-sm font-medium text-foreground/80">Tone</Label>
+            <Label className="text-sm font-medium text-foreground/80">
+              Tone
+            </Label>
             <Select
               value={tone}
               onValueChange={(v) => {
@@ -129,7 +133,9 @@ export function PostConfiguration({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label className="text-sm font-medium text-foreground/80">Post Style</Label>
+            <Label className="text-sm font-medium text-foreground/80">
+              Post Style
+            </Label>
             <Select
               value={postStyle}
               onValueChange={(v) => {
@@ -151,7 +157,9 @@ export function PostConfiguration({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label className="text-sm font-medium text-foreground/80">Target Audience</Label>
+          <Label className="text-sm font-medium text-foreground/80">
+            Target Audience
+          </Label>
           <Select
             value={targetAudience}
             onValueChange={(v) => {
@@ -174,7 +182,9 @@ export function PostConfiguration({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label className="text-sm font-medium text-foreground/80">Keywords</Label>
+          <Label className="text-sm font-medium text-foreground/80">
+            Keywords
+          </Label>
           <Input
             value={keywordInput}
             onChange={(event) => setKeywordInput(event.target.value)}

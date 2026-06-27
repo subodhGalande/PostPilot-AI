@@ -218,7 +218,11 @@ function SecurityForm() {
           </FieldGroup>
 
           <div className="mt-8 flex sm:justify-end">
-            <Button type="submit" disabled={passwordMutation.isPending} className="w-full sm:w-auto">
+            <Button
+              type="submit"
+              disabled={passwordMutation.isPending}
+              className="w-full sm:w-auto"
+            >
               {passwordMutation.isPending ? "Updating..." : "Update password"}
             </Button>
           </div>

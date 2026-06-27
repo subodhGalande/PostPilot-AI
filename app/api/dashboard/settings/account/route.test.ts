@@ -13,9 +13,12 @@ describe("DELETE /api/dashboard/settings/account", () => {
     vi.mocked(await import("@/lib/auth/auth")).requireAuthJose = vi
       .fn()
       .mockResolvedValueOnce(null);
-    const req = new Request("http://localhost/api/dashboard/settings/account", {
-      method: "DELETE",
-    });
+    const _req = new Request(
+      "http://localhost/api/dashboard/settings/account",
+      {
+        method: "DELETE",
+      },
+    );
     const res = await DELETE();
     expect(res.status).toBe(401);
   });
@@ -25,9 +28,12 @@ describe("DELETE /api/dashboard/settings/account", () => {
       .fn()
       .mockResolvedValueOnce({ id: "1" });
 
-    const req = new Request("http://localhost/api/dashboard/settings/account", {
-      method: "DELETE",
-    });
+    const _req = new Request(
+      "http://localhost/api/dashboard/settings/account",
+      {
+        method: "DELETE",
+      },
+    );
     const res = await DELETE();
 
     expect(prismaMock.user.delete).toHaveBeenCalledWith({ where: { id: "1" } });

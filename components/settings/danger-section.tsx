@@ -78,7 +78,10 @@ export function DangerSection() {
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button variant="destructive" className="w-full sm:w-auto shrink-0">
+              <Button
+                variant="destructive"
+                className="w-full sm:w-auto shrink-0"
+              >
                 Delete Account
               </Button>
             </DialogTrigger>
