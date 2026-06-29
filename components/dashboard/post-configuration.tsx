@@ -85,7 +85,7 @@ export function PostConfiguration({
       )}
     >
       <div className="shrink-0 border-b p-6">
-        <h3 className="text-lg font-semibold tracking-tight">Configuration</h3>
+        <h2 className="text-lg font-semibold tracking-tight">Configuration</h2>
         <p className="text-sm text-muted-foreground">
           Define the core parameters for your AI-generated content.
         </p>
@@ -120,7 +120,7 @@ export function PostConfiguration({
                 setValidationError(null);
               }}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full" aria-label="Select tone">
                 <SelectValue placeholder="Select tone" />
               </SelectTrigger>
               <SelectContent>
@@ -143,7 +143,7 @@ export function PostConfiguration({
                 setValidationError(null);
               }}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full" aria-label="Select post style">
                 <SelectValue placeholder="Select style" />
               </SelectTrigger>
               <SelectContent>
@@ -167,7 +167,10 @@ export function PostConfiguration({
               setValidationError(null);
             }}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger
+              className="w-full"
+              aria-label="Select target audience"
+            >
               <SelectValue placeholder="Select audience" />
             </SelectTrigger>
             <SelectContent>
