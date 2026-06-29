@@ -167,7 +167,10 @@ export function PostConfiguration({
               setValidationError(null);
             }}
           >
-            <SelectTrigger className="w-full" aria-label="Select target audience">
+            <SelectTrigger
+              className="w-full"
+              aria-label="Select target audience"
+            >
               <SelectValue placeholder="Select audience" />
             </SelectTrigger>
             <SelectContent>
