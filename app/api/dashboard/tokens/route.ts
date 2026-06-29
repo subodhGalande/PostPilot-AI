@@ -9,6 +9,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // biome-ignore lint/style/noNonNullAssertion: Checked above
     const usage = await tokenLedger.getDailyUsage(authUser.id!);
 
     return NextResponse.json({

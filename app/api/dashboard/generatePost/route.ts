@@ -280,6 +280,7 @@ export async function POST(req: Request) {
     }
 
     try {
+      // biome-ignore lint/style/noNonNullAssertion: Checked at route entry
       await tokenLedger.consumeToken(userId!);
       tokenConsumed = true;
     } catch (e) {
