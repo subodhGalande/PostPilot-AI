@@ -261,6 +261,14 @@ export default function DashboardPage() {
     },
   });
 
+  const stopRef = useRef(stop);
+  const submitGenerateRef = useRef(submitGenerate);
+
+  useEffect(() => {
+    stopRef.current = stop;
+    submitGenerateRef.current = submitGenerate;
+  }, [stop, submitGenerate]);
+
   // Restore from sessionStorage on mount
   useEffect(() => {
     const saved = loadDraftState();
@@ -359,7 +367,7 @@ export default function DashboardPage() {
 
       if (detectStuttering(partialPost)) {
         console.warn("Stuttering detected mid-stream! Stopping generation.");
-        stop();
+        stopRef.current();
 
         // stop() triggers AbortError which the AI SDK silently swallows —
         // onError and onFinish will NOT fire. Handle retry/cleanup inline.
@@ -369,7 +377,7 @@ export default function DashboardPage() {
           if (input) {
             setGeneratedPostPack(null);
             retryTimer = setTimeout(() => {
-              submitGenerate({
+              submitGenerateRef.current({
                 modelName: DEFAULT_MODEL.id,
                 ...input,
               });
@@ -390,7 +398,8 @@ export default function DashboardPage() {
     return () => {
       if (retryTimer) clearTimeout(retryTimer);
     };
-  }, [object, topic, isGenerated, isGenerating, stop, submitGenerate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [object, topic, isGenerated, isGenerating]);
 
   const handleGenerate = () => {
     retryCount.current = 0;

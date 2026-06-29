@@ -219,6 +219,40 @@ export async function getAnalyticsResponse(
   userId: string,
   range: DateRange,
 ): Promise<AnalyticsResponse> {
+  // --- MOCK DATA FOR SCREENSHOTS ---
+  // To reverse, simply delete this entire block down to "END MOCK DATA".
+  return {
+    kpis: {
+      totalPosts: 142,
+      scheduledPosts: 28,
+      conversionRate: 45.2,
+      streak: 12,
+      totalPostsChange: 14,
+      scheduledPostsChange: 5,
+      conversionRateChange: 2.1,
+      streakChange: 3,
+    },
+    volume: [
+      { date: "2026-06-23", total: 5, linkedinCount: 3, xCount: 2 },
+      { date: "2026-06-24", total: 8, linkedinCount: 4, xCount: 4 },
+      { date: "2026-06-25", total: 12, linkedinCount: 7, xCount: 5 },
+      { date: "2026-06-26", total: 7, linkedinCount: 3, xCount: 4 },
+      { date: "2026-06-27", total: 15, linkedinCount: 8, xCount: 7 },
+      { date: "2026-06-28", total: 22, linkedinCount: 12, xCount: 10 },
+      { date: "2026-06-29", total: 18, linkedinCount: 9, xCount: 9 },
+    ],
+    platformMix: [
+      { platform: "linkedin", count: 85 },
+      { platform: "x", count: 57 },
+    ],
+    funnel: [
+      { stage: "Drafts", count: 45 },
+      { stage: "Scheduled", count: 28 },
+      { stage: "Published", count: 69 },
+    ],
+  };
+  // --- END MOCK DATA ---
+
   const [kpis, volume, platformMix, funnel] = await Promise.all([
     getPostCounts(userId, range),
     getPostVolume(userId, range),
