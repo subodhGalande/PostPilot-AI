@@ -3,6 +3,7 @@
 import { useUserProfile } from "@/lib/hooks/use-user-profile";
 import { ProfileForm } from "@/components/profile/profile-form";
 import { AvatarUpload } from "@/components/profile/avatar-upload";
+import { SettingsCard } from "@/components/ui/settings-card";
 
 function ProfilePageSkeleton() {
   return (
@@ -12,7 +13,7 @@ function ProfilePageSkeleton() {
           <div className="h-5 w-28 animate-pulse rounded-xl bg-muted" />
           <div className="mt-1 h-4 w-48 animate-pulse rounded-xl bg-muted" />
         </div>
-        <div className="rounded-xl border bg-card p-4 md:p-6">
+        <SettingsCard>
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
             <div className="size-20 animate-pulse rounded-full bg-muted md:size-24" />
             <div className="min-w-0 flex-1 flex flex-col items-center sm:items-start space-y-2 mt-2 sm:mt-0">
@@ -20,7 +21,7 @@ function ProfilePageSkeleton() {
               <div className="h-4 w-36 animate-pulse rounded-xl bg-muted" />
             </div>
           </div>
-        </div>
+        </SettingsCard>
       </section>
 
       <section>
@@ -28,7 +29,7 @@ function ProfilePageSkeleton() {
           <div className="h-5 w-36 animate-pulse rounded-xl bg-muted" />
           <div className="mt-1 h-4 w-52 animate-pulse rounded-xl bg-muted" />
         </div>
-        <div className="rounded-xl border bg-card p-4 md:p-6">
+        <SettingsCard>
           <div className="space-y-5">
             {Array.from({ length: 6 }).map((_, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton, never reorders
@@ -38,7 +39,7 @@ function ProfilePageSkeleton() {
               </div>
             ))}
           </div>
-        </div>
+        </SettingsCard>
       </section>
     </div>
   );
@@ -58,11 +59,8 @@ export default function ProfilePage() {
           <h2 className="text-base font-semibold tracking-tight text-foreground">
             Profile Photo
           </h2>
-          <p className="mt-1 text-[13px] text-muted-foreground/80">
-            Update your profile photo and personal details.
-          </p>
         </div>
-        <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
+        <SettingsCard>
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
             <AvatarUpload avatarUrl={user.avatarUrl} name={user.name} />
             <div className="min-w-0 mt-2 sm:mt-0">
@@ -77,7 +75,7 @@ export default function ProfilePage() {
               )}
             </div>
           </div>
-        </div>
+        </SettingsCard>
       </section>
 
       <section>
@@ -85,11 +83,8 @@ export default function ProfilePage() {
           <h2 className="text-base font-semibold tracking-tight text-foreground">
             Profile Information
           </h2>
-          <p className="mt-1 text-[13px] text-muted-foreground/80">
-            Edit your public profile information.
-          </p>
         </div>
-        <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
+        <SettingsCard>
           <ProfileForm
             id={user.id}
             name={user.name}
@@ -99,7 +94,7 @@ export default function ProfilePage() {
             accountType={user.accountType}
             description={user.description}
           />
-        </div>
+        </SettingsCard>
       </section>
     </div>
   );

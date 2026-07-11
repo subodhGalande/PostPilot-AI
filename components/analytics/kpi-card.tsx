@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { TrendingDown, TrendingUp } from "lucide-react";
+import { TrendingDown, TrendingUp, Minus } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -21,7 +21,8 @@ export function KpiCard({
   loading,
   change,
 }: KpiCardProps) {
-  const isPositive = (change ?? 0) >= 0;
+  const isNeutral = (change ?? 0) === 0;
+  const isPositive = (change ?? 0) > 0;
   const showChange = change !== undefined && !loading;
 
   return (
@@ -50,12 +51,16 @@ export function KpiCard({
               <span
                 className={cn(
                   "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium transition-colors",
-                  isPositive
-                    ? "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20"
-                    : "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20",
+                  isNeutral
+                    ? "bg-muted text-muted-foreground ring-1 ring-inset ring-border"
+                    : isPositive
+                      ? "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20"
+                      : "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20",
                 )}
               >
-                {isPositive ? (
+                {isNeutral ? (
+                  <Minus className="size-3" />
+                ) : isPositive ? (
                   <TrendingUp className="size-3" />
                 ) : (
                   <TrendingDown className="size-3" />

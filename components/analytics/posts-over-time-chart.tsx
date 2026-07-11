@@ -12,6 +12,7 @@ import {
 } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LineChart as LineChartIcon } from "lucide-react";
 import type { VolumeDataPoint } from "@/lib/analytics/types";
 
 const numberFormat = new Intl.NumberFormat();
@@ -49,8 +50,11 @@ export function PostsOverTimeChart({ data, loading }: PostsOverTimeChartProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
-            No activity in this period
+          <div className="flex h-[300px] flex-col items-center justify-center gap-3 text-sm text-muted-foreground/60">
+            <div className="flex size-10 items-center justify-center rounded-full bg-muted/50">
+              <LineChartIcon className="size-5 text-muted-foreground/50" />
+            </div>
+            <p>No activity in this period. Create a post to see trends.</p>
           </div>
         </CardContent>
       </Card>

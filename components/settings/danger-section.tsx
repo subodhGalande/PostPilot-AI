@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { SettingsCard } from "@/components/ui/settings-card";
 
 export function DangerSection() {
   const [open, setOpen] = useState(false);
@@ -50,12 +51,9 @@ export function DangerSection() {
         <h2 className="text-base font-semibold tracking-tight text-destructive">
           Danger Zone
         </h2>
-        <p className="mt-1 text-[13px] text-muted-foreground/80">
-          Irreversible actions affecting your account.
-        </p>
       </div>
 
-      <div className="rounded-xl border border-destructive/30 bg-red-50 shadow-sm transition-all duration-300 hover:shadow-md hover:border-destructive/50 dark:bg-red-950/10 dark:backdrop-blur-xl">
+      <SettingsCard className="border-destructive/30 bg-red-50 dark:bg-red-950/10 p-0 md:p-0">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-destructive/20 p-4 md:p-6">
           <div>
             <h3 className="font-medium">Sign Out</h3>
@@ -63,9 +61,7 @@ export function DangerSection() {
               Sign out of your account on this device.
             </p>
           </div>
-          <div className="w-full sm:w-auto shrink-0">
-            <LogoutButton className="w-full sm:w-auto" />
-          </div>
+          <LogoutButton className="w-full sm:w-auto" />
         </div>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 md:p-6">
@@ -80,7 +76,7 @@ export function DangerSection() {
             <DialogTrigger asChild>
               <Button
                 variant="destructive"
-                className="w-full sm:w-auto shrink-0"
+                className="w-full sm:w-auto"
               >
                 Delete Account
               </Button>
@@ -148,8 +144,8 @@ export function DangerSection() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </div>
-      </div>
-    </section>
-  );
+          </div>
+        </SettingsCard>
+      </section>
+    );
 }
