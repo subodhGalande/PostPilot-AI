@@ -260,7 +260,7 @@ export function PostConfiguration({
         ) : (
           <Button
             size="lg"
-            className="group flex w-full items-center gap-2 rounded-xl text-base font-bold"
+            className="group flex w-full items-center gap-2 rounded-xl text-base font-bold transition-transform active:scale-[0.98]"
             disabled={isTokensExhausted}
             onClick={() => {
               if (!topic.trim()) {

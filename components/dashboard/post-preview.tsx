@@ -9,9 +9,11 @@ import {
   Trash2,
   Linkedin,
   Twitter,
+  AlertCircle,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { LinkedInPostPreview } from "@/components/dashboard/linkedin-post-preview";
 import { XPostPreview } from "@/components/dashboard/x-post-preview";
 import { SchedulePostModal } from "@/components/dashboard/schedule-post-modal";
@@ -50,6 +52,7 @@ interface PostPreviewProps {
   hideStatusBadge?: boolean;
   readOnly?: boolean;
   clearedPlatforms?: Set<Platform>;
+  generationError?: string | null;
 }
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -77,6 +80,7 @@ export function PostPreview({
   hideStatusBadge = false,
   readOnly = false,
   clearedPlatforms = new Set(),
+  generationError = null,
 }: PostPreviewProps) {
   const [activePlatform, setActivePlatform] =
     useState<PlatformTab>(initialPlatform);
@@ -225,7 +229,34 @@ export function PostPreview({
         </div>
 
         <AnimatePresence mode="popLayout" initial={false}>
-          {!isGenerated && !isGenerating ? (
+          {generationError ? (
+            <motion.div
+              key="error"
+              initial={{ opacity: 0, transform: "translateY(8px)" }}
+              animate={{ opacity: 1, transform: "translateY(0px)" }}
+              exit={{ opacity: 0, transform: "translateY(-8px)" }}
+              transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+              className="flex min-h-0 flex-1 w-full flex-col p-6"
+            >
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Generation Error</AlertTitle>
+                <AlertDescription>{generationError}</AlertDescription>
+              </Alert>
+              <div className="flex flex-col items-center justify-center flex-1 text-center mt-8">
+                 <div className="mb-4 flex size-20 items-center justify-center rounded-full bg-destructive/10">
+                   <AlertCircle className="size-10 text-destructive" />
+                 </div>
+                 <h4 className="mb-2 text-xl font-bold">Something went wrong</h4>
+                 <p className="max-w-sm text-sm text-muted-foreground mb-6">
+                   Adjust your prompt or settings and try generating again.
+                 </p>
+                 {onReset && (
+                   <Button onClick={onReset} variant="outline">Clear configuration</Button>
+                 )}
+              </div>
+            </motion.div>
+          ) : !isGenerated && !isGenerating ? (
             <motion.div
               key="ready"
               initial={{ opacity: 0, transform: "translateY(8px)" }}
@@ -250,27 +281,35 @@ export function PostPreview({
               animate={{ opacity: 1, transform: "translateY(0px)" }}
               exit={{ opacity: 0, transform: "translateY(-8px)" }}
               transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-              className="flex min-h-0 flex-1 w-full flex-col gap-4 p-6 fade-in"
+              className="flex min-h-0 flex-1 w-full flex-col p-6 fade-in"
             >
-              <div className="rounded-xl border bg-muted/30 p-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Loader2 className="size-4 animate-spin text-primary" />
-                  Thinking...
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Analyzing your request and preparing the post structure...
-                </p>
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground mb-6">
+                <Loader2 className="size-4 animate-spin text-primary" />
+                Thinking...
               </div>
-              <div className="rounded-xl border bg-muted/20 p-4">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="mt-4 h-12 w-full" />
-                <div className="mt-6 flex flex-wrap gap-2">
-                  <Skeleton className="h-6 w-24 rounded-full" />
-                  <Skeleton className="h-6 w-28 rounded-full" />
-                  <Skeleton className="h-6 w-32 rounded-full" />
+              <div className="w-full max-w-2xl text-left border rounded-xl bg-card p-6 shadow-sm">
+                <div className="flex gap-4 items-center mb-6">
+                  <Skeleton className="size-12 rounded-full" />
+                  <div className="flex flex-col gap-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
                 </div>
-                <Skeleton className="mt-6 h-24 w-full" />
-                <Skeleton className="mt-3 h-24 w-full" />
+                <div className="space-y-3">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-[90%]" />
+                  <Skeleton className="h-4 w-[95%]" />
+                  <Skeleton className="h-4 w-[80%]" />
+                </div>
+                <div className="mt-6 space-y-3">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-[85%]" />
+                </div>
+                <div className="mt-8 flex gap-4 border-t pt-4">
+                  <Skeleton className="h-8 w-20 rounded-md" />
+                  <Skeleton className="h-8 w-20 rounded-md" />
+                  <Skeleton className="h-8 w-20 rounded-md" />
+                </div>
               </div>
             </motion.div>
           ) : isGenerated && activePost && generatedPostPack ? (
