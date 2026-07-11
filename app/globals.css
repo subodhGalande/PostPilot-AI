@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #ffffff;
+  --background: #fafafa;
   --foreground: #09090b;
   --card: #ffffff;
   --card-foreground: #09090b;
@@ -87,7 +87,7 @@
   --accent: #27272a;
   --accent-foreground: #fafafa;
   --destructive: oklch(0.64 0.21 25.39);
-  --border: #27272a;
+  --border: rgba(255, 255, 255, 0.1);
   --input: #27272a;
   --ring: #0047ff;
   --chart-1: oklch(0.71 0.14 254.69);

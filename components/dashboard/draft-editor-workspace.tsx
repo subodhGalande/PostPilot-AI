@@ -270,24 +270,24 @@ export function DraftEditorWorkspace({
     const diffHours = Math.round(diffMins / 60);
 
     if (Math.abs(diffMins) < 60) {
-      return `Saved ${new Intl.RelativeTimeFormat("en", {
+      return `Saved ${new Intl.RelativeTimeFormat("en-US", {
         numeric: "auto",
       }).format(diffMins, "minute")}`;
     }
 
     if (Math.abs(diffHours) < 24) {
-      return `Saved ${new Intl.RelativeTimeFormat("en", {
+      return `Saved ${new Intl.RelativeTimeFormat("en-US", {
         numeric: "auto",
       }).format(diffHours, "hour")}`;
     }
 
-    return `Saved on ${new Intl.DateTimeFormat("en-IN", {
+    return `Saved on ${new Intl.DateTimeFormat("en-US", {
       day: "numeric",
       month: "short",
     }).format(updatedAtDate)}`;
   }, [saveDraftMutation.isPending, hasUnsavedChanges, draftUpdatedAt]);
 
-  const createdLabel = new Intl.DateTimeFormat("en-IN", {
+  const createdLabel = new Intl.DateTimeFormat("en-US", {
     day: "numeric",
     month: "short",
   }).format(new Date(initialCreatedAt));
@@ -300,103 +300,67 @@ export function DraftEditorWorkspace({
 
   return (
     <div className="flex h-full w-full flex-col gap-4">
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3 text-sm shadow-sm">
-        <div className="flex w-full sm:w-auto items-center justify-between sm:justify-start gap-3 text-foreground">
+      <div className="flex items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3 text-sm shadow-sm">
+        <div className="flex items-center gap-3 text-foreground">
           <div className="inline-flex items-center gap-2">
             <SaveStatusIcon
-              className={`size-4 ${saveDraftMutation.isPending ? "animate-spin text-primary" : hasUnsavedChanges ? "text-amber-500" : "text-emerald-500"}`}
+              className={`size-4 ${saveDraftMutation.isPending ? "animate-pulse text-primary" : hasUnsavedChanges ? "text-amber-500" : "text-emerald-500"}`}
             />
             <span className="font-semibold tracking-tight">
               {saveStatusLabel}
             </span>
           </div>
-          <span className="rounded-full border border-border/50 bg-muted/50 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground shadow-sm">
+          <span className="hidden sm:inline-flex rounded-full border border-border/50 bg-muted/50 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground shadow-sm">
             Created {createdLabel}
           </span>
         </div>
 
         {(isScheduledManagementView || status === "SCHEDULED") && (
-          <div className="flex w-full sm:w-auto items-center gap-2">
+          <div className="flex items-center gap-2">
             {isScheduledManagementView ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full sm:w-auto h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-3 font-semibold shadow-sm transition-all hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring"
-                  >
-                    Post Actions
-                    <ChevronDown className="size-3.5 text-muted-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-[var(--radix-dropdown-menu-trigger-width)] sm:w-44 p-1 shadow-lg rounded-xl"
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-2 sm:px-3 font-semibold shadow-sm transition-transform active:translate-y-px hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring"
+                  onClick={() =>
+                    handleOpenConfirmation(
+                      "unschedule",
+                      scheduledManagementPlatform,
+                    )
+                  }
+                  disabled={unscheduleMutation.isPending}
                 >
-                  <DropdownMenuItem
-                    className="cursor-pointer gap-2 py-2 rounded-lg focus:bg-accent focus:text-accent-foreground"
-                    onClick={() =>
-                      handleOpenConfirmation(
-                        "unschedule",
-                        scheduledManagementPlatform,
-                      )
-                    }
-                    disabled={unscheduleMutation.isPending}
-                  >
-                    <RotateCcw className="size-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">
-                      Unschedule{" "}
-                      {scheduledManagementPlatform === "linkedin"
-                        ? "LinkedIn"
-                        : "X"}
-                    </span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="cursor-pointer gap-2 py-2 rounded-lg text-destructive focus:bg-destructive/10 focus:text-destructive"
-                    onClick={() =>
-                      handleOpenConfirmation(
-                        "delete",
-                        scheduledManagementPlatform,
-                      )
-                    }
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash2 className="size-4 text-destructive/80" />
-                    <span className="text-sm font-medium">
-                      Delete{" "}
-                      {scheduledManagementPlatform === "linkedin"
-                        ? "LinkedIn"
-                        : "X"}
-                    </span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <RotateCcw className="size-4 text-muted-foreground" />
+                  <span className="hidden sm:inline text-sm font-medium">Unschedule</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-2 rounded-lg border-destructive/20 bg-destructive/5 text-destructive px-2 sm:px-3 font-semibold shadow-sm transition-transform active:translate-y-px hover:bg-destructive/10 focus-visible:ring-1 focus-visible:ring-ring"
+                  onClick={() =>
+                    handleOpenConfirmation(
+                      "delete",
+                      scheduledManagementPlatform,
+                    )
+                  }
+                  disabled={deleteMutation.isPending}
+                >
+                  <Trash2 className="size-4 text-destructive/80" />
+                  <span className="hidden sm:inline text-sm font-medium">Delete</span>
+                </Button>
+              </>
             ) : status === "SCHEDULED" ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full sm:w-auto h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-3 font-semibold shadow-sm transition-all hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring"
-                  >
-                    Post Actions
-                    <ChevronDown className="size-3.5 text-muted-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-[var(--radix-dropdown-menu-trigger-width)] sm:w-44 p-1 shadow-lg rounded-xl"
-                >
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => handleOpenConfirmation("unschedule")}
-                    disabled={unscheduleMutation.isPending}
-                  >
-                    <RotateCcw className="mr-2 size-4" />
-                    Move to Draft
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-2 rounded-lg border-border/50 bg-background/50 px-2 sm:px-3 font-semibold shadow-sm transition-transform active:translate-y-px hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring"
+                onClick={() => handleOpenConfirmation("unschedule")}
+                disabled={unscheduleMutation.isPending}
+              >
+                <RotateCcw className="size-4 text-muted-foreground" />
+                <span className="hidden sm:inline text-sm font-medium">Move to Draft</span>
+              </Button>
             ) : null}
           </div>
         )}

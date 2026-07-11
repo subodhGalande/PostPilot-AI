@@ -75,7 +75,7 @@ const ToolbarButton = React.forwardRef<HTMLButtonElement, ToolbarButtonProps>(
         type="button"
         variant="outline"
         size="icon-sm"
-        className={cn("rounded-md", className)}
+        className={cn("rounded-md transition-transform active:translate-y-px", className)}
         aria-label={label}
         title={label}
         {...props}
@@ -382,7 +382,7 @@ export function PlainTextPostEditor({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border bg-background shadow-xs",
+        "overflow-hidden rounded-xl border bg-card shadow-xs",
         className,
       )}
     >
@@ -476,7 +476,7 @@ export function PlainTextPostEditor({
             : undefined
         }
         className={cn(
-          "min-h-[420px] resize-none rounded-none border-0 bg-background p-5 text-sm leading-7 shadow-none focus-visible:ring-0",
+          "min-h-[420px] resize-none rounded-none border-0 bg-transparent p-5 text-sm leading-7 shadow-none focus-visible:ring-0",
           autoResize && "overflow-y-hidden",
           textareaClassName,
         )}

@@ -565,7 +565,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="relative flex flex-1 min-h-0 flex-col gap-6 overflow-hidden bg-zinc-50 dark:bg-transparent px-2 py-4 md:p-6 lg:flex-row">
+    <div className="relative flex flex-1 min-h-0 flex-col gap-6 overflow-hidden bg-background px-2 py-4 md:p-6 lg:flex-row">
       <div
         className={cn(
           "w-full shrink-0 self-start max-h-full lg:w-5/12 xl:w-[450px]",
@@ -682,7 +682,7 @@ export default function DashboardPage() {
         <div className="fixed bottom-6 right-6 z-50 lg:hidden">
           <Drawer open={isMobileConfigOpen} onOpenChange={setIsMobileConfigOpen}>
             <DrawerTrigger asChild>
-              <Button size="icon" className="h-14 w-14 rounded-full shadow-lg">
+              <Button size="icon" className="h-14 w-14 rounded-full shadow-lg dark:border dark:border-border">
                 <SlidersHorizontal className="h-6 w-6" />
               </Button>
             </DrawerTrigger>

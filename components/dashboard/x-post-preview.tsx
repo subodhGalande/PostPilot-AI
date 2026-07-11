@@ -59,7 +59,7 @@ export function XPostPreview({
             return (
               <div
                 key={threadPostId}
-                className="rounded-xl border bg-background/80 p-2 md:p-4"
+                className="rounded-xl border bg-card/80 p-2 md:p-4"
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-foreground">
@@ -68,7 +68,7 @@ export function XPostPreview({
                   <div className="flex items-center gap-2">
                     <span
                       className={cn(
-                        "text-xs font-medium",
+                        "text-xs font-medium font-mono tabular-nums",
                         isOverCharacterLimit
                           ? "text-destructive"
                           : "text-muted-foreground",
@@ -79,7 +79,7 @@ export function XPostPreview({
                     <Button
                       variant="outline"
                       size="icon-sm"
-                      className="rounded-lg group"
+                      className="rounded-lg group active:translate-y-px"
                       onClick={async () => {
                         try {
                           await copyPostContent(threadPost.content);
@@ -121,10 +121,10 @@ export function XPostPreview({
                   readOnly={readOnly}
                 />
 
-                <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border bg-background px-3 py-2 text-xs">
+                <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border bg-card px-3 py-2 text-xs">
                   <span
                     className={cn(
-                      "font-semibold",
+                      "font-semibold font-mono tabular-nums",
                       isOverCharacterLimit
                         ? "text-destructive"
                         : "text-foreground",

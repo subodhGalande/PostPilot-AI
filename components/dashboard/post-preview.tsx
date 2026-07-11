@@ -162,7 +162,7 @@ export function PostPreview({
             <Button
               variant="ghost"
               size="icon"
-              className="-ml-2 shrink-0 lg:hidden"
+              className="-ml-2 shrink-0 lg:hidden transition-transform active:translate-y-px"
               onClick={onReset}
             >
               <ArrowLeft className="size-5" />
@@ -212,14 +212,14 @@ export function PostPreview({
               <TabsList className="h-10 bg-background/50 backdrop-blur-md p-1 border border-border/50 shadow-inner rounded-xl">
                 <TabsTrigger
                   value="linkedin"
-                  className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm"
+                  className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm active:translate-y-px"
                 >
                   <Linkedin className="size-3.5" />
                   LinkedIn
                 </TabsTrigger>
                 <TabsTrigger
                   value="x"
-                  className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm"
+                  className="gap-2 rounded-lg px-4 text-[13px] font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm active:translate-y-px"
                 >
                   <Twitter className="size-3.5" />X
                 </TabsTrigger>
@@ -284,8 +284,10 @@ export function PostPreview({
               className="flex min-h-0 flex-1 w-full flex-col p-6 fade-in"
             >
               <div className="flex items-center gap-2 text-sm font-medium text-foreground mb-6">
-                <Loader2 className="size-4 animate-spin text-primary" />
-                Thinking...
+                <span className="flex size-4 items-center justify-center">
+                  <span className="size-2 rounded-full bg-primary animate-pulse" />
+                </span>
+                <span className="animate-pulse">Thinking...</span>
               </div>
               <div className="w-full max-w-2xl text-left border rounded-xl bg-card p-6 shadow-sm">
                 <div className="flex gap-4 items-center mb-6">
@@ -404,7 +406,7 @@ export function PostPreview({
                       onSuccess={onScheduleSuccess}
                     >
                       <Button
-                        className="w-full flex-1 rounded-xl font-semibold shadow-md transition-all"
+                        className="w-full flex-1 rounded-xl font-semibold shadow-md transition-transform active:translate-y-px"
                         disabled={isGenerating}
                       >
                         <Calendar className="mr-2 size-4" />
@@ -416,26 +418,24 @@ export function PostPreview({
                     <>
                       <Button
                         variant="secondary"
-                        className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold hover:bg-muted"
+                        className="w-full flex-1 rounded-xl border bg-muted/80 font-semibold transition-transform hover:bg-muted active:translate-y-px"
                         onClick={() =>
                           handleSaveDraft(activePlatform as Platform)
                         }
                         disabled={isSavingDraft || isGenerating || !onSaveDraft}
                       >
-                        {isSavingDraft ? (
-                          <Loader2 className="mr-2 size-4 animate-spin" />
-                        ) : (
-                          <Save className="mr-2 size-4" />
-                        )}
-                        {isSavingDraft
-                          ? "Saving..."
-                          : saveDraftLabel || "Save as Draft"}
+                        <Save className={cn("mr-2 size-4", isSavingDraft && "animate-pulse opacity-50")} />
+                        <span className={cn(isSavingDraft && "animate-pulse opacity-70")}>
+                          {isSavingDraft
+                            ? "Saving..."
+                            : saveDraftLabel || "Save as Draft"}
+                        </span>
                       </Button>
                       {mode === "draft" &&
                         activePost[activePlatform].status === "DRAFT" && (
                           <Button
                             variant="outline"
-                            className="w-full flex-1 rounded-xl border-destructive bg-transparent font-semibold text-destructive transition-all hover:bg-destructive hover:text-white"
+                            className="w-full flex-1 rounded-xl border-destructive bg-transparent font-semibold text-destructive transition-all hover:bg-destructive hover:text-white active:translate-y-px"
                             onClick={() =>
                               onDeleteDraft?.(activePlatform as Platform)
                             }
