@@ -1,6 +1,6 @@
 "use client";
 
-import { GalleryVerticalEnd, Mail, Lock } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -19,6 +19,7 @@ import { Controller } from "react-hook-form";
 import { useLoginForm } from "./use-login-form";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { Icons } from "@/components/ui/icons";
 
 const GOOGLE_ERROR_MESSAGES: Record<string, string> = {
   google_auth_failed:
@@ -49,12 +50,12 @@ export function LoginForm({
           <div className="flex flex-col items-center gap-2 text-center">
             <span className="flex flex-col items-center gap-2 font-medium">
               <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <GalleryVerticalEnd className="size-5" />
+                <Icons.logo className="size-5" />
               </div>
-              <span className="sr-only">PostPilot AI</span>
+              <span className="sr-only">PostPilot</span>
             </span>
             <h1 className="text-3xl font-medium tracking-tight">
-              Welcome to Postpilot AI
+              Log in to PostPilot
             </h1>
             <FieldDescription className="text-base">
               Don't have an account?{" "}
@@ -71,13 +72,7 @@ export function LoginForm({
               className="w-full h-11 active:scale-[0.98] transition-transform bg-secondary hover:bg-secondary/80 text-secondary-foreground"
               type="button"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <title>Google</title>
-                <path
-                  d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
-                  fill="currentColor"
-                />
-              </svg>
+              <Icons.google className="size-5" />
               Continue with Google
             </Button>
           </Field>
@@ -90,18 +85,14 @@ export function LoginForm({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    {...field}
-                    id="email"
-                    type="email"
-                    aria-invalid={fieldState.invalid}
-                    placeholder="Enter email"
-                    className="h-11 bg-muted/50 border-transparent shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)] pl-9 focus-visible:ring-primary"
-                    required
-                  />
-                </div>
+                <Input
+                  {...field}
+                  id="email"
+                  type="email"
+                  aria-invalid={fieldState.invalid}
+                  placeholder="Enter email"
+                  disabled={isPending}
+                />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
@@ -114,18 +105,14 @@ export function LoginForm({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="password">Password</FieldLabel>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    {...field}
-                    id="password"
-                    type="password"
-                    aria-invalid={fieldState.invalid}
-                    placeholder="Enter password"
-                    className="h-11 bg-muted/50 border-transparent shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)] pl-9 focus-visible:ring-primary"
-                    required
-                  />
-                </div>
+                <Input
+                  {...field}
+                  id="password"
+                  type="password"
+                  aria-invalid={fieldState.invalid}
+                  placeholder="Enter password"
+                  disabled={isPending}
+                />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
@@ -136,36 +123,11 @@ export function LoginForm({
             <Button
               type="submit"
               disabled={isPending}
-              className="w-full h-11 active:scale-[0.98] transition-transform"
+              className="w-full h-11"
             >
-              {isPending ? (
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <title>Loading</title>
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              ) : null}
-              {isPending ? "logging in..." : "Login"}
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Log in
             </Button>
-            <p className="text-center text-xs text-muted-foreground mt-4">
-              Secure, encrypted login.
-            </p>
           </Field>
         </FieldGroup>
       </form>
