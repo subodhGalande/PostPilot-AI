@@ -66,14 +66,13 @@ export function LoginForm({
           </div>
           <Field className="gap-4">
             <Button
-              onClick={() => {
-                window.location.href = "/api/auth/google";
-              }}
+              asChild
               className="w-full h-11 active:scale-[0.98] transition-transform bg-secondary hover:bg-secondary/80 text-secondary-foreground"
-              type="button"
             >
-              <Icons.google className="size-5" />
-              Continue with Google
+              <a href="/api/auth/google">
+                <Icons.google className="size-5 mr-2" />
+                Continue with Google
+              </a>
             </Button>
           </Field>
 

@@ -1,8 +1,10 @@
 import { LandingHeader } from "@/components/landing/header";
 import { LandingHero } from "@/components/landing/hero";
 import { FeaturesBento } from "@/components/landing/features-bento";
-import { HighlightSection } from "@/components/landing/highlight-section";
+import { ProblemSolutionSection } from "@/components/landing/problem-solution";
+import { HowItWorksSection } from "@/components/landing/how-it-works";
 import { FaqSection } from "@/components/landing/faq-section";
+import { CtaSection } from "@/components/landing/cta-section";
 import { LandingFooter } from "@/components/landing/footer";
 
 export default function Home() {
@@ -11,9 +13,11 @@ export default function Home() {
       <LandingHeader />
       <main className="flex-1 flex flex-col">
         <LandingHero />
+        <ProblemSolutionSection />
         <FeaturesBento />
-        <HighlightSection />
+        <HowItWorksSection />
         <FaqSection />
+        <CtaSection />
       </main>
       <LandingFooter />
     </div>

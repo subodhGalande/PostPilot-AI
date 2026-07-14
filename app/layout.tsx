@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
-import { Outfit, Noto_Serif, Fira_Code } from "next/font/google";
+import { Plus_Jakarta_Sans, Bricolage_Grotesque, Noto_Serif, Fira_Code } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/lib/providers/queryProvider";
 import ThemeProvider from "@/lib/providers/themeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { AppTooltipProvider } from "@/lib/providers/tooltipProvider";
 
-const fontSans = Outfit({
+const fontSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
+});
+
+const fontHeading = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-heading",
 });
 
 const fontSerif = Noto_Serif({
@@ -34,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${fontSans.variable} ${fontSerif.variable}  ${fontMono.variable} antialiased tabular-nums`}
+        className={`${fontSans.variable} ${fontHeading.variable} ${fontSerif.variable} ${fontMono.variable} antialiased tabular-nums`}
       >
         <AppTooltipProvider>
           <ThemeProvider>
