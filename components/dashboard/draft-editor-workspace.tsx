@@ -10,6 +10,7 @@ import {
   Loader2,
   RotateCcw,
   Trash2,
+  Lock,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -261,6 +262,7 @@ export function DraftEditorWorkspace({
   };
 
   const saveStatusLabel = useMemo(() => {
+    if (isScheduledManagementView) return "Read-Only (Scheduled)";
     if (saveDraftMutation.isPending) return "Saving...";
     if (hasUnsavedChanges) return "Unsaved changes";
 
@@ -294,9 +296,11 @@ export function DraftEditorWorkspace({
 
   const SaveStatusIcon = saveDraftMutation.isPending
     ? Loader2
-    : hasUnsavedChanges
-      ? Edit3
-      : CheckCircle2;
+    : isScheduledManagementView
+      ? Lock
+      : hasUnsavedChanges
+        ? Edit3
+        : CheckCircle2;
 
   return (
     <div className="flex h-full w-full flex-col gap-4">
@@ -304,7 +308,15 @@ export function DraftEditorWorkspace({
         <div className="flex items-center gap-3 text-foreground">
           <div className="inline-flex items-center gap-2">
             <SaveStatusIcon
-              className={`size-4 ${saveDraftMutation.isPending ? "animate-pulse text-primary" : hasUnsavedChanges ? "text-amber-500" : "text-emerald-500"}`}
+              className={`size-4 ${
+                saveDraftMutation.isPending
+                  ? "animate-pulse text-primary"
+                  : isScheduledManagementView
+                    ? "text-muted-foreground"
+                    : hasUnsavedChanges
+                      ? "text-amber-500"
+                      : "text-emerald-500"
+              }`}
             />
             <span className="font-semibold tracking-tight">
               {saveStatusLabel}
