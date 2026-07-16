@@ -163,24 +163,9 @@ function DashboardHeader() {
   const searchParams = useSearchParams();
   const { isMobile, state, toggleSidebar } = useSidebar();
   const routeMeta = getRouteMeta(pathname, searchParams);
-  const [isNavigating, setIsNavigating] = useState(false);
-
-  // Simple trick to show progress bar on pathname change
-  useEffect(() => {
-    void pathname; // trigger on navigation
-    setIsNavigating(true);
-    const timer = setTimeout(() => setIsNavigating(false), 800);
-    return () => clearTimeout(timer);
-  }, [pathname]);
 
   return (
     <header className="sticky top-0 z-40 flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-border/50 bg-background/80 px-4 py-4 backdrop-blur-xl md:gap-4 md:px-6">
-      {/* Global Progress Bar */}
-      {isNavigating && (
-        <div className="absolute top-0 left-0 right-0 z-50 h-[2px] w-full overflow-hidden bg-primary/10">
-          <div className="h-full w-full origin-left animate-[shimmer_1.5s_infinite] bg-primary" />
-        </div>
-      )}
       <div className="flex min-w-0 items-center gap-3">
         <Button
           variant="outline"

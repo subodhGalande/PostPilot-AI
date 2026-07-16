@@ -21,7 +21,7 @@ export default function DraftDetailLoading() {
           <Skeleton className="h-8 w-28 rounded-lg" />
         </div>
 
-        {/* PostPreview Skeleton (mode="draft") */}
+        {/* PostPreview Skeleton */}
         <div className="flex flex-1 flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
           <div className="flex shrink-0 items-center gap-2 border-b p-4 md:p-6">
             <div className="min-w-0 flex-1 space-y-1">
@@ -38,28 +38,11 @@ export default function DraftDetailLoading() {
             <div className="rounded-xl border bg-muted/30 p-4 space-y-3">
               <Skeleton className="h-3 w-20" />
               <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-[90%]" />
+              <Skeleton className="h-4 w-[80%]" />
             </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Skeleton className="h-6 w-20 rounded-full" />
-              <Skeleton className="h-6 w-24 rounded-full" />
-              <Skeleton className="h-6 w-24 rounded-full" />
-            </div>
-
-            <div className="flex flex-1 flex-col rounded-xl border bg-muted/40 p-4 space-y-4">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-5/6" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-4/5" />
-            </div>
-          </div>
-
-          <div className="border-t p-4 md:p-6">
-            <div className="flex gap-3">
-              <Skeleton className="h-11 flex-1 rounded-xl" />
-              <Skeleton className="h-11 flex-1 rounded-xl" />
+            <div className="flex-1 rounded-xl border bg-muted/10 p-4">
+              <Skeleton className="h-full w-full rounded-lg" />
             </div>
           </div>
         </div>

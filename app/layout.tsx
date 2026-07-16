@@ -5,6 +5,7 @@ import QueryProvider from "@/lib/providers/queryProvider";
 import ThemeProvider from "@/lib/providers/themeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { AppTooltipProvider } from "@/lib/providers/tooltipProvider";
+import NextTopLoader from 'nextjs-toploader';
 
 const fontSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -41,6 +42,7 @@ export default function RootLayout({
       <body
         className={`${fontSans.variable} ${fontHeading.variable} ${fontSerif.variable} ${fontMono.variable} antialiased tabular-nums`}
       >
+        <NextTopLoader color="var(--primary)" showSpinner={false} shadow="0 0 10px var(--primary),0 0 5px var(--primary)" />
         <AppTooltipProvider>
           <ThemeProvider>
             <QueryProvider>{children}</QueryProvider>
