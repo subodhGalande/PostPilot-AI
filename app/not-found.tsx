@@ -4,8 +4,10 @@ import Link from "next/link";
 import { FileQuestion, MoveLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 export default function NotFound() {
+  const router = useRouter();
   return (
     <div className="flex min-h-screen w-full items-center justify-center overflow-hidden bg-background p-6">
       <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-200/50 via-background to-background dark:from-slate-800/50" />
@@ -73,15 +75,13 @@ export default function NotFound() {
           className="flex flex-col gap-3 sm:flex-row"
         >
           <Button
-            asChild
             size="lg"
             variant="outline"
             className="gap-2 rounded-xl"
+            onClick={() => router.back()}
           >
-            <Link href="javascript:history.back()">
-              <MoveLeft className="h-4 w-4" />
-              Go Back
-            </Link>
+            <MoveLeft className="h-4 w-4" />
+            Go Back
           </Button>
           <Button asChild size="lg" className="gap-2 rounded-xl">
             <Link href="/">
