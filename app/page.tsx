@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-primary/30 selection:text-primary-foreground flex flex-col font-sans">
       <LandingHeader />
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col overflow-x-hidden">
         <LandingHero />
         <ProblemSolutionSection />
         <FeaturesBento />
