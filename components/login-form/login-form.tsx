@@ -44,33 +44,34 @@ export function LoginForm({
   }, [searchParams]);
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <form noValidate method="POST" onSubmit={form.handleSubmit(onSubmit)}>
+    <div className={cn("bg-card/40 border border-white/5 backdrop-blur-2xl shadow-2xl rounded-3xl p-8 sm:p-10 flex flex-col gap-4 relative overflow-hidden", className)} {...props}>
+      {/* Subtle top inner glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-4 bg-primary/20 blur-xl rounded-full pointer-events-none" />
+      
+      <form noValidate method="POST" onSubmit={form.handleSubmit(onSubmit)} className="relative z-10">
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
-            <span className="flex flex-col items-center gap-2 font-medium">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Icons.logo className="size-5" />
-              </div>
+            <Link href="/" className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground mb-4 shadow-sm hover:scale-105 transition-transform">
+              <Icons.logo className="size-6" />
               <span className="sr-only">PostPilot</span>
-            </span>
-            <h1 className="text-3xl font-medium tracking-tight">
+            </Link>
+            <h1 className="text-3xl font-medium tracking-tight text-foreground mt-2">
               Log in to PostPilot
             </h1>
-            <FieldDescription className="text-base">
+            <FieldDescription className="text-base text-muted-foreground">
               Don't have an account?{" "}
-              <Link href="/signup" className="text-primary hover:underline">
+              <Link href="/signup" className="text-primary font-medium hover:underline transition-colors">
                 Sign up
               </Link>
             </FieldDescription>
           </div>
-          <Field className="gap-4">
+          <Field className="gap-2 mt-1">
             <Button
               asChild
-              className="w-full h-11 active:scale-[0.98] transition-transform bg-secondary hover:bg-secondary/80 text-secondary-foreground"
+              className="w-full h-12 rounded-xl active:scale-[0.98] transition-transform bg-[#09090B] hover:bg-white/5 text-foreground border border-white/10 font-medium"
             >
               <a href="/api/auth/google">
-                <Icons.google className="size-5 mr-2" />
+                <Icons.google className="size-5 mr-3" />
                 Continue with Google
               </a>
             </Button>
@@ -91,6 +92,7 @@ export function LoginForm({
                   aria-invalid={fieldState.invalid}
                   placeholder="Enter email"
                   disabled={isPending}
+                  className="h-12 rounded-xl bg-[#09090B] border-white/10 focus-visible:ring-4 focus-visible:ring-primary/10 transition-all"
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -111,6 +113,7 @@ export function LoginForm({
                   aria-invalid={fieldState.invalid}
                   placeholder="Enter password"
                   disabled={isPending}
+                  className="h-12 rounded-xl bg-[#09090B] border-white/10 focus-visible:ring-4 focus-visible:ring-primary/10 transition-all"
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -118,11 +121,11 @@ export function LoginForm({
               </Field>
             )}
           />
-          <Field>
+          <Field className="mt-1">
             <Button
               type="submit"
               disabled={isPending}
-              className="w-full h-11"
+              className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-[0_0_20px_rgba(0,71,255,0.15)] transition-all"
             >
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Log in
