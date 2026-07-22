@@ -44,14 +44,28 @@ export function LoginForm({
   }, [searchParams]);
 
   return (
-    <div className={cn("bg-card/40 border border-white/5 backdrop-blur-2xl shadow-2xl rounded-3xl p-8 sm:p-10 flex flex-col gap-4 relative overflow-hidden", className)} {...props}>
+    <div
+      className={cn(
+        "bg-card/40 border border-white/5 backdrop-blur-2xl shadow-2xl rounded-3xl p-8 sm:p-10 flex flex-col gap-4 relative overflow-hidden",
+        className,
+      )}
+      {...props}
+    >
       {/* Subtle top inner glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-4 bg-primary/20 blur-xl rounded-full pointer-events-none" />
-      
-      <form noValidate method="POST" onSubmit={form.handleSubmit(onSubmit)} className="relative z-10">
+
+      <form
+        noValidate
+        method="POST"
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="relative z-10"
+      >
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
-            <Link href="/" className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground mb-4 shadow-sm hover:scale-105 transition-transform">
+            <Link
+              href="/"
+              className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground mb-4 shadow-sm hover:scale-105 transition-transform"
+            >
               <Icons.logo className="size-6" />
               <span className="sr-only">PostPilot</span>
             </Link>
@@ -60,7 +74,10 @@ export function LoginForm({
             </h1>
             <FieldDescription className="text-base text-muted-foreground">
               Don't have an account?{" "}
-              <Link href="/signup" className="text-primary font-medium hover:underline transition-colors">
+              <Link
+                href="/signup"
+                className="text-primary font-medium hover:underline transition-colors"
+              >
                 Sign up
               </Link>
             </FieldDescription>

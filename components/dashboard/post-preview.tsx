@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   Calendar,
   FileText,
-  Loader2,
   Save,
   Trash2,
   Linkedin,
@@ -244,16 +243,18 @@ export function PostPreview({
                 <AlertDescription>{generationError}</AlertDescription>
               </Alert>
               <div className="flex flex-col items-center justify-center flex-1 text-center mt-8">
-                 <div className="mb-4 flex size-20 items-center justify-center rounded-full bg-destructive/10">
-                   <AlertCircle className="size-10 text-destructive" />
-                 </div>
-                 <h4 className="mb-2 text-xl font-bold">Something went wrong</h4>
-                 <p className="max-w-sm text-sm text-muted-foreground mb-6">
-                   Adjust your prompt or settings and try generating again.
-                 </p>
-                 {onReset && (
-                   <Button onClick={onReset} variant="outline">Clear configuration</Button>
-                 )}
+                <div className="mb-4 flex size-20 items-center justify-center rounded-full bg-destructive/10">
+                  <AlertCircle className="size-10 text-destructive" />
+                </div>
+                <h4 className="mb-2 text-xl font-bold">Something went wrong</h4>
+                <p className="max-w-sm text-sm text-muted-foreground mb-6">
+                  Adjust your prompt or settings and try generating again.
+                </p>
+                {onReset && (
+                  <Button onClick={onReset} variant="outline">
+                    Clear configuration
+                  </Button>
+                )}
               </div>
             </motion.div>
           ) : !isGenerated && !isGenerating ? (
@@ -424,8 +425,17 @@ export function PostPreview({
                         }
                         disabled={isSavingDraft || isGenerating || !onSaveDraft}
                       >
-                        <Save className={cn("mr-2 size-4", isSavingDraft && "animate-pulse opacity-50")} />
-                        <span className={cn(isSavingDraft && "animate-pulse opacity-70")}>
+                        <Save
+                          className={cn(
+                            "mr-2 size-4",
+                            isSavingDraft && "animate-pulse opacity-50",
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            isSavingDraft && "animate-pulse opacity-70",
+                          )}
+                        >
                           {isSavingDraft
                             ? "Saving..."
                             : saveDraftLabel || "Save as Draft"}

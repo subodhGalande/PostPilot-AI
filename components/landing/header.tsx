@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icons } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function LandingHeader() {
@@ -25,7 +25,10 @@ export function LandingHeader() {
     }
   };
 
-  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+  const handleAnchorClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    targetId: string,
+  ) => {
     setIsOpen(false);
     if (pathname === "/") {
       e.preventDefault();
@@ -38,13 +41,15 @@ export function LandingHeader() {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 flex flex-col items-center pt-6 px-4 pointer-events-none">
-      
       {/* Main Navbar Pill */}
       <header className="pointer-events-auto w-full max-w-5xl rounded-full border border-white/10 bg-background/80 backdrop-blur-2xl shadow-2xl relative z-50">
         <div className="px-6 h-14 flex items-center justify-between">
-          
           {/* Logo */}
-          <Link href="/#hero" onClick={handleHeroClick} className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+          <Link
+            href="/#hero"
+            onClick={handleHeroClick}
+            className="flex items-center gap-2 hover:opacity-90 transition-opacity"
+          >
             <div className="flex shrink-0 h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <Icons.logo className="h-5 w-5" />
             </div>
@@ -52,30 +57,46 @@ export function LandingHeader() {
               PostPilot AI
             </span>
           </Link>
-          
+
           {/* Desktop Nav Links */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/#features" onClick={(e) => handleAnchorClick(e, "features")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link
+              href="/#features"
+              onClick={(e) => handleAnchorClick(e, "features")}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
               Features
             </Link>
-            <Link href="/#faq" onClick={(e) => handleAnchorClick(e, "faq")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link
+              href="/#faq"
+              onClick={(e) => handleAnchorClick(e, "faq")}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
               FAQ
             </Link>
-            <Link href="/changelog" onClick={() => setIsOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link
+              href="/changelog"
+              onClick={() => setIsOpen(false)}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
               Changelog
             </Link>
           </nav>
 
           {/* Desktop & Mobile Actions */}
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
+            <Link
+              href="/login"
+              className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
+            >
               Log in
             </Link>
 
-            <Button asChild className="hidden md:inline-flex bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-full px-6 h-9 shadow-sm shadow-primary/20 transition-all active:scale-[0.98]">
-              <Link href="/signup">
-                Get Started
-              </Link>
+            <Button
+              asChild
+              className="hidden md:inline-flex bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-full px-6 h-9 shadow-sm shadow-primary/20 transition-all active:scale-[0.98]"
+            >
+              <Link href="/signup">Get Started</Link>
             </Button>
 
             {/* Mobile Hamburger Toggle Button - Clean transparent icon */}
@@ -86,10 +107,13 @@ export function LandingHeader() {
               aria-expanded={isOpen}
               className="md:hidden p-2 text-foreground hover:text-primary transition-colors focus:outline-none bg-transparent border-0 shadow-none"
             >
-              {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {isOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
             </button>
           </div>
-
         </div>
       </header>
 
@@ -137,7 +161,10 @@ export function LandingHeader() {
                   Log in
                 </Link>
 
-                <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-full h-11 text-base shadow-lg shadow-primary/20">
+                <Button
+                  asChild
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-full h-11 text-base shadow-lg shadow-primary/20"
+                >
                   <Link href="/signup" onClick={() => setIsOpen(false)}>
                     Get Started Free
                   </Link>
@@ -147,7 +174,6 @@ export function LandingHeader() {
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 }

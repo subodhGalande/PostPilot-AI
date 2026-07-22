@@ -9,11 +9,7 @@ import { PostConfiguration } from "@/components/dashboard/post-configuration";
 import { PostPreview } from "@/components/dashboard/post-preview";
 import { SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import {
   createClientDraftKey,
   saveDraft,
@@ -177,14 +173,18 @@ export default function DashboardPage() {
     }) => {
       if (error) {
         // onFinish fires with an error when schema validation fails.
-        setGenerationError("The AI returned an unexpected response. Please try again.");
+        setGenerationError(
+          "The AI returned an unexpected response. Please try again.",
+        );
         setGeneratedPostPack(null);
         clearDraftState();
         return;
       }
 
       if (!object) {
-        setGenerationError("The AI returned an unexpected response. Please try again.");
+        setGenerationError(
+          "The AI returned an unexpected response. Please try again.",
+        );
         setGeneratedPostPack(null);
         clearDraftState();
         return;
@@ -201,7 +201,9 @@ export default function DashboardPage() {
         }));
 
       if (!finalLinkedinContent.trim() && finalXPosts.length === 0) {
-        setGenerationError("The AI failed to complete the post. It may have timed out or hit a limit. Please try again.");
+        setGenerationError(
+          "The AI failed to complete the post. It may have timed out or hit a limit. Please try again.",
+        );
         setGeneratedPostPack(null);
         clearDraftState();
         return;
@@ -239,7 +241,7 @@ export default function DashboardPage() {
     onError: (error: Error) => {
       console.error("AI Generation failed:", error);
       const classified = classifyApiError(error);
-      
+
       // Instead of resetting the UI to false, show the error inline
       setGenerationError(classified.message);
       setGeneratedPostPack(null);
@@ -384,7 +386,9 @@ export default function DashboardPage() {
           }
         }
 
-        setGenerationError("The AI got stuck in a loop. Please try a different topic or keywords.");
+        setGenerationError(
+          "The AI got stuck in a loop. Please try a different topic or keywords.",
+        );
         setGeneratedPostPack(null);
         clearDraftState();
       }
@@ -422,9 +426,7 @@ export default function DashboardPage() {
 
     // Refund the consumed token since the user didn't get usable content.
     fetch("/api/dashboard/refundToken", { method: "POST" })
-      .then(() =>
-        queryClient.invalidateQueries({ queryKey: ["tokens"] }),
-      )
+      .then(() => queryClient.invalidateQueries({ queryKey: ["tokens"] }))
       .catch(() => {});
   };
 
@@ -680,9 +682,15 @@ export default function DashboardPage() {
 
       {isGenerated && (
         <div className="fixed bottom-6 right-6 z-50 lg:hidden">
-          <Drawer open={isMobileConfigOpen} onOpenChange={setIsMobileConfigOpen}>
+          <Drawer
+            open={isMobileConfigOpen}
+            onOpenChange={setIsMobileConfigOpen}
+          >
             <DrawerTrigger asChild>
-              <Button size="icon" className="h-14 w-14 rounded-full shadow-lg dark:border dark:border-border">
+              <Button
+                size="icon"
+                className="h-14 w-14 rounded-full shadow-lg dark:border dark:border-border"
+              >
                 <SlidersHorizontal className="h-6 w-6" />
               </Button>
             </DrawerTrigger>

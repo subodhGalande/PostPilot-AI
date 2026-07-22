@@ -1,14 +1,14 @@
-import { PrismaClient } from '../app/generated/prisma';
+import { PrismaClient } from "../app/generated/prisma";
 
 const prisma = new PrismaClient();
 
 async function main() {
   const targetEmail = "subodhgcool1@gmail.com";
-  
+
   console.log(`Reverting seed data for user: ${targetEmail}`);
 
   const user = await prisma.user.findUnique({
-    where: { email: targetEmail }
+    where: { email: targetEmail },
   });
 
   if (!user) {
@@ -19,13 +19,13 @@ async function main() {
   // Clear posts (cascades to LinkedInPost and XPost)
   console.log("Deleting posts...");
   await prisma.post.deleteMany({
-    where: { userId: user.id }
+    where: { userId: user.id },
   });
 
   // Clear token transactions
   console.log("Deleting token transactions...");
   await prisma.tokenTransaction.deleteMany({
-    where: { userId: user.id }
+    where: { userId: user.id },
   });
 
   // Reset profile to defaults
@@ -38,8 +38,8 @@ async function main() {
       description: null,
       industry: null,
       avatarUrl: null,
-      onboarded: false
-    }
+      onboarded: false,
+    },
   });
 
   console.log("✅ Seed reverted successfully.");

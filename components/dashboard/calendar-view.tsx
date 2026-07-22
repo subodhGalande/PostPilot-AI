@@ -331,7 +331,7 @@ export function CalendarView() {
     );
   };
 
-  const handleDateClick = (info: DateClickArg) => {
+  const handleDateClick = (_info: DateClickArg) => {
     router.push(`/dashboard`);
     toast.info("Select platforms and generate to schedule a post.");
   };
@@ -470,7 +470,9 @@ export function CalendarView() {
   if (!mounted) {
     return (
       <div className="flex h-[600px] items-center justify-center">
-        <span className="animate-pulse text-sm font-medium text-muted-foreground">Loading calendar...</span>
+        <span className="animate-pulse text-sm font-medium text-muted-foreground">
+          Loading calendar...
+        </span>
       </div>
     );
   }

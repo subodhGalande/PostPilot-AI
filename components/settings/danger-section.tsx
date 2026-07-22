@@ -74,10 +74,7 @@ export function DangerSection() {
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button
-                variant="destructive"
-                className="w-full sm:w-auto"
-              >
+              <Button variant="destructive" className="w-full sm:w-auto">
                 Delete Account
               </Button>
             </DialogTrigger>
@@ -144,8 +141,8 @@ export function DangerSection() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          </div>
-        </SettingsCard>
-      </section>
-    );
+        </div>
+      </SettingsCard>
+    </section>
+  );
 }

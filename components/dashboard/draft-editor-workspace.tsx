@@ -5,7 +5,6 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   CheckCircle2,
-  ChevronDown,
   Edit3,
   Loader2,
   RotateCcw,
@@ -22,12 +21,6 @@ import {
 } from "@/lib/drafts";
 import type { GeneratedPostItem, GeneratedPostPack } from "@/lib/social-posts";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { ConfirmationModal } from "@/components/dashboard/confirmation-modal";
 
 interface DraftEditorWorkspaceProps {
@@ -287,7 +280,12 @@ export function DraftEditorWorkspace({
       day: "numeric",
       month: "short",
     }).format(updatedAtDate)}`;
-  }, [saveDraftMutation.isPending, hasUnsavedChanges, draftUpdatedAt]);
+  }, [
+    saveDraftMutation.isPending,
+    hasUnsavedChanges,
+    draftUpdatedAt,
+    isScheduledManagementView,
+  ]);
 
   const createdLabel = new Intl.DateTimeFormat("en-US", {
     day: "numeric",
@@ -344,7 +342,9 @@ export function DraftEditorWorkspace({
                   disabled={unscheduleMutation.isPending}
                 >
                   <RotateCcw className="size-4 text-muted-foreground" />
-                  <span className="hidden sm:inline text-sm font-medium">Unschedule</span>
+                  <span className="hidden sm:inline text-sm font-medium">
+                    Unschedule
+                  </span>
                 </Button>
                 <Button
                   variant="outline"
@@ -359,7 +359,9 @@ export function DraftEditorWorkspace({
                   disabled={deleteMutation.isPending}
                 >
                   <Trash2 className="size-4 text-destructive/80" />
-                  <span className="hidden sm:inline text-sm font-medium">Delete</span>
+                  <span className="hidden sm:inline text-sm font-medium">
+                    Delete
+                  </span>
                 </Button>
               </>
             ) : status === "SCHEDULED" ? (
@@ -371,7 +373,9 @@ export function DraftEditorWorkspace({
                 disabled={unscheduleMutation.isPending}
               >
                 <RotateCcw className="size-4 text-muted-foreground" />
-                <span className="hidden sm:inline text-sm font-medium">Move to Draft</span>
+                <span className="hidden sm:inline text-sm font-medium">
+                  Move to Draft
+                </span>
               </Button>
             ) : null}
           </div>

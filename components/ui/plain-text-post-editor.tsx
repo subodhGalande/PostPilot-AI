@@ -75,7 +75,10 @@ const ToolbarButton = React.forwardRef<HTMLButtonElement, ToolbarButtonProps>(
         type="button"
         variant="outline"
         size="icon-sm"
-        className={cn("rounded-md transition-transform active:translate-y-px", className)}
+        className={cn(
+          "rounded-md transition-transform active:translate-y-px",
+          className,
+        )}
         aria-label={label}
         title={label}
         {...props}

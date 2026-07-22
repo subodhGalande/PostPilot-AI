@@ -5,7 +5,6 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 
 function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
   return (
@@ -174,10 +173,7 @@ function FieldSeparator({
       <div className="h-px flex-1 bg-white/10" />
       {children && (
         <span
-          className={cn(
-            "shrink-0 px-1",
-            contentClassName,
-          )}
+          className={cn("shrink-0 px-1", contentClassName)}
           data-slot="field-separator-content"
         >
           {children}

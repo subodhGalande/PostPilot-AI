@@ -1,6 +1,15 @@
 "use client";
 
-import { Lightbulb, PenTool, Copy, Check, Sparkles, Calendar, Linkedin, Twitter } from "lucide-react";
+import {
+  Lightbulb,
+  PenTool,
+  Copy,
+  Check,
+  Sparkles,
+  Calendar,
+  Linkedin,
+  Twitter,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 export function HowItWorksSection() {
@@ -19,14 +28,14 @@ export function HowItWorksSection() {
             How it works
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty tracking-tight">
-            From a raw thought to a perfectly formatted post across multiple platforms in three simple steps.
+            From a raw thought to a perfectly formatted post across multiple
+            platforms in three simple steps.
           </p>
         </div>
 
         <div className="flex flex-col gap-24 lg:gap-32 relative">
-          
           {/* STEP 1 */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
@@ -48,7 +57,9 @@ export function HowItWorksSection() {
                 Idea & Context
               </h3>
               <p className="text-muted-foreground leading-relaxed text-lg text-pretty max-w-xl">
-                Tell the AI what you want to talk about. Just enter a short idea, choose your desired tone, target audience, and key takeaways.
+                Tell the AI what you want to talk about. Just enter a short
+                idea, choose your desired tone, target audience, and key
+                takeaways.
               </p>
             </div>
 
@@ -57,9 +68,12 @@ export function HowItWorksSection() {
               <div className="bg-card/80 rounded-3xl border border-white/10 p-5 sm:p-6 md:p-8 shadow-2xl backdrop-blur-xl relative overflow-hidden group-hover:border-primary/30 transition-colors">
                 <div className="space-y-4">
                   <div className="bg-background rounded-2xl p-4 border border-white/5">
-                    <span className="text-xs text-muted-foreground block mb-2 font-mono">Your Raw Idea:</span>
+                    <span className="text-xs text-muted-foreground block mb-2 font-mono">
+                      Your Raw Idea:
+                    </span>
                     <p className="text-sm font-medium text-foreground">
-                      "3 lessons learned scaling an AI app to 10k users without spending $1 on ads."
+                      "3 lessons learned scaling an AI app to 10k users without
+                      spending $1 on ads."
                       <span className="inline-block w-2 h-4 ml-1 bg-primary animate-pulse align-middle" />
                     </p>
                   </div>
@@ -87,7 +101,7 @@ export function HowItWorksSection() {
           </motion.div>
 
           {/* STEP 2 */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
@@ -109,19 +123,21 @@ export function HowItWorksSection() {
                 Draft & Refine
               </h3>
               <p className="text-muted-foreground leading-relaxed text-lg text-pretty max-w-xl">
-                PostPilot generates high-quality, native drafts for both X and LinkedIn simultaneously, maintaining your core message with platform-specific formatting.
+                PostPilot generates high-quality, native drafts for both X and
+                LinkedIn simultaneously, maintaining your core message with
+                platform-specific formatting.
               </p>
             </div>
 
             {/* Visual Component 2: Dual Platform Output Card */}
             <div className="flex-1 w-full relative">
               <div className="bg-card/80 rounded-3xl border border-white/10 p-5 sm:p-6 md:p-8 shadow-2xl backdrop-blur-xl relative overflow-hidden group-hover:border-primary/30 transition-colors">
-                
                 {/* Platform selector header */}
                 <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/5">
                   <div className="flex items-center gap-2">
                     <span className="px-3 py-1 rounded-lg bg-white/10 border border-white/10 text-xs font-semibold text-white flex items-center gap-1.5">
-                      <Linkedin className="w-3.5 h-3.5 text-blue-400" /> LinkedIn
+                      <Linkedin className="w-3.5 h-3.5 text-blue-400" />{" "}
+                      LinkedIn
                     </span>
                     <span className="px-3 py-1 rounded-lg bg-white/5 text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                       <Twitter className="w-3.5 h-3.5" /> X (Thread)
@@ -135,11 +151,14 @@ export function HowItWorksSection() {
                 {/* Generated Content Body */}
                 <div className="bg-background rounded-2xl p-5 border border-white/5 space-y-3">
                   <p className="text-sm text-foreground/90 font-medium leading-relaxed">
-                    🚀 Scaling an AI app to 10k users without paid ads comes down to 3 non-obvious rules:
+                    🚀 Scaling an AI app to 10k users without paid ads comes
+                    down to 3 non-obvious rules:
                   </p>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    1. Build public build-in logs on X.<br/>
-                    2. Turn your core prompt into a free tool.<br/>
+                    1. Build public build-in logs on X.
+                    <br />
+                    2. Turn your core prompt into a free tool.
+                    <br />
                     3. Optimize for word-of-mouth loops.
                   </p>
                 </div>
@@ -148,7 +167,7 @@ export function HowItWorksSection() {
           </motion.div>
 
           {/* STEP 3 */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
@@ -170,14 +189,14 @@ export function HowItWorksSection() {
                 Manage & Copy
               </h3>
               <p className="text-muted-foreground leading-relaxed text-lg text-pretty max-w-xl">
-                Manage your post lifecycles directly. Your posts are formatted and ready for 1-click copying. No extra formatting required.
+                Manage your post lifecycles directly. Your posts are formatted
+                and ready for 1-click copying. No extra formatting required.
               </p>
             </div>
 
             {/* Visual Component 3: 1-Click Copy & Management Action Card */}
             <div className="flex-1 w-full relative">
               <div className="bg-card/80 rounded-3xl border border-white/10 p-5 sm:p-6 md:p-8 shadow-2xl backdrop-blur-xl relative overflow-hidden group-hover:border-primary/30 transition-colors">
-                
                 <div className="space-y-4">
                   {/* Copy Banner Feedback */}
                   <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center justify-between">
@@ -186,11 +205,17 @@ export function HowItWorksSection() {
                         <Check className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-white">Copied to Clipboard!</div>
-                        <div className="text-xs text-emerald-400/80">Formatted for LinkedIn & ready to paste</div>
+                        <div className="text-sm font-semibold text-white">
+                          Copied to Clipboard!
+                        </div>
+                        <div className="text-xs text-emerald-400/80">
+                          Formatted for LinkedIn & ready to paste
+                        </div>
                       </div>
                     </div>
-                    <span className="text-xs font-mono text-muted-foreground">Just now</span>
+                    <span className="text-xs font-mono text-muted-foreground">
+                      Just now
+                    </span>
                   </div>
 
                   {/* Actions Grid */}
@@ -199,15 +224,14 @@ export function HowItWorksSection() {
                       <Copy className="w-4 h-4 text-primary" /> Copy Raw Text
                     </div>
                     <div className="p-3.5 bg-background border border-white/5 rounded-xl text-xs font-semibold text-foreground flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-blue-400" /> Move to Calendar
+                      <Calendar className="w-4 h-4 text-blue-400" /> Move to
+                      Calendar
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
           </motion.div>
-
         </div>
       </div>
     </section>

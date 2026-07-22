@@ -8,11 +8,21 @@ interface ScreenshotFrameProps {
   priority?: boolean;
 }
 
-export function ScreenshotFrame({ src, alt, className, priority = false }: ScreenshotFrameProps) {
+export function ScreenshotFrame({
+  src,
+  alt,
+  className,
+  priority = false,
+}: ScreenshotFrameProps) {
   return (
-    <div className={cn("rounded-2xl border border-white/10 shadow-2xl bg-[#09090B] overflow-hidden w-full relative", className)}>
-      <Image 
-        src={src} 
+    <div
+      className={cn(
+        "rounded-2xl border border-white/10 shadow-2xl bg-[#09090B] overflow-hidden w-full relative",
+        className,
+      )}
+    >
+      <Image
+        src={src}
         alt={alt}
         width={1400}
         height={900}

@@ -21,9 +21,7 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const code = url.searchParams.get("code");
     if (!code) {
-      return NextResponse.redirect(
-        `${baseUrl}/login?error=missing_code`,
-      );
+      return NextResponse.redirect(`${baseUrl}/login?error=missing_code`);
     }
 
     const { tokens } = await client.getToken(code);
@@ -33,9 +31,7 @@ export async function GET(req: Request) {
     const { data } = await oauth2.userinfo.get();
 
     if (!data.email) {
-      return NextResponse.redirect(
-        `${baseUrl}/login?error=no_email`,
-      );
+      return NextResponse.redirect(`${baseUrl}/login?error=no_email`);
     }
 
     let user = await prisma.user.findUnique({ where: { email: data.email } });
@@ -63,9 +59,7 @@ export async function GET(req: Request) {
       tokenVersion: user.tokenVersion,
     });
 
-    const response = NextResponse.redirect(
-      `${baseUrl}/dashboard`,
-    );
+    const response = NextResponse.redirect(`${baseUrl}/dashboard`);
     response.cookies.set({
       name: "jwt",
       value: jwt,
