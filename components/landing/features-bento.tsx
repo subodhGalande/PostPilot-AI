@@ -13,6 +13,7 @@ const features = [
     description: "Generate platform-specific copy for X and LinkedIn instantly.",
     icon: Sparkles,
     colSpan: "md:col-span-2",
+    heightClass: "h-auto md:h-[360px]",
     delay: 0.1,
     visual: (
       <div className="flex-1 w-full bg-secondary/50 rounded-tl-xl border-t border-l border-border p-5 pb-0 shadow-sm flex flex-col gap-3 relative overflow-hidden mt-6 ml-6 border-b-0 border-r-0">
@@ -39,13 +40,14 @@ const features = [
     description: "Plan your content visually across all your social channels.",
     icon: CalendarDays,
     colSpan: "md:col-span-1",
+    heightClass: "h-auto md:h-[360px]",
     delay: 0.2,
     visual: (
-      <div className="flex-1 w-full mt-4 sm:mt-6 ml-3 sm:ml-6 relative">
+      <div className="flex-1 w-full mt-6 ml-6 relative overflow-hidden">
          <ScreenshotFrame 
            src="/screenshots/calendar-page-v2.png" 
            alt="Visual Content Calendar" 
-           className="w-full h-full rounded-tl-xl border-t border-l border-white/10 shadow-sm rounded-b-none rounded-r-none min-h-[220px] sm:min-h-[280px]"
+           className="w-full h-full rounded-tl-xl border-t border-l border-white/10 shadow-sm rounded-b-none rounded-r-none min-h-[220px]"
          />
       </div>
     )
@@ -55,6 +57,7 @@ const features = [
     description: "Get 10 free AI generation tokens every single day to fuel your content pipeline.",
     icon: BarChart3,
     colSpan: "md:col-span-1",
+    heightClass: "h-auto md:h-[360px]",
     delay: 0.3,
     isHighlighted: true,
     visual: (
@@ -72,6 +75,7 @@ const features = [
     description: "We generate the content, you retain full control over when and how it goes live.",
     icon: Users,
     colSpan: "md:col-span-2",
+    heightClass: "h-auto md:h-[360px]",
     delay: 0.4,
     visual: (
       <div className="flex-1 w-full mt-6 ml-6 relative">
@@ -117,24 +121,24 @@ export function FeaturesBento() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ type: "spring", stiffness: 100, damping: 20, delay: feature.delay }}
-              className={`group flex flex-col rounded-2xl shadow-sm overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-1 hover:shadow-xl ${feature.colSpan} ${
+              className={`group flex flex-col rounded-2xl shadow-sm overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-1 hover:shadow-xl ${feature.colSpan} ${feature.heightClass} ${
                 feature.isHighlighted 
                   ? "bg-primary border-primary text-white shadow-primary/20 hover:shadow-primary/30" 
                   : "bg-card border-border/80 border text-foreground shadow-sm"
               }`}
             >
-              <div className="p-8 pb-4 flex-shrink-0">
-                <div className="flex items-center gap-3 mb-4">
+              <div className="p-6 pb-3 flex-shrink-0">
+                <div className="flex items-center gap-3 mb-3">
                   <div className={`p-2 rounded-lg transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 ${feature.isHighlighted ? "bg-white/10 text-white" : "bg-primary/10 text-primary"}`}>
                     <feature.icon className="w-5 h-5" />
                   </div>
-                  <h3 className={`font-heading text-xl font-semibold tracking-tight text-balance ${feature.isHighlighted ? "text-white" : "text-foreground"}`}>{feature.title}</h3>
+                  <h3 className={`font-heading text-lg font-semibold tracking-tight text-balance ${feature.isHighlighted ? "text-white" : "text-foreground"}`}>{feature.title}</h3>
                 </div>
-                <p className={`text-base leading-relaxed max-w-sm text-pretty ${feature.isHighlighted ? "text-white/80" : "text-muted-foreground"}`}>
+                <p className={`text-sm leading-relaxed max-w-sm text-pretty ${feature.isHighlighted ? "text-white/80" : "text-muted-foreground"}`}>
                   {feature.description}
                 </p>
               </div>
-              <div className="flex-1 flex flex-col justify-end min-h-[200px] relative">
+              <div className="flex-1 flex flex-col justify-end min-h-[160px] relative">
                 {feature.visual}
               </div>
             </motion.div>

@@ -39,7 +39,7 @@ describe("SignupForm", () => {
         <SignupForm />
       </QueryClientProvider>,
     );
-    const button = screen.getByRole("button", { name: /create account/i });
+    const button = screen.getByRole("button", { name: /sign up/i });
     await user.click(button);
 
     // Expect error messages to appear

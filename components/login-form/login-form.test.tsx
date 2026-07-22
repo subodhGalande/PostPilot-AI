@@ -24,11 +24,11 @@ describe("LoginForm", () => {
       </QueryClientProvider>,
     );
     expect(
-      screen.getByRole("heading", { name: /welcome to postpilot ai/i }),
+      screen.getByRole("heading", { name: /log in to postpilot/i }),
     ).toBeDefined();
     expect(screen.getByLabelText(/email/i)).toBeDefined();
     expect(screen.getByLabelText(/^password/i)).toBeDefined();
-    expect(screen.getByRole("button", { name: /login/i })).toBeDefined();
+    expect(screen.getByRole("button", { name: /log in/i })).toBeDefined();
   });
 
   it("shows validation errors when submitting an empty form", async () => {
@@ -39,7 +39,7 @@ describe("LoginForm", () => {
       </QueryClientProvider>,
     );
 
-    const button = screen.getByRole("button", { name: /login/i });
+    const button = screen.getByRole("button", { name: /log in/i });
     await user.click(button);
 
     // Zod validation errors
