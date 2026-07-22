@@ -48,6 +48,11 @@ export async function GET(req: Request) {
           provider: "GOOGLE",
         },
       });
+    } else if (!user.name && data.name) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { name: data.name },
+      });
     }
 
     const jwt = await signTokenJose({

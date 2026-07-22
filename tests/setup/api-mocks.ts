@@ -28,6 +28,7 @@ export const prismaMock = {
     findFirst: vi.fn(),
     create: vi.fn(),
     aggregate: vi.fn(),
+    deleteMany: vi.fn(),
   },
   $transaction: vi.fn((arg) => {
     if (Array.isArray(arg)) {
