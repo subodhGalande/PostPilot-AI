@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { LandingHeader } from "@/components/landing/header";
 import { LandingFooter } from "@/components/landing/footer";
 
@@ -28,23 +27,35 @@ const releases: Release[] = [
     date: "July 01, 2026",
     isLatest: true,
     title: "Initial Launch of PostPilot AI",
-    description: "The initial release of PostPilot AI—bringing raw idea transformation and instant multi-channel social drafting.",
+    description: "The initial release of PostPilot AI—bringing raw idea transformation, instant multi-channel social drafting, and visual content scheduling.",
     changes: [
       {
         type: "added",
-        text: "AI generation engine supporting customizable tones, target audiences, and keyword inputs.",
+        text: "AI generation engine supporting custom tones (Founder, Technical, Storyteller, Minimalist, Witty), target audiences, and keyword inputs.",
       },
       {
         type: "added",
-        text: "Google OAuth 2.0 and credentials-based authentication with Jose JWT session security.",
+        text: "Dual-platform native formatting generating tailored LinkedIn posts and X (Twitter) single-posts/threads simultaneously.",
       },
       {
         type: "added",
-        text: "Daily 10-token free allowance system for founders and content creators.",
+        text: "Multi-platform draft management workspace with isolated JSON storage for LinkedIn and X variants and version conflict safety.",
       },
       {
         type: "added",
-        text: "High-performance dark theme dashboard shell with expandable sidebar navigation.",
+        text: "Interactive visual content calendar supporting month and week views for scheduling and tracking post statuses.",
+      },
+      {
+        type: "added",
+        text: "Automated daily 10-token free allowance system with transparent consumption transaction ledger and error refund safety.",
+      },
+      {
+        type: "added",
+        text: "Google OAuth 2.0 and credentials-based authentication with secure HTTP-only Jose JWT session security.",
+      },
+      {
+        type: "added",
+        text: "Arcjet enterprise security guardrails including rate limiting, bot protection, and prompt injection detection.",
       },
     ],
   },
@@ -53,11 +64,11 @@ const releases: Release[] = [
 function TypeTag({ type }: { type: ChangelogItem["type"] }) {
   switch (type) {
     case "added":
-      return <span className="text-[11px] font-mono text-emerald-400/90 font-medium uppercase tracking-wider">Added</span>;
+      return <span className="text-[11px] font-mono text-emerald-400/90 font-medium uppercase tracking-wider shrink-0 mt-0.5">Added</span>;
     case "improved":
-      return <span className="text-[11px] font-mono text-primary/90 font-medium uppercase tracking-wider">Improved</span>;
+      return <span className="text-[11px] font-mono text-primary/90 font-medium uppercase tracking-wider shrink-0 mt-0.5">Improved</span>;
     case "fixed":
-      return <span className="text-[11px] font-mono text-amber-400/90 font-medium uppercase tracking-wider">Fixed</span>;
+      return <span className="text-[11px] font-mono text-amber-400/90 font-medium uppercase tracking-wider shrink-0 mt-0.5">Fixed</span>;
   }
 }
 
@@ -102,23 +113,23 @@ export default function ChangelogPage() {
                 </div>
 
                 {/* Content Column */}
-                <div className="md:col-span-8 space-y-6">
+                <div className="md:col-span-8 space-y-4">
                   <div>
-                    <h2 className="font-heading text-xl font-semibold tracking-tight text-foreground mb-2">
+                    <h2 className="font-heading text-xl font-bold text-foreground mb-2">
                       {release.title}
                     </h2>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className="text-muted-foreground text-sm leading-relaxed">
                       {release.description}
                     </p>
                   </div>
 
-                  {/* Minimal Pointer List */}
-                  <ul className="space-y-2.5 pt-2">
-                    {release.changes.map((change, idx) => (
-                      <li key={idx} className="flex items-baseline gap-3 text-sm text-foreground/90 leading-relaxed">
-                        <TypeTag type={change.type} />
-                        <span className="text-muted-foreground/90">•</span>
-                        <span>{change.text}</span>
+                  <ul className="space-y-3 pt-2">
+                    {release.changes.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-3 text-sm">
+                        <TypeTag type={item.type} />
+                        <span className="text-muted-foreground leading-relaxed">
+                          {item.text}
+                        </span>
                       </li>
                     ))}
                   </ul>

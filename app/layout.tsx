@@ -29,7 +29,14 @@ const fontMono = Fira_Code({
 
 export const metadata: Metadata = {
   title: "PostPilot AI",
-  description: "Next Gen AI for generating post ideas",
+  description: "Turn your raw ideas into perfect social posts for X and LinkedIn.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
