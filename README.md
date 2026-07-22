@@ -1,143 +1,185 @@
-PostPilot AI
+<div align="center">
 
-A modern, privacy-minded Next.js app for posting and user authentication with Prisma and JWT-based auth, including email verification and Google OAuth.
+# 🚀 PostPilot AI
 
-![version](https://img.shields.io/badge/version-0.1.0-blue)
-![build](https://img.shields.io/badge/build-passing-brightgreen)
+**Turn your raw ideas into perfect, high-converting social posts for X & LinkedIn.**
 
-## What the project does
+[![Next.js](https://img.shields.io/badge/Next.js-16.2.1-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.0-61DAFB?style=flat-square&logo=react)](https://react.dev/)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4.0-06B6D4?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
+[![Prisma](https://img.shields.io/badge/Prisma-6.3-2D3748?style=flat-square&logo=prisma)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
+[![Vercel AI SDK](https://img.shields.io/badge/Vercel_AI_SDK-4.1-000000?style=flat-square&logo=vercel)](https://sdk.vercel.ai/docs)
+[![Arcjet](https://img.shields.io/badge/Arcjet-Protected-5B5BD6?style=flat-square)](https://arcjet.com/)
 
-PostPilot AI is a starter web application built on Next.js (App Router) that provides a complete authentication system (signup, login, logout, email verification, password hashing, and Google OAuth), data access via Prisma, and a simple UI component library. It's intended as a fast developer-friendly base for building social or posting apps and learning secure auth patterns in a full-stack TypeScript project.
+</div>
 
-## Why this is useful
+---
 
-- Secure authentication flows (email verification, JWT using `jose`, refresh/revocation support)
-- Database schema and migrations using Prisma
-- Production-ready patterns: environment-based configuration, email verification with Nodemailer, and third-party OAuth
-- Clean, reusable UI components and example pages to bootstrap features quickly
+## ✨ Overview
 
-## Project layout (high level)
+**PostPilot AI** is a privacy-first, developer-focused AI content engine designed for founders, engineers, and creators. Simply dump your raw thoughts, choose a desired tone and target audience, and PostPilot AI instantly formats your ideas into native, high-converting copy tailored for **LinkedIn** and **X (Twitter)**.
 
-- `app/` — Next.js App Router pages and API routes (auth flows under `app/api/auth/`)
-- `components/` — Reusable UI components and auth forms
-- `lib/` — Prisma client, utils, and auth helpers
-- `prisma/` — Prisma schema and migration history
+Designed with modern minimalist aesthetics, glassmorphism UI, interactive WebGL light ray canvases, and zero-clutter manual publishing controls.
 
-## Getting started
+---
 
-Prerequisites:
+## ⚡ Core Features
 
-- Node.js (>=18 recommended)
-- pnpm, npm, or yarn
+### 🎯 1. AI-Powered Multi-Tone Generation
+- **Raw Idea Transformation**: Turn quick bullet points or rough notes into engaging social copy.
+- **Customizable Brand Tones**: Switch between *Founder*, *Thought Leader*, *Technical*, *Storyteller*, *Minimalist*, *Witty*, *Direct*, and *Bold*.
+- **Audience & Format Alignment**: Tailor output for Founders, Engineers, Marketers, Creators, Investors, or Students in Short Punchy, Detailed, or Story Arc formats.
 
-Install and run locally:
+### 📑 2. Multi-Platform Draft Workspace
+- **Dual-Platform Formatting**: Generates tailored LinkedIn posts and X single-posts/threads side-by-side.
+- **Atomic JSON Content Storage**: Keeps platform content isolated in database columns (`linkedinContent`, `xContent`) to prevent cross-platform contamination.
+- **Version Conflict Protection**: Built-in concurrency control (`version` check) to prevent accidental data overwrites during simultaneous edits.
+- **1-Click Rich Text Copying**: Formatted clipboard copying ready for direct pasting into native social apps.
 
-1. Install dependencies
+### 📅 3. Interactive Visual Content Calendar
+- **Month & Week Scheduling Views**: Drag-and-drop planning to visualize your publishing pipeline.
+- **Platform Status Tracking**: Monitor `DRAFT` vs `SCHEDULED` posts with dedicated timestamps (`xScheduledAt`, `linkedinScheduledAt`).
 
+### 🪙 4. Daily 10-Token Allowance Ledger
+- **Automatic 24-Hour Refill**: Every user receives 10 free AI generation tokens every single day.
+- **Atomic Transaction Ledger**: Transparent transaction history tracking token allotments, usage, and automatic refunds.
+- **Stream Safety Refunds**: Automatically refunds tokens if AI streaming fails mid-generation.
+
+### 🛡️ 5. Enterprise Security & Authentication
+- **Dual Authentication**: Seamless Google OAuth 2.0 login alongside email/password credentials with Argon2 hashing.
+- **Jose HTTP-Only JWTs**: Secure, stateless authentication sessions using `jose` JWT cookies.
+- **Arcjet Security Guardrails**: Built-in rate limiting, bot detection, and AI prompt injection protection.
+
+---
+
+## 🛠️ Tech Stack
+
+### **Frontend & UI**
+- **Framework**: [Next.js 16 (App Router)](https://nextjs.org/) with Turbopack bundler.
+- **Library**: [React 19](https://react.dev/)
+- **Styling**: [TailwindCSS v4](https://tailwindcss.com/) with Vanilla CSS custom design tokens.
+- **Animations**: [Framer Motion](https://www.framer.com/motion/) for fluid UI micro-interactions.
+- **Graphics**: [OGL Canvas](https://github.com/oamap/ogl) for WebGL ambient `SideRays` light beam shaders.
+- **Icons**: [Lucide React](https://lucide.dev/) + Custom SVG icons.
+- **State & Data Fetching**: [TanStack React Query v5](https://tanstack.com/query) for real-time caching & optimistic UI updates.
+
+### **Backend & Infrastructure**
+- **Runtime**: Next.js Route Handlers (Edge & Node.js runtimes).
+- **Database & ORM**: [PostgreSQL](https://www.postgresql.org/) managed via [Prisma ORM](https://www.prisma.io/).
+- **AI SDK**: [Vercel AI SDK (`ai`)](https://sdk.vercel.ai/docs) supporting OpenAI, Google Gemini, Anthropic, and Groq models.
+- **Authentication**: Google OAuth 2.0 (`google-auth-library` / `googleapis`), Argon2 password hashing (`argon2`), and `jose` JWTs.
+- **Security Guardrails**: [Arcjet](https://arcjet.com/) security middleware for rate limiting and prompt injection defense.
+
+### **Testing & Quality Control**
+- **Test Runner**: [Vitest](https://vitest.dev/)
+- **Testing Utilities**: React Testing Library & `@testing-library/user-event`
+- **Code Standards**: Biome & ESLint
+
+---
+
+## 🏗️ Architectural Mandates
+
+PostPilot AI follows a strict **Relational Single Source of Truth (SSOT)** pattern:
+
+1. **Status & Scheduling**: Metadata like post status (`linkedinStatus`, `xStatus`) and scheduling timestamps (`xScheduledAt`, `linkedinScheduledAt`) reside ONLY in top-level Prisma database columns.
+2. **Platform Content**: Platform-specific copy resides in dedicated JSON columns (`linkedinContent`, `xContent`) for atomic updates and clean maintenance.
+3. **No Redundancy**: Metadata is stripped from platform JSON blobs prior to database storage and reconstructed into unified frontend objects via `reconstructPostContent()` in `lib/drafts.ts`.
+
+---
+
+## 📂 Project Structure
+
+```
+postpilot-ai/
+├── app/                        # Next.js App Router (Pages & API Routes)
+│   ├── (auth)/                 # Login, Signup, Verification routes
+│   ├── api/                    # REST API endpoints (Auth, Drafts, Tokens, Analytics)
+│   ├── changelog/              # Minimal editorial changelog page
+│   ├── dashboard/              # Protected dashboard workspace (Calendar, Drafts, Settings)
+│   ├── globals.css             # Design tokens & TailwindCSS v4 setup
+│   ├── icon.svg                # Vector SVG brand favicon
+│   └── page.tsx                # High-end landing page
+├── components/                 # UI Component Library
+│   ├── landing/                # Hero, Bento Grid, Problem-Solution, FAQ, Header & Footer
+│   ├── dashboard/              # Calendar, Post Editor, Sidebar, Token Counter
+│   └── ui/                     # ScreenshotFrame, SideRays, Field, Input, Button
+├── lib/                        # Core Utilities & Business Logic
+│   ├── auth/                   # JWT Jose session, password hashing, base URL resolver
+│   ├── server/                 # Token ledger, draft store & SSOT helpers
+│   ├── arcjet.ts               # Security guardrails & rate limiter
+│   └── prisma.ts               # Prisma ORM singleton client
+├── prisma/                     # Database Schema & Migrations
+│   └── schema.prisma           # Relational PostgreSQL data model
+├── public/                     # Static assets & screenshots
+├── tests/                      # Vitest setup & unit test suite
+└── next.config.ts              # Next.js & image optimization configuration
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- **Node.js**: `>=18.0.0`
+- **PostgreSQL**: Local or hosted database instance (e.g. Neon, Supabase, Railway)
+- **Package Manager**: `npm` or `pnpm`
+
+### 1. Clone & Install
 ```bash
+git clone https://github.com/subodhGalande/PostPilot-AI.git
+cd PostPilot-AI
 npm install
-# or pnpm install
 ```
 
-2. Create `.env` and set required environment variables (example):
+### 2. Configure Environment Variables
+Create a `.env` file in the root directory:
 
+```env
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/postpilot_db"
+
+# Base URL & Auth
+NEXTAUTH_URL="http://localhost:3000"
+JWT_SECRET="your-super-secret-jwt-key-min-32-chars"
+
+# Google OAuth 2.0
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# AI SDK Providers
+OPENAI_API_KEY="your-openai-api-key"
+# GOOGLE_GENERATIVE_AI_API_KEY="your-gemini-key"
+
+# Security (Arcjet)
+ARCJET_KEY="your-arcjet-api-key"
 ```
-DATABASE_URL="file:./dev.db"
-NEXTAUTH_URL=http://localhost:3000
-JWT_SECRET=your_jwt_secret
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-EMAIL_SMTP_HOST=...
-EMAIL_SMTP_USER=...
-EMAIL_SMTP_PASSWORD=...
-SMTP_VERIFIED_SENDER_MAIL=verified@example.com
-APP_URL=http://localhost:3000
-```
 
-3. Prepare the database
-
+### 3. Run Database Migrations
 ```bash
 npx prisma migrate dev --name init
 ```
 
-4. Start dev server
-
+### 4. Start Development Server
 ```bash
 npm run dev
-# open http://localhost:3000
 ```
 
-### Example: Sign up (API)
-
-Send a POST request to the signup endpoint to create a new account and trigger email verification:
-
-```bash
-curl -X POST "${APP_URL:-http://localhost:3000}/api/auth/signup" \
-	-H "Content-Type: application/json" \
-	-d '{"email":"user@example.com","name":"Example User","password":"s3cret"}'
-```
-
-## Useful scripts
-
-- `npm run dev` — Run development server
-- `npm run build` — Create a production build
-- `npm start` — Start the production server
-- `npm run lint` — Run the linter
-- `npm run format` — Format code
-
-## Authentication notes
-
-- Passwords are hashed (argon2 / bcrypt present).
-- JWTs are issued/verified using `jose` and stored where appropriate.
-- Email verification routes exist at `app/api/auth/verify/route.ts` with resend support.
-- Google OAuth integration implemented under `app/api/auth/google/`.
-
-## Contributing & Support
-
-If you'd like to contribute, please open issues or pull requests. Add a `CONTRIBUTING.md` to the repo to codify contribution guidelines — link one here when available: `CONTRIBUTING.md`.
-
-For help or questions, open an issue or start a discussion in this repository.
-
-## Maintainers
-
-Maintained by the repository owner. If you plan to contribute, please open an issue to discuss larger changes.
+Open [http://localhost:3000](http://localhost:3000) in your browser to start building!
 
 ---
 
-If you'd like, I can also add a `CONTRIBUTING.md` and CI badge integration next.
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## 🧪 Testing & Verification
 
-## Getting Started
-
-First, run the development server:
+Run the comprehensive Vitest unit test suite:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Run all unit tests
+npm test
+
+# Run tests in watch mode
+npx vitest
+
+# Check production build
+npm run build
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

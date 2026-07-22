@@ -3,25 +3,26 @@ import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
 import prisma from "@/lib/prisma";
 import { signTokenJose } from "@/lib/auth/jwtjose";
+import { getBaseUrl } from "@/lib/auth/base-url";
 import argon2 from "argon2";
 
-const redirectUri = `${process.env.NEXTAUTH_URL}/api/auth/google/callback`;
-
-const client = new OAuth2Client(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  redirectUri,
-);
-
-const ERROR_REDIRECT = `${process.env.NEXTAUTH_URL}/login?error=google_auth_failed`;
-
 export async function GET(req: Request) {
+  const baseUrl = getBaseUrl();
+  const redirectUri = `${baseUrl}/api/auth/google/callback`;
+  const errorRedirect = `${baseUrl}/login?error=google_auth_failed`;
+
+  const client = new OAuth2Client(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    redirectUri,
+  );
+
   try {
     const url = new URL(req.url);
     const code = url.searchParams.get("code");
     if (!code) {
       return NextResponse.redirect(
-        `${process.env.NEXTAUTH_URL}/login?error=missing_code`,
+        `${baseUrl}/login?error=missing_code`,
       );
     }
 
@@ -33,7 +34,7 @@ export async function GET(req: Request) {
 
     if (!data.email) {
       return NextResponse.redirect(
-        `${process.env.NEXTAUTH_URL}/login?error=no_email`,
+        `${baseUrl}/login?error=no_email`,
       );
     }
 
@@ -63,7 +64,7 @@ export async function GET(req: Request) {
     });
 
     const response = NextResponse.redirect(
-      `${process.env.NEXTAUTH_URL}/dashboard`,
+      `${baseUrl}/dashboard`,
     );
     response.cookies.set({
       name: "jwt",
@@ -78,6 +79,6 @@ export async function GET(req: Request) {
     return response;
   } catch (err) {
     console.error("Google OAuth callback error:", err);
-    return NextResponse.redirect(ERROR_REDIRECT);
+    return NextResponse.redirect(errorRedirect);
   }
 }
