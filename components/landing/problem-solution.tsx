@@ -9,10 +9,10 @@ export function ProblemSolutionSection() {
       <div className="container mx-auto px-4 max-w-6xl relative z-10">
 
         <div className="text-center mb-24 relative z-20">
-          <h2 className="font-heading text-4xl md:text-6xl font-semibold tracking-tighter text-foreground mb-6 text-balance leading-tight">
+          <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-foreground mb-6 [text-wrap:balance] leading-tight">
             Stop staring at a<br className="hidden md:block" /> blank page.
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto text-pretty tracking-tight">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-normal leading-relaxed max-w-2xl mx-auto [text-wrap:pretty] tracking-tight">
             Writing social content shouldn't feel like a chore. We built PostPilot to eliminate the friction entirely.
           </p>
         </div>
@@ -29,7 +29,7 @@ export function ProblemSolutionSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ type: "spring", stiffness: 100, damping: 20 }}
-              className="group bg-card rounded-3xl p-8 md:p-10 border border-border/60 shadow-sm relative transition-transform duration-500 hover:-translate-y-1"
+              className="group bg-card rounded-3xl p-5 sm:p-8 md:p-10 border border-white/10 shadow-sm relative transition-transform duration-500 hover:-translate-y-1"
             >
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
@@ -76,7 +76,7 @@ export function ProblemSolutionSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.15 }}
-              className="bg-card rounded-3xl p-8 md:p-10 border border-primary/20 shadow-2xl shadow-primary/10 relative overflow-hidden transition-transform duration-500 hover:-translate-y-2"
+              className="group bg-card rounded-3xl p-5 sm:p-8 md:p-10 border border-primary/20 shadow-xl shadow-primary/5 relative transition-transform duration-500 hover:-translate-y-1 overflow-hidden"
             >
 
               {/* Glowing Aura */}

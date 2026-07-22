@@ -41,11 +41,11 @@ const features = [
     colSpan: "md:col-span-1",
     delay: 0.2,
     visual: (
-      <div className="flex-1 w-full mt-6 ml-6 relative">
+      <div className="flex-1 w-full mt-4 sm:mt-6 ml-3 sm:ml-6 relative">
          <ScreenshotFrame 
-           src="/screenshots/calendar-page.png" 
+           src="/screenshots/calendar-page-v2.png" 
            alt="Visual Content Calendar" 
-           className="absolute top-0 left-0 w-full h-full rounded-tl-xl border-t border-l border-border/50 shadow-sm rounded-b-none rounded-r-none min-h-[300px]"
+           className="w-full h-full rounded-tl-xl border-t border-l border-white/10 shadow-sm rounded-b-none rounded-r-none min-h-[220px] sm:min-h-[280px]"
          />
       </div>
     )
@@ -92,10 +92,10 @@ export function FeaturesBento() {
         {/* Signature Section Header - Matches reference layout */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
           <div className="md:w-2/3">
-            <h2 className="text-4xl md:text-5xl font-semibold tracking-tighter text-foreground mb-4 leading-tight">
+            <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-foreground mb-4 leading-tight [text-wrap:balance]">
               A focused workspace for <br className="hidden md:block" /> X and LinkedIn.
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl text-pretty tracking-tight">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-normal leading-relaxed max-w-2xl [text-wrap:pretty] tracking-tight">
               Everything you need to draft and manage your posts, without the clutter of automatic scheduling.
             </p>
           </div>

@@ -1,16 +1,59 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Icons } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import SideRays from "@/components/ui/side-rays";
 
 export function LandingFooter() {
+  const pathname = usePathname();
+
+  const handleHeroClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (pathname === "/") {
+      e.preventDefault();
+      const heroElement = document.getElementById("hero");
+      if (heroElement) {
+        heroElement.scrollIntoView({ behavior: "smooth" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+  };
+
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    if (pathname === "/") {
+      e.preventDefault();
+      const targetElement = document.getElementById(targetId);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
   return (
     <footer className="bg-background relative overflow-hidden flex flex-col items-center min-h-[100dvh]">
-      {/* Massive Aurora Background */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
+      {/* Upward Bottom Light Rays */}
+      <div
+        className="absolute inset-0 z-0 overflow-hidden pointer-events-none"
+        style={{ maskImage: "linear-gradient(to top, black 85%, transparent 100%)", WebkitMaskImage: "linear-gradient(to top, black 85%, transparent 100%)" }}
+      >
+        <SideRays
+          className="bg-transparent"
+          speed={0.6}
+          rayColor1="#0047FF"
+          rayColor2="#2563EB"
+          intensity={1.5}
+          spread={2.0}
+          origin="bottom-left"
+          tilt={42}
+          saturation={1.4}
+          blend={1.4}
+          falloff={1.1}
+          opacity={0.85}
+        />
+      </div>
 
       {/* Main CTA Section (Centered in available space) */}
       <motion.div 
@@ -20,10 +63,10 @@ export function LandingFooter() {
         transition={{ duration: 0.7, ease: [0.21, 0.47, 0.32, 0.98] }}
         className="flex-1 flex flex-col items-center justify-center text-center px-4 w-full max-w-4xl relative z-10"
       >
-        <h2 className="text-5xl md:text-7xl font-bold tracking-tighter text-foreground mb-6">
+        <h2 className="font-heading text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-foreground mb-6 [text-wrap:balance]">
           Ready to scale <br className="hidden md:block" /> your social presence?
         </h2>
-        <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10">
+        <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-normal leading-relaxed max-w-xl mx-auto [text-wrap:pretty] tracking-tight mb-10">
           Join thousands of founders and creators building their audience on autopilot with PostPilot.
         </p>
         <Button asChild size="lg" className="h-14 px-8 rounded-full text-base font-semibold shadow-[0_0_40px_rgba(0,71,255,0.2)] hover:shadow-[0_0_60px_rgba(0,71,255,0.4)] hover:scale-105 transition-all duration-300">
@@ -37,24 +80,24 @@ export function LandingFooter() {
       <div className="relative z-10 w-full px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-white/5 pt-8 pb-8 items-center text-center md:text-left">
         
         <div className="flex flex-col items-center md:items-start gap-3 md:justify-self-start">
-          <div className="flex items-center gap-2">
+          <Link href="/#hero" onClick={handleHeroClick} className="flex items-center gap-2 hover:opacity-90 transition-opacity">
             <div className="flex h-6 w-6 items-center justify-center rounded bg-primary text-primary-foreground">
               <Icons.logo className="h-3 w-3" />
             </div>
             <span className="font-semibold text-foreground tracking-tight text-sm">
               PostPilot AI
             </span>
-          </div>
+          </Link>
           <span className="text-muted-foreground text-xs">
             © {new Date().getFullYear()} All rights reserved.
           </span>
         </div>
 
         <nav className="flex items-center justify-center gap-6 md:justify-self-center">
-          <Link href="#features" className="text-xs font-semibold text-muted-foreground hover:text-foreground uppercase tracking-widest transition-colors">
+          <Link href="/#features" onClick={(e) => handleAnchorClick(e, "features")} className="text-xs font-semibold text-muted-foreground hover:text-foreground uppercase tracking-widest transition-colors">
             Features
           </Link>
-          <Link href="#faq" className="text-xs font-semibold text-muted-foreground hover:text-foreground uppercase tracking-widest transition-colors">
+          <Link href="/#faq" onClick={(e) => handleAnchorClick(e, "faq")} className="text-xs font-semibold text-muted-foreground hover:text-foreground uppercase tracking-widest transition-colors">
             FAQ
           </Link>
           <Link href="/changelog" className="text-xs font-semibold text-muted-foreground hover:text-foreground uppercase tracking-widest transition-colors">

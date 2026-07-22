@@ -34,10 +34,10 @@ export function FaqSection() {
         {/* Signature Section Header - Matches reference layout */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
           <div className="md:w-2/3">
-            <h2 className="font-heading text-4xl md:text-5xl font-semibold tracking-tighter text-foreground mb-4 leading-tight text-balance">
+            <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-foreground mb-4 leading-tight [text-wrap:balance]">
               Frequently asked <br className="hidden md:block" /> questions.
             </h2>
-            <p className="text-lg text-muted-foreground max-w-xl text-pretty tracking-tight">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-normal leading-relaxed max-w-xl [text-wrap:pretty] tracking-tight">
               Everything you need to know about the product, platform support, and how the generation engine works.
             </p>
           </div>
@@ -58,7 +58,7 @@ export function FaqSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ type: "spring", stiffness: 100, damping: 20, delay: index * 0.1 }}
-              className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm hover:border-primary/20 transition-colors"
+              className="bg-card rounded-2xl border border-white/10 overflow-hidden shadow-sm hover:border-primary/30 transition-colors"
             >
               <button
                 id={`faq-button-${index}`}
