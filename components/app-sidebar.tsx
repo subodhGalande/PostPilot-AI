@@ -10,10 +10,10 @@ import {
   FileText,
   LayoutDashboard,
   LineChart,
-  Rocket,
   Settings,
   User,
 } from "lucide-react";
+import { Icons } from "@/components/ui/icons";
 import {
   Sidebar,
   SidebarContent,
@@ -137,7 +137,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader className="flex h-[72px] shrink-0 justify-center border-b border-border/50 px-3 py-4 md:px-4">
         <div className="flex items-center gap-3 px-2 py-1.5">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/20">
-            <Rocket className="size-4" />
+            <Icons.logo className="size-4" />
           </div>
           <div className="min-w-0 flex-1">
             <span className="block truncate text-[15px] font-bold tracking-tight text-sidebar-foreground">

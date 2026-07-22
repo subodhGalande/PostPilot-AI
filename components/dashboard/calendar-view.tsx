@@ -331,10 +331,9 @@ export function CalendarView() {
     );
   };
 
-  const handleDateClick = (info: DateClickArg) => {
-    toast.info(`Plan a post for ${info.dateStr}`, {
-      description: "Quick create coming soon!",
-    });
+  const handleDateClick = (_info: DateClickArg) => {
+    router.push(`/dashboard`);
+    toast.info("Select platforms and generate to schedule a post.");
   };
 
   const handleEventDrop = (info: EventDropArg) => {
@@ -376,11 +375,13 @@ export function CalendarView() {
           ? "bg-blue-50/60 dark:bg-blue-950/20 border-blue-200/50 dark:border-blue-900/50 hover:bg-blue-100/50 dark:hover:bg-blue-900/40"
           : "bg-slate-100/70 dark:bg-slate-800/50 border-slate-300/50 dark:border-slate-700/60 hover:bg-slate-200/60 dark:hover:bg-slate-800/80";
 
+      const isMonthView = eventInfo.view.type === "dayGridMonth";
+
       return (
         <div
-          className={`group flex w-full flex-col gap-1.5 rounded-lg border p-2 text-card-foreground shadow-sm transition-all duration-200 ease-out-ui hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] cursor-pointer ${platformCardClass}`}
+          className={`group flex w-full flex-col gap-1.5 rounded-lg border p-1.5 sm:p-2 text-card-foreground shadow-sm transition-all duration-200 ease-out-ui hover:-translate-y-px hover:shadow-md cursor-pointer ${platformCardClass}`}
         >
-          <div className="flex w-full items-center justify-between gap-2">
+          <div className="flex w-full items-center justify-between gap-1.5 sm:gap-2">
             <div className="flex flex-wrap items-center gap-1.5 overflow-hidden">
               <div
                 className={`flex shrink-0 items-center justify-center rounded-sm px-1 py-0.5 ${platformPillClass}`}
@@ -392,7 +393,7 @@ export function CalendarView() {
               </span>
             </div>
 
-            <div className="flex shrink-0 items-center opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100">
+            <div className="flex shrink-0 items-center">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -449,13 +450,13 @@ export function CalendarView() {
           </div>
 
           <span
-            className="line-clamp-1 min-w-0 text-[13px] font-semibold leading-tight text-foreground"
+            className="line-clamp-1 min-w-0 text-[12px] sm:text-[13px] font-semibold leading-tight text-foreground"
             title={eventInfo.event.title}
           >
             {eventInfo.event.title}
           </span>
 
-          {truncatedContent && (
+          {truncatedContent && !isMonthView && (
             <p className="line-clamp-2 text-xs font-medium text-muted-foreground/70 leading-relaxed">
               {truncatedContent}
             </p>
@@ -469,7 +470,9 @@ export function CalendarView() {
   if (!mounted) {
     return (
       <div className="flex h-[600px] items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <span className="animate-pulse text-sm font-medium text-muted-foreground">
+          Loading calendar...
+        </span>
       </div>
     );
   }

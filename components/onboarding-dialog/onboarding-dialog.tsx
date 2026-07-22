@@ -22,8 +22,9 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { Controller } from "react-hook-form";
 import { useOnboardingForm } from "./use-onboarding-form";
-import { Rocket, Sparkles, Building2, ArrowRight, Loader2 } from "lucide-react";
+import { Sparkles, Building2, ArrowRight, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Icons } from "@/components/ui/icons";
 
 type OnboardingDialogProps = {
   isOpen: boolean;
@@ -41,7 +42,7 @@ export function OnboardingDialog({ isOpen }: OnboardingDialogProps) {
           <DialogHeader className="space-y-2 pb-4 border-b border-border/40">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 relative">
               <div className="absolute inset-0 rounded-full bg-primary/20 blur-md animate-pulse"></div>
-              <Rocket className="h-5 w-5 text-primary relative z-10" />
+              <Icons.logo className="h-5 w-5 text-primary relative z-10" />
             </div>
             <div className="space-y-1 text-center">
               <DialogTitle className="text-xl font-semibold tracking-tight text-foreground">

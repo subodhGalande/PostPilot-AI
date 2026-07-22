@@ -1,14 +1,25 @@
 import type { Metadata } from "next";
-import { Outfit, Noto_Serif, Fira_Code } from "next/font/google";
+import {
+  Plus_Jakarta_Sans,
+  Bricolage_Grotesque,
+  Noto_Serif,
+  Fira_Code,
+} from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/lib/providers/queryProvider";
 import ThemeProvider from "@/lib/providers/themeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { AppTooltipProvider } from "@/lib/providers/tooltipProvider";
+import NextTopLoader from "nextjs-toploader";
 
-const fontSans = Outfit({
+const fontSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
+});
+
+const fontHeading = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-heading",
 });
 
 const fontSerif = Noto_Serif({
@@ -23,7 +34,13 @@ const fontMono = Fira_Code({
 
 export const metadata: Metadata = {
   title: "PostPilot AI",
-  description: "Next Gen AI for generating post ideas",
+  description:
+    "Turn your raw ideas into perfect social posts for X and LinkedIn.",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -34,8 +51,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${fontSans.variable} ${fontSerif.variable}  ${fontMono.variable} antialiased tabular-nums`}
+        className={`${fontSans.variable} ${fontHeading.variable} ${fontSerif.variable} ${fontMono.variable} antialiased tabular-nums`}
       >
+        <NextTopLoader
+          color="var(--primary)"
+          showSpinner={false}
+          shadow="0 0 10px var(--primary),0 0 5px var(--primary)"
+        />
         <AppTooltipProvider>
           <ThemeProvider>
             <QueryProvider>{children}</QueryProvider>

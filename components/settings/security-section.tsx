@@ -22,6 +22,7 @@ import {
   type PasswordChangeValues,
 } from "@/lib/schemas/settings.schema";
 import { useUserProfile } from "@/lib/hooks/use-user-profile";
+import { SettingsCard } from "@/components/ui/settings-card";
 
 export function SecuritySection() {
   const { data: user, isLoading } = useUserProfile();
@@ -33,12 +34,8 @@ export function SecuritySection() {
           <h2 className="text-base font-semibold tracking-tight text-foreground">
             Security
           </h2>
-          <p className="mt-1 text-[13px] text-muted-foreground/80">
-            Update your password. You&apos;ll be logged out of all active
-            sessions after changing it.
-          </p>
         </div>
-        <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
+        <SettingsCard>
           <div className="space-y-4">
             <div className="space-y-2">
               <div className="h-3 w-28 animate-pulse rounded-xl bg-muted" />
@@ -56,7 +53,7 @@ export function SecuritySection() {
               <div className="h-9 w-full sm:w-36 animate-pulse rounded-xl bg-muted" />
             </div>
           </div>
-        </div>
+        </SettingsCard>
       </section>
     );
   }
@@ -70,18 +67,15 @@ export function SecuritySection() {
           <h2 className="text-base font-semibold tracking-tight text-foreground">
             Security
           </h2>
-          <p className="mt-1 text-[13px] text-muted-foreground/80">
-            Manage your account security.
-          </p>
         </div>
-        <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
+        <SettingsCard>
           <Alert variant="info">
             <Info className="size-4" />
             <AlertDescription>
               You&apos;re signed in with Google. No password required.
             </AlertDescription>
           </Alert>
-        </div>
+        </SettingsCard>
       </section>
     );
   }
@@ -149,12 +143,11 @@ function SecurityForm() {
           Security
         </h2>
         <p className="mt-1 text-[13px] text-muted-foreground/80">
-          Update your password. You&apos;ll be logged out of all active sessions
-          after changing it.
+          You&apos;ll be logged out of all active sessions after changing it.
         </p>
       </div>
 
-      <div className="rounded-xl border border-border/50 bg-card p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-white/5 dark:backdrop-blur-xl">
+      <SettingsCard>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
             <Field data-invalid={!!form.formState.errors.currentPassword}>
@@ -227,7 +220,7 @@ function SecurityForm() {
             </Button>
           </div>
         </form>
-      </div>
+      </SettingsCard>
     </section>
   );
 }

@@ -7,6 +7,9 @@ import { toast } from "sonner";
 
 import { PostConfiguration } from "@/components/dashboard/post-configuration";
 import { PostPreview } from "@/components/dashboard/post-preview";
+import { SlidersHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import {
   createClientDraftKey,
   saveDraft,
@@ -142,6 +145,8 @@ export default function DashboardPage() {
     Set<"linkedin" | "x">
   >(new Set());
   const [tokensExhausted, setTokensExhausted] = useState(false);
+  const [isMobileConfigOpen, setIsMobileConfigOpen] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   const { data: tokensData } = useTokens();
 
@@ -168,21 +173,18 @@ export default function DashboardPage() {
     }) => {
       if (error) {
         // onFinish fires with an error when schema validation fails.
-        // Show a toast and reset to "Ready to Write".
-        toast.error(
+        setGenerationError(
           "The AI returned an unexpected response. Please try again.",
         );
-        setIsGenerated(false);
         setGeneratedPostPack(null);
         clearDraftState();
         return;
       }
 
       if (!object) {
-        toast.error(
+        setGenerationError(
           "The AI returned an unexpected response. Please try again.",
         );
-        setIsGenerated(false);
         setGeneratedPostPack(null);
         clearDraftState();
         return;
@@ -199,10 +201,9 @@ export default function DashboardPage() {
         }));
 
       if (!finalLinkedinContent.trim() && finalXPosts.length === 0) {
-        toast.error(
+        setGenerationError(
           "The AI failed to complete the post. It may have timed out or hit a limit. Please try again.",
         );
-        setIsGenerated(false);
         setGeneratedPostPack(null);
         clearDraftState();
         return;
@@ -240,10 +241,9 @@ export default function DashboardPage() {
     onError: (error: Error) => {
       console.error("AI Generation failed:", error);
       const classified = classifyApiError(error);
-      toast.error(classified.message);
 
-      // Clean slate on generation error
-      setIsGenerated(false);
+      // Instead of resetting the UI to false, show the error inline
+      setGenerationError(classified.message);
       setGeneratedPostPack(null);
       clearDraftState();
 
@@ -386,10 +386,9 @@ export default function DashboardPage() {
           }
         }
 
-        toast.error(
+        setGenerationError(
           "The AI got stuck in a loop. Please try a different topic or keywords.",
         );
-        setIsGenerated(false);
         setGeneratedPostPack(null);
         clearDraftState();
       }
@@ -402,6 +401,8 @@ export default function DashboardPage() {
   }, [object, topic, isGenerated, isGenerating]);
 
   const handleGenerate = () => {
+    setIsMobileConfigOpen(false);
+    setGenerationError(null);
     retryCount.current = 0;
     setDraftId(null);
     setDraftUpdatedAt(null);
@@ -417,9 +418,22 @@ export default function DashboardPage() {
     });
   };
 
+  const handleStop = () => {
+    stop();
+    setIsGenerated(false);
+    setGeneratedPostPack(null);
+    clearDraftState();
+
+    // Refund the consumed token since the user didn't get usable content.
+    fetch("/api/dashboard/refundToken", { method: "POST" })
+      .then(() => queryClient.invalidateQueries({ queryKey: ["tokens"] }))
+      .catch(() => {});
+  };
+
   const handleReset = () => {
     clearDraftState();
     setIsGenerated(false);
+    setGenerationError(null);
     setGeneratedPostPack(null);
     setDraftId(null);
     setDraftUpdatedAt(null);
@@ -553,7 +567,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="relative flex flex-1 min-h-0 flex-col gap-6 overflow-hidden bg-zinc-50 dark:bg-transparent px-2 py-4 md:p-6 lg:flex-row">
+    <div className="relative flex flex-1 min-h-0 flex-col gap-6 overflow-hidden bg-background px-2 py-4 md:p-6 lg:flex-row">
       <div
         className={cn(
           "w-full shrink-0 self-start max-h-full lg:w-5/12 xl:w-[450px]",
@@ -573,20 +587,7 @@ export default function DashboardPage() {
           onTargetAudienceChange={setTargetAudience}
           onKeywordsChange={setKeywords}
           onGenerate={handleGenerate}
-          onStop={() => {
-            stop();
-            setIsGenerated(false);
-            setGeneratedPostPack(null);
-            clearDraftState();
-
-            // Refund the consumed token since the user didn't get usable content.
-            // Fire-and-forget — UI reset is already done above.
-            fetch("/api/dashboard/refundToken", { method: "POST" })
-              .then(() =>
-                queryClient.invalidateQueries({ queryKey: ["tokens"] }),
-              )
-              .catch(() => {});
-          }}
+          onStop={handleStop}
           isGenerating={isGenerating}
           isTokensExhausted={tokensExhausted}
         />
@@ -603,6 +604,7 @@ export default function DashboardPage() {
           postStyle={postStyle}
           targetAudience={targetAudience}
           generatedPostPack={generatedPostPack}
+          generationError={generationError}
           onLinkedInChange={handleLinkedInChange}
           onXPostChange={handleXPostChange}
           isGenerated={isGenerated}
@@ -677,6 +679,45 @@ export default function DashboardPage() {
           hideStatusBadge={true}
         />
       </div>
+
+      {isGenerated && (
+        <div className="fixed bottom-6 right-6 z-50 lg:hidden">
+          <Drawer
+            open={isMobileConfigOpen}
+            onOpenChange={setIsMobileConfigOpen}
+          >
+            <DrawerTrigger asChild>
+              <Button
+                size="icon"
+                className="h-14 w-14 rounded-full shadow-lg dark:border dark:border-border"
+              >
+                <SlidersHorizontal className="h-6 w-6" />
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent className="max-h-[90vh]">
+              <div className="overflow-y-auto p-4 pt-8">
+                <PostConfiguration
+                  className="w-full"
+                  topic={topic}
+                  tone={tone}
+                  postStyle={postStyle}
+                  targetAudience={targetAudience}
+                  keywords={keywords}
+                  onTopicChange={setTopic}
+                  onToneChange={setTone}
+                  onPostStyleChange={setPostStyle}
+                  onTargetAudienceChange={setTargetAudience}
+                  onKeywordsChange={setKeywords}
+                  onGenerate={handleGenerate}
+                  onStop={handleStop}
+                  isGenerating={isGenerating}
+                  isTokensExhausted={tokensExhausted}
+                />
+              </div>
+            </DrawerContent>
+          </Drawer>
+        </div>
+      )}
     </div>
   );
 }

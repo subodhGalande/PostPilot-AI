@@ -12,6 +12,7 @@ import {
 } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Filter } from "lucide-react";
 import type { FunnelStage } from "@/lib/analytics/types";
 
 const numberFormat = new Intl.NumberFormat();
@@ -49,8 +50,11 @@ export function PipelineFunnelChart({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex h-[250px] items-center justify-center text-sm text-muted-foreground">
-            No data
+          <div className="flex h-[250px] flex-col items-center justify-center gap-3 text-sm text-muted-foreground/60">
+            <div className="flex size-10 items-center justify-center rounded-full bg-muted/50">
+              <Filter className="size-5 text-muted-foreground/50" />
+            </div>
+            <p>No funnel data available.</p>
           </div>
         </CardContent>
       </Card>
