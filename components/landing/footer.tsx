@@ -130,6 +130,12 @@ export function LandingFooter() {
           >
             Changelog
           </Link>
+          <Link
+            href="/contact"
+            className="text-xs font-semibold text-muted-foreground hover:text-foreground uppercase tracking-widest transition-colors"
+          >
+            Contact
+          </Link>
         </nav>
 
         <div className="flex justify-center gap-4 md:justify-self-end">

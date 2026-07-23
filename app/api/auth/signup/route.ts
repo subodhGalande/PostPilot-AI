@@ -3,6 +3,7 @@ import { signTokenJose } from "@/lib/auth/jwtjose";
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import prisma from "@/lib/prisma";
+import { renderVerificationEmailHtml } from "@/lib/auth/email-template";
 import { signupSchema } from "@/lib/validations/auth";
 import { csrfErrorResponse, validateCsrf } from "@/lib/csrf";
 import aj from "@/lib/arcjet";
@@ -21,7 +22,7 @@ const protect = aj.withRule(
     rateLimit: {
       mode: "LIVE",
       interval: "15m",
-      max: 3,
+      max: 10,
     },
   }),
 );
@@ -76,7 +77,7 @@ export async function POST(req: Request) {
     const passwordHash = await hashPassword(password);
 
     await prisma.verificationToken.deleteMany({
-      where: { email, expiresAt: { lt: new Date() } },
+      where: { email },
     });
 
     const token = await signTokenJose({ email, name });
@@ -95,15 +96,10 @@ export async function POST(req: Request) {
     const verifyUrl = `${process.env.APP_URL}/api/auth/verify?token=${token}`;
 
     await transporter.sendMail({
-      from: `"PostPilot AI " ${process.env.SMTP_VERIFIED_SENDER_MAIL}`,
+      from: `"PostPilot AI" <${process.env.SMTP_VERIFIED_SENDER_MAIL}>`,
       to: email,
-      subject: "verify your email - PostPilot AI",
-      html: `
-        <h2>Hi ${name},</h2>
-        <p>Thanks for signing up! Please verify your email by clicking below:</p>
-        <a href="${verifyUrl}">${verifyUrl}</a>
-        <p>This link will expire in 15 minutes.</p>
-      `,
+      subject: "Verify your email",
+      html: renderVerificationEmailHtml({ name, verifyUrl }),
     });
 
     return NextResponse.json(
