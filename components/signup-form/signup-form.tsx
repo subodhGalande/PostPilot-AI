@@ -46,7 +46,7 @@ export function SignupForm({
   return (
     <div
       className={cn(
-        "bg-card/40 border border-white/5 backdrop-blur-2xl shadow-2xl rounded-3xl p-8 sm:p-10 flex flex-col gap-4 relative overflow-hidden",
+        "bg-card/40 border border-white/5 backdrop-blur-2xl shadow-2xl rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 flex flex-col gap-4 relative overflow-hidden",
         className,
       )}
       {...props}
@@ -61,18 +61,18 @@ export function SignupForm({
         className="relative z-10"
       >
         <FieldGroup>
-          <div className="flex flex-col items-center gap-2 text-center">
+          <div className="flex flex-col items-center gap-1.5 sm:gap-2 text-center">
             <Link
               href="/"
-              className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground mb-4 shadow-sm hover:scale-105 transition-transform"
+              className="flex size-10 sm:size-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground mb-2 sm:mb-4 shadow-sm hover:scale-105 transition-transform"
             >
-              <Icons.logo className="size-6" />
+              <Icons.logo className="size-5 sm:size-6" />
               <span className="sr-only">PostPilot</span>
             </Link>
-            <h1 className="text-3xl font-medium tracking-tight text-foreground mt-2">
+            <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-foreground mt-1 sm:mt-2">
               Create your account
             </h1>
-            <FieldDescription className="text-base text-muted-foreground">
+            <FieldDescription className="text-sm sm:text-base text-muted-foreground">
               Already have an account?{" "}
               <Link
                 href="/login"
@@ -85,17 +85,17 @@ export function SignupForm({
           <Field className="gap-2 mt-1">
             <Button
               asChild
-              className="w-full h-12 rounded-xl active:scale-[0.98] transition-transform bg-[#09090B] hover:bg-white/5 text-foreground border border-white/10 font-medium"
+              className="w-full h-11 sm:h-12 rounded-xl active:scale-[0.98] transition-transform bg-[#09090B] hover:bg-white/5 text-foreground border border-white/10 font-medium text-sm sm:text-base"
             >
               <a href="/api/auth/google">
-                <Icons.google className="size-5 mr-3" />
+                <Icons.google className="size-4 sm:size-5 mr-2 sm:mr-3" />
                 Continue with Google
               </a>
             </Button>
           </Field>
 
           <FieldSeparator>Or</FieldSeparator>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <Controller
               name="firstName"
               control={form.control}
@@ -109,7 +109,7 @@ export function SignupForm({
                     aria-invalid={fieldState.invalid}
                     placeholder="First"
                     disabled={isPending}
-                    className="h-12 rounded-xl bg-[#09090B] border-white/10 focus-visible:ring-4 focus-visible:ring-primary/10 transition-all"
+                    className="h-11 sm:h-12 rounded-xl bg-[#09090B] border-white/10 focus-visible:ring-4 focus-visible:ring-primary/10 transition-all text-sm sm:text-base"
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
@@ -130,7 +130,7 @@ export function SignupForm({
                     aria-invalid={fieldState.invalid}
                     placeholder="Last"
                     disabled={isPending}
-                    className="h-12 rounded-xl bg-[#09090B] border-white/10 focus-visible:ring-4 focus-visible:ring-primary/10 transition-all"
+                    className="h-11 sm:h-12 rounded-xl bg-[#09090B] border-white/10 focus-visible:ring-4 focus-visible:ring-primary/10 transition-all text-sm sm:text-base"
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
@@ -152,7 +152,7 @@ export function SignupForm({
                   aria-invalid={fieldState.invalid}
                   placeholder="Enter email"
                   disabled={isPending}
-                  className="h-12 rounded-xl bg-[#09090B] border-white/10 focus-visible:ring-4 focus-visible:ring-primary/10 transition-all"
+                  className="h-11 sm:h-12 rounded-xl bg-[#09090B] border-white/10 focus-visible:ring-4 focus-visible:ring-primary/10 transition-all text-sm sm:text-base"
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -173,7 +173,7 @@ export function SignupForm({
                   aria-invalid={fieldState.invalid}
                   placeholder="Create password"
                   disabled={isPending}
-                  className="h-12 rounded-xl bg-[#09090B] border-white/10 focus-visible:ring-4 focus-visible:ring-primary/10 transition-all"
+                  className="h-11 sm:h-12 rounded-xl bg-[#09090B] border-white/10 focus-visible:ring-4 focus-visible:ring-primary/10 transition-all text-sm sm:text-base"
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -185,7 +185,7 @@ export function SignupForm({
             <Button
               type="submit"
               disabled={isPending}
-              className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-[0_0_20px_rgba(0,71,255,0.15)] transition-all"
+              className="w-full h-11 sm:h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-[0_0_20px_rgba(0,71,255,0.15)] transition-all text-sm sm:text-base"
             >
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sign up

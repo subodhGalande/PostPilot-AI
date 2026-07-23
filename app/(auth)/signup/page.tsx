@@ -7,7 +7,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-[100dvh] grid grid-cols-1 lg:grid-cols-5 bg-background text-foreground relative overflow-hidden">
       {/* Left Panel (Form) */}
-      <div className="relative flex flex-col items-center justify-center p-4 md:p-8 lg:col-span-2">
+      <div className="relative flex flex-col items-center justify-center px-4 py-8 sm:p-8 lg:col-span-2">
         {/* Aurora Background (Constrained to left side) */}
         <div
           className="absolute inset-0 z-0 overflow-hidden pointer-events-none"
@@ -28,7 +28,7 @@ export default function SignupPage() {
           />
         </div>
 
-        <div className="w-full max-w-md relative z-10 mt-12 md:mt-0">
+        <div className="w-full max-w-md relative z-10">
           <Suspense fallback={null}>
             <SignupForm />
           </Suspense>

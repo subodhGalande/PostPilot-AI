@@ -11,6 +11,7 @@ import ThemeProvider from "@/lib/providers/themeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { AppTooltipProvider } from "@/lib/providers/tooltipProvider";
 import NextTopLoader from "nextjs-toploader";
+import { Analytics } from "@vercel/analytics/next"
 
 const fontSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -64,6 +65,7 @@ export default function RootLayout({
             <Toaster closeButton richColors={true} position="top-center" />
           </ThemeProvider>
         </AppTooltipProvider>
+        <Analytics/>
       </body>
     </html>
   );
