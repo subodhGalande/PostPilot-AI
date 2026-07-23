@@ -83,6 +83,9 @@ describe("POST /api/auth/signup", () => {
     const data = await res.json();
     expect(data.message).toBe("verification email sent");
 
+    expect(prismaMock.verificationToken.deleteMany).toHaveBeenCalledWith({
+      where: { email: "test@example.com" },
+    });
     expect(prismaMock.verificationToken.create).toHaveBeenCalled();
   });
 });
